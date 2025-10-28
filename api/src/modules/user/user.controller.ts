@@ -1,0 +1,32 @@
+import { Body, Controller, Delete, HttpCode, HttpStatus, Patch, Post } from "@nestjs/common";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { Public } from "../../common/decorators/is-public.decorator";
+import { GetUser } from "../../common/decorators/get-user.decorator";
+import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
+import { UserService } from "./user.service";
+
+@Controller("user")
+export class UserController {
+    constructor(private readonly userService: UserService) {}
+
+    @Public()
+    @Post()
+    @HttpCode(HttpStatus.CREATED)
+    async create(@Body() createUserDto: CreateUserDto): Promise<void> {
+        return this.userService.createByController(createUserDto);
+    }
+
+    @Patch()
+    @HttpCode(HttpStatus.OK)
+    async update(@GetUser() user: LoggedUserInterface, @Body() updateUserDto: UpdateUserDto): Promise<void> {
+        return this.userService.updateByController(user.id, updateUserDto);
+    }
+
+    @Delete()
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async delete(@GetUser() user: LoggedUserInterface): Promise<void> {
+        return this.userService.deleteByController(user.id);
+    }
+}
+
