@@ -59,6 +59,7 @@ export function encryptValue(value: string): string {
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
     let encrypted = cipher.update(value, "utf8", "hex");
+
     encrypted += cipher.final("hex");
 
     return `${iv.toString("hex")}:${encrypted}`;
@@ -71,6 +72,7 @@ export function decryptValue(value: string): string {
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
 
     let decrypted = decipher.update(encrypted, "hex", "utf8");
+
     decrypted += decipher.final("utf8");
 
     return decrypted;

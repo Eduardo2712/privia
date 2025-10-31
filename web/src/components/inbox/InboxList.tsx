@@ -47,7 +47,7 @@ export default function InboxList({ isLoading, messages, selectedId, showMessage
         }
     };
 
-    const channelIcon = (channel: components["schemas"]["MessageTypeEnumInterface"]) => {
+    const channelIcon = (channel: unknown) => {
         const base = "h-4 w-4";
 
         switch (channel) {
