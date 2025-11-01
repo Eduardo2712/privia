@@ -2,7 +2,7 @@ import { IsInt, IsNotEmpty, IsString, Max, MaxLength, Min, MinLength, Validate, 
 import { passwordRegex } from "../../../common/utils/validate.util";
 import { ApiProperty } from "@nestjs/swagger";
 
-export class ResetPasswordDto {
+export class ResetPasswordRequestDto {
     @ApiProperty({ example: "password123", type: String })
     @IsString()
     @MinLength(6)
@@ -10,13 +10,13 @@ export class ResetPasswordDto {
     @IsNotEmpty()
     @Validate(
         (value: string, args: ValidationArguments) => {
-            const object = args.object as ResetPasswordDto;
+            const object = args.object as ResetPasswordRequestDto;
 
             return passwordRegex.test(value) && value === object.password;
         },
         { message: "Confirmação de senha inválida" }
     )
-    @ValidateIf((o: ResetPasswordDto) => o.step === 2)
+    @ValidateIf((o: ResetPasswordRequestDto) => o.step === 2)
     password: string;
 
     @ApiProperty({ example: "password123", type: String })
@@ -26,13 +26,13 @@ export class ResetPasswordDto {
     @MaxLength(30)
     @Validate(
         (value: string, args: ValidationArguments) => {
-            const object = args.object as ResetPasswordDto;
+            const object = args.object as ResetPasswordRequestDto;
 
             return passwordRegex.test(value) || value !== object.password;
         },
         { message: "Confirmação de senha inválida" }
     )
-    @ValidateIf((o: ResetPasswordDto) => o.step === 2)
+    @ValidateIf((o: ResetPasswordRequestDto) => o.step === 2)
     password_confirmation: string;
 
     @ApiProperty({ example: "123456", type: String })

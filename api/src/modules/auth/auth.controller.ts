@@ -2,11 +2,12 @@ import { Body, Controller, HttpCode, HttpStatus, Post, Res } from "@nestjs/commo
 import { LoginRequestDto } from "./dto/login-request.dto";
 import { AuthInterface } from "./interfaces/auth.interface";
 import { Public } from "../../common/decorators/is-public.decorator";
-import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ForgotPasswordRequestDto } from "./dto/forgot-password-request.dto";
 import { Response } from "express";
 import { AuthService } from "./auth.service";
 import { ApiOkResponse } from "@nestjs/swagger";
 import { maxAgeToken } from "../../common/utils/config.util";
+import { LoginResponseDto } from "./dto/login-response.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -15,8 +16,8 @@ export class AuthController {
     @Public()
     @Post("/login")
     @HttpCode(HttpStatus.OK)
-    @ApiOkResponse({ type: LoginRequestDto })
-    async login(@Body() loginRequestDto: LoginRequestDto, @Res({ passthrough: true }) res: Response): Promise<{ user: AuthInterface["user"] }> {
+    @ApiOkResponse({ type: LoginResponseDto })
+    async login(@Body() loginRequestDto: LoginRequestDto, @Res({ passthrough: true }) res: Response): Promise<LoginResponseDto> {
         const { token, user } = await this.authService.login(loginRequestDto);
 
         res.cookie("privia-token", token, {
@@ -45,8 +46,9 @@ export class AuthController {
     @Public()
     @Post("/forgot-password")
     @HttpCode(HttpStatus.OK)
-    public async forgot(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<void> {
-        return await this.authService.forgotPassword(forgotPasswordDto);
+    @ApiOkResponse({ type: void 0 })
+    public async forgot(@Body() forgotPasswordRequestDto: ForgotPasswordRequestDto): Promise<void> {
+        return await this.authService.forgotPassword(forgotPasswordRequestDto);
     }
 }
 

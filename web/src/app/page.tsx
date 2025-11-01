@@ -1,48 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { Globe, ArrowRight } from "lucide-react";
+import { useRef, useState } from "react";
 
 export default function HomePage() {
+    const [file, setFile] = useState<File | null>(null);
+
+    const refButton = useRef<HTMLInputElement>(null);
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-            <div className="max-w-4xl mx-auto px-4 text-center">
-                <div className="mb-8">
-                    <div className="flex items-center justify-center mb-6">
-                        <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl">
-                            <Globe className="h-12 w-12 text-white" />
-                        </div>
-                    </div>
+        <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 flex items-center justify-center text-black">
+            <input
+                type="file"
+                hidden
+                className="file-input file-input-bordered w-full max-w-xs"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                ref={refButton}
+                accept=".pdf,.doc,.docx"
+            />
 
-                    <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                        Bem-vindo ao <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Privia</span>
-                    </h1>
-
-                    <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                        Gerencie emails, mensagens e tarefas em um só lugar. Transforme o caos digital em produtividade organizada.
-                    </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <Link
-                        href="/login"
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-medium text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
-                    >
-                        <span>Começar agora</span>
-                        <ArrowRight className="h-5 w-5" />
-                    </Link>
-                    <Link
-                        href="/register"
-                        className="text-gray-600 hover:text-gray-900 font-medium text-lg transition-colors border border-gray-300 hover:border-gray-400 px-8 py-4 rounded-xl"
-                    >
-                        Criar conta
-                    </Link>
-                </div>
-
-                <div className="mt-12 text-gray-500">
-                    <p>Organize • Gerencie • Simplifique</p>
-                </div>
-            </div>
+            <button className="bg-amber-500 text-black rounded-2xl px-4 py-2 cursor-pointer" onClick={() => refButton.current?.click()}>
+                Upload de arquivo
+            </button>
         </div>
     );
 }

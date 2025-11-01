@@ -15,6 +15,7 @@ import { CommonModule } from "./common/common.module";
 import { UserModule } from "./modules/user/user.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { AiModule } from "./modules/ai/ai.module";
+import { FileModule } from './modules/file/file.module';
 
 @Module({
     imports: [
@@ -74,7 +75,8 @@ import { AiModule } from "./modules/ai/ai.module";
         CommonModule,
         UserModule,
         AuthModule,
-        AiModule
+        AiModule,
+        FileModule
     ],
     controllers: [],
     providers: [

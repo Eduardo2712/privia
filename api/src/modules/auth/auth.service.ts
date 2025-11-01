@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedE
 import { UnitOfWorkService } from "../../common/unity-of-work.service";
 import { UserService } from "../user/user.service";
 import { ForgotPasswordRepository } from "./entities/forgot-password.repository";
-import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ForgotPasswordRequestDto } from "./dto/forgot-password-request.dto";
 import { generateValidationCode } from "../../common/utils/functions.util";
 import { LoginRequestDto } from "./dto/login-request.dto";
 import { AuthInterface } from "./interfaces/auth.interface";
@@ -18,9 +18,9 @@ export class AuthService {
         private readonly jwtService: JwtService
     ) {}
 
-    public async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {
+    public async forgotPassword(forgotPasswordRequestDto: ForgotPasswordRequestDto): Promise<void> {
         await this.unitOfWork.withTransaction(async () => {
-            const user = await this.userService.findOneByEmail(forgotPasswordDto.email);
+            const user = await this.userService.findOneByEmail(forgotPasswordRequestDto.email);
 
             if (!user) {
                 throw new NotFoundException("Usuário não encontrado");
