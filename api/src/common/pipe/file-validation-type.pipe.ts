@@ -1,16 +1,16 @@
 import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from "@nestjs/common";
 
 @Injectable()
-export class FileSizeValidationPipe implements PipeTransform {
+export class FileTypeValidationPipe implements PipeTransform {
     transform(value: Express.Multer.File, metadata: ArgumentMetadata) {
         if (!value) {
             throw new BadRequestException("Nenhum arquivo fornecido.");
         }
 
-        const maxBytes = 5 * 1024 * 1024;
+        const allowedTypes = ["image/jpeg", "image/png", "text/plain", "application/pdf"];
 
-        if (value.size > maxBytes) {
-            throw new BadRequestException(`Arquivo muito grande. O tamanho máximo permitido é ${Math.round(maxBytes / (1024 * 1024))}MB`);
+        if (!allowedTypes.includes(value.mimetype)) {
+            throw new BadRequestException(`Tipo de arquivo não suportado: ${value.mimetype}`);
         }
 
         return value;

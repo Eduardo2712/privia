@@ -17,11 +17,15 @@ export interface AIGenerateResponseInterface {
 export interface AIGenerateFormInterface {
     model: string;
     prompt: string;
-    stream: boolean;
+    stream?: boolean;
     format?: {
         type: string;
         properties: Record<string, { type: string; items?: any }>;
         required: string[];
     };
+}
+
+export interface AIEmbeddingResponseInterface {
+    embedding: number[];
 }
 

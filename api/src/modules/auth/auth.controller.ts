@@ -47,7 +47,7 @@ export class AuthController {
     @Post("/forgot-password")
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse({ type: void 0 })
-    public async forgot(@Body() forgotPasswordRequestDto: ForgotPasswordRequestDto): Promise<void> {
+    async forgot(@Body() forgotPasswordRequestDto: ForgotPasswordRequestDto): Promise<void> {
         return await this.authService.forgotPassword(forgotPasswordRequestDto);
     }
 }

@@ -4,70 +4,6 @@
  */
 
 export interface paths {
-    "/api/message/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["MessageController_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/message/{id}/read": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["MessageController_read"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/email/{id}/reply": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["EmailController_reply"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/email/send": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["EmailController_send"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/user": {
         parameters: {
             query?: never;
@@ -84,22 +20,6 @@ export interface paths {
         patch: operations["UserController_update"];
         trace?: never;
     };
-    "/api/user/{userId}/email": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["UserEmailController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/auth/login": {
         parameters: {
             query?: never;
@@ -110,6 +30,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_logout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -132,131 +68,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/file/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FileController_uploadFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** @enum {string} */
-        MessageTypeEnumInterface: "EMAIL" | "TELEGRAM";
-        MessageResponseEmailAttachmentDto: {
-            /** @example invoice.pdf */
-            filename?: string | null;
-            /** @example application/pdf */
-            contentType?: string | null;
-            /** @example 102400 */
-            size?: number | null;
-            /**
-             * Format: byte
-             * @example JVBERi0xLjQKJcTl8uXrp...
-             */
-            content: string;
-        };
-        MessageResponseEmailDataDto: {
-            /** @example 123 */
-            uid: number;
-            /** @example alice@example.com */
-            from: string;
-            /** @example [
-             *       "bob@example.com",
-             *       "carol@example.com"
-             *     ] */
-            to: string[];
-            /** @example Meeting reminder */
-            subject: string;
-            /**
-             * Format: date-time
-             * @example 2023-01-01T12:00:00.000Z
-             */
-            date: string;
-            /** @example [
-             *       "\\Seen",
-             *       "\\Flagged"
-             *     ] */
-            flags: string[];
-            /** @example {
-             *       "message-id": [
-             *         "<id@example.com>"
-             *       ],
-             *       "x-priority": "high"
-             *     } */
-            headers: Record<string, never>;
-            /** @example Plain text body */
-            text?: string | null;
-            /** @example <p>HTML body</p> */
-            html?: string | null;
-            /** @example [] */
-            attachments: components["schemas"]["MessageResponseEmailAttachmentDto"][];
-            /** @example INBOX */
-            mailbox: string;
-        };
-        MessageResponseEmailDto: {
-            /** @example 1 */
-            id: number;
-            /** @example 1 */
-            uid: number;
-            /** @example {} */
-            data: components["schemas"]["MessageResponseEmailDataDto"];
-        };
-        MessageResponseDto: {
-            /** @example 1 */
-            id: number;
-            /** @example 1 */
-            userId: number;
-            /** @example EMAIL */
-            type: components["schemas"]["MessageTypeEnumInterface"];
-            /**
-             * Format: date-time
-             * @example 2023-01-01T12:00:00.000Z
-             */
-            readAt: string | null;
-            /**
-             * Format: date-time
-             * @example 2023-01-01T12:00:00.000Z
-             */
-            dateLastMessage: string;
-            /** @example false */
-            starred: boolean;
-            /** @example John Doe */
-            from: string;
-            /** @example {} */
-            email: components["schemas"]["MessageResponseEmailDto"];
-            /**
-             * Format: date-time
-             * @example 2023-01-01T00:00:00.000Z
-             */
-            createdAt: string;
-            /**
-             * Format: date-time
-             * @example 2023-01-01T00:00:00.000Z
-             */
-            updatedAt: string;
-            /**
-             * Format: date-time
-             * @example null
-             */
-            deletedAt?: string | null;
-        };
-        ListMessageResponseDto: {
-            items: components["schemas"]["MessageResponseDto"][];
-            /** @example 10 */
-            total: number;
-        };
-        ReplyEmailDto: {
-            /** @example Re: Assunto do Email */
-            title: string;
-            /** @example Olá, este é o corpo do email. */
-            body: string;
-        };
-        SendEmailDto: {
-            /** @example Assunto do Email */
-            title: string;
-            /** @example Olá, este é o corpo do email. */
-            body: string;
-            /** @example user@email.com */
-            to: string;
-            /** @example 1 */
-            userEmailId: number;
-        };
         CreateUserDto: {
             /** @example John Doe */
             name: string;
@@ -287,9 +118,22 @@ export interface components {
             /** @example password123 */
             password: string;
         };
-        ForgotPasswordDto: {
+        UserLoginResponseDto: {
             /** @example user@email.com */
             email: string;
+            /** @example John Doe */
+            name: string;
+        };
+        LoginResponseDto: {
+            user: components["schemas"]["UserLoginResponseDto"];
+        };
+        ForgotPasswordRequestDto: {
+            /** @example user@email.com */
+            email: string;
+        };
+        UploadFileRequestDto: {
+            /** Format: binary */
+            file: string;
         };
     };
     responses: never;
@@ -300,93 +144,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    MessageController_list: {
-        parameters: {
-            query: {
-                page: number;
-                search: string;
-                pageSize?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListMessageResponseDto"];
-                };
-            };
-        };
-    };
-    MessageController_read: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    EmailController_reply: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReplyEmailDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    EmailController_send: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SendEmailDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     UserController_create: {
         parameters: {
             query?: never;
@@ -446,25 +203,6 @@ export interface operations {
             };
         };
     };
-    UserEmailController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     AuthController_login: {
         parameters: {
             query?: never;
@@ -483,8 +221,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LoginRequestDto"];
+                    "application/json": components["schemas"]["LoginResponseDto"];
                 };
+            };
+        };
+    };
+    AuthController_logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -497,7 +252,28 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ForgotPasswordDto"];
+                "application/json": components["schemas"]["ForgotPasswordRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FileController_uploadFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["UploadFileRequestDto"];
             };
         };
         responses: {
