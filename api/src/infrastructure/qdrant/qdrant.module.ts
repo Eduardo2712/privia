@@ -6,3 +6,4 @@ import { QdrantService } from "./qdrant.service";
     exports: [QdrantService]
 })
 export class QdrantModule {}
+

@@ -64,6 +64,7 @@ export class QdrantService {
                 typeof (r as unknown as { payload?: { text?: unknown } }).payload?.text === "string"
                     ? ((r as unknown as { payload?: { text?: string } }).payload!.text as string)
                     : "";
+
             return {
                 score: r.score,
                 text

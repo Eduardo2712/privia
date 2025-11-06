@@ -5,6 +5,7 @@ interface UseRequestOptions<T> {
     request?: (config?: AxiosRequestConfig) => Promise<{ data: T }>;
     onSuccess?: (data: T) => void;
     onError?: (error: AxiosError) => void;
+    onFinally?: () => void;
 }
 
 interface UseRequestReturn<T> {
@@ -35,6 +36,7 @@ export function useRequest<T>(options: UseRequestOptions<T>): UseRequestReturn<T
                 setError(axiosError);
                 options.onError?.(axiosError);
             } finally {
+                options.onFinally?.();
                 setLoading(false);
             }
         },

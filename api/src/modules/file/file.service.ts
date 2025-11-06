@@ -54,5 +54,7 @@ export class FileService {
             }))
         );
     }
+
+    public async search(): Promise<void> {}
 }
 

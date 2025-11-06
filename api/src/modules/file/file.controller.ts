@@ -22,5 +22,11 @@ export class FileController {
     async uploadFile(@UploadedFile(new FileSizeValidationPipe(), new FileTypeValidationPipe()) file: Express.Multer.File): Promise<void> {
         return await this.fileService.uploadFile(file);
     }
+
+    @Public()
+    @Post("/search")
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse({ type: void 0 })
+    async searchFile(): Promise<void> {}
 }
 
