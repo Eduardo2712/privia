@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import { AiService } from "../ai/ai.service";
 import { QdrantService } from "../../infrastructure/qdrant/qdrant.service";
+import { SearchFileRequestDto } from "./dto/search-file-request.dto";
 
 @Injectable()
 export class FileService {
@@ -55,6 +56,8 @@ export class FileService {
         );
     }
 
-    public async search(): Promise<void> {}
+    public async searchFile(searchFileDto: SearchFileRequestDto): Promise<string> {
+        return "";
+    }
 }
 
