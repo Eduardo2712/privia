@@ -68,7 +68,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/file/upload": {
+    "/api/file/read": {
         parameters: {
             query?: never;
             header?: never;
@@ -77,7 +77,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["FileController_uploadFile"];
+        post: operations["FileController_readFile"];
         delete?: never;
         options?: never;
         head?: never;
@@ -288,7 +288,7 @@ export interface operations {
             };
         };
     };
-    FileController_uploadFile: {
+    FileController_readFile: {
         parameters: {
             query?: never;
             header?: never;

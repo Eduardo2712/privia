@@ -15,14 +15,14 @@ export class FileController {
     constructor(private readonly fileService: FileService) {}
 
     @Public()
-    @Post("/upload")
+    @Post("/read")
     @HttpCode(HttpStatus.OK)
     @UseInterceptors(FileInterceptor("file"))
     @ApiConsumes("multipart/form-data")
     @ApiBody({ type: UploadFileRequestDto })
     @ApiOkResponse({ type: void 0 })
-    async uploadFile(@UploadedFile(new FileSizeValidationPipe(), new FileTypeValidationPipe()) file: Express.Multer.File): Promise<void> {
-        return await this.fileService.uploadFile(file);
+    async readFile(@UploadedFile(new FileSizeValidationPipe(), new FileTypeValidationPipe()) file: Express.Multer.File): Promise<void> {
+        return await this.fileService.readFile(file);
     }
 
     @Public()

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRequest } from "../hooks/use-request.hook";
-import { searchFile, uploadFile } from "../requests/file.request";
+import { searchFile, readFile } from "../requests/file.request";
 import toast from "react-hot-toast";
 import { AxiosRequestConfig } from "axios";
 import { LoaderCircle } from "lucide-react";
@@ -14,7 +14,7 @@ export default function HomePage() {
     const [searchResults, setSearchResults] = useState<components["schemas"]["SearchFileResponseDto"] | null>(null);
 
     const { execute, loading } = useRequest({
-        request: (config?: AxiosRequestConfig) => uploadFile(config?.data),
+        request: (config?: AxiosRequestConfig) => readFile(config?.data),
         onSuccess: () => toast.success("Arquivo enviado com sucesso!"),
         onError: () => toast.error("Erro ao enviar arquivo."),
         onFinally: () => setFile(null),
@@ -76,7 +76,7 @@ export default function HomePage() {
             </button>
 
             <textarea
-                className="p-2 border border-gray-300 rounded w-full max-w-md"
+                className="p-2 border border-gray-300 rounded w-full max-w-md bg-white"
                 placeholder="Digite o texto para busca..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}

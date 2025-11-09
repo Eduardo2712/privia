@@ -16,7 +16,7 @@ export class BaseAiService {
         return this.configService.get<string>("AI_URL") as string;
     }
 
-    protected async generateEmbedding(form: Omit<AIGenerateFormInterface, "model">): Promise<number[]> {
+    protected async sendEmbedding(form: Omit<AIGenerateFormInterface, "model">): Promise<number[]> {
         const url = `${this.getUrlBase()}/embeddings`;
 
         const text = form.prompt;
@@ -65,12 +65,12 @@ export class BaseAiService {
         }
     }
 
-    public async generateResponse(prompt: string): Promise<string> {
+    public async sendPrompt(prompt: string): Promise<string> {
         const url = `${this.getUrlBase()}/generate`;
 
         const text = prompt;
         const payload: AIGenerateFormInterface = {
-            model: "llama3.2:1b",
+            model: "mistral",
             prompt: text,
             stream: false
         };
