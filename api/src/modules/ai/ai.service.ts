@@ -12,8 +12,8 @@ export class AiService extends BaseAiService {
         super(http, configService);
     }
 
-    public async generateEmbedding(text: string): Promise<number[]> {
-        const embedding = await this.generate({ prompt: text });
+    public async getEmbedding(text: string): Promise<number[]> {
+        const embedding = await this.generateEmbedding({ prompt: text });
 
         return embedding;
     }

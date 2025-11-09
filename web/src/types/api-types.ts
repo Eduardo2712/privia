@@ -155,6 +155,10 @@ export interface components {
             /** @example <search_text> */
             search: string;
         };
+        SearchFileResponseDto: {
+            /** @description The AI-generated response based on the search query */
+            response: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -323,7 +327,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": string;
+                    "application/json": components["schemas"]["SearchFileResponseDto"];
                 };
             };
         };

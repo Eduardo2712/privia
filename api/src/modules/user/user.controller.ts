@@ -5,7 +5,9 @@ import { Public } from "../../common/decorators/is-public.decorator";
 import { GetUser } from "../../common/decorators/get-user.decorator";
 import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 import { UserService } from "./user.service";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("user")
 @Controller("user")
 export class UserController {
     constructor(private readonly userService: UserService) {}

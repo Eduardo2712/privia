@@ -5,7 +5,7 @@ import { operations } from "../types/api-types";
 type UploadFileResponse = operations["FileController_uploadFile"]["responses"]["200"];
 type UploadFileRequest = operations["FileController_uploadFile"]["requestBody"]["content"]["multipart/form-data"];
 
-type SearchFileResponse = operations["FileController_searchFile"]["responses"]["200"];
+type SearchFileResponse = operations["FileController_searchFile"]["responses"]["200"]["content"]["application/json"];
 type SearchFileRequest = operations["FileController_searchFile"]["requestBody"]["content"]["application/json"];
 
 export const searchFile = async (data: SearchFileRequest): AxiosPromise<SearchFileResponse> => {

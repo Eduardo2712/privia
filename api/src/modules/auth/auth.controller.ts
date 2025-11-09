@@ -1,14 +1,14 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Res } from "@nestjs/common";
 import { LoginRequestDto } from "./dto/login-request.dto";
-import { AuthInterface } from "./interfaces/auth.interface";
 import { Public } from "../../common/decorators/is-public.decorator";
 import { ForgotPasswordRequestDto } from "./dto/forgot-password-request.dto";
 import { Response } from "express";
 import { AuthService } from "./auth.service";
-import { ApiOkResponse } from "@nestjs/swagger";
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { maxAgeToken } from "../../common/utils/config.util";
 import { LoginResponseDto } from "./dto/login-response.dto";
 
+@ApiTags("auth")
 @Controller("auth")
 export class AuthController {
     constructor(private readonly authService: AuthService) {}

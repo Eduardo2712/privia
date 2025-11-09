@@ -7,6 +7,7 @@ import { FileTypeValidationPipe } from "../../common/pipe/file-validation-type.p
 import { ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { UploadFileRequestDto } from "./dto/upload-file-request.dto";
 import { SearchFileRequestDto } from "./dto/search-file-request.dto";
+import { SearchFileResponseDto } from "./dto/search-file-response.dto";
 
 @ApiTags("file")
 @Controller("file")
@@ -27,9 +28,9 @@ export class FileController {
     @Public()
     @Post("/search")
     @HttpCode(HttpStatus.OK)
-    @ApiOkResponse({ type: String })
-    async searchFile(@Body() searchFileDto: SearchFileRequestDto): Promise<string> {
-        return this.fileService.searchFile(searchFileDto);
+    @ApiOkResponse({ type: SearchFileResponseDto })
+    async searchFile(@Body() searchFileDto: SearchFileRequestDto): Promise<SearchFileResponseDto> {
+        return await this.fileService.searchFile(searchFileDto);
     }
 }
 

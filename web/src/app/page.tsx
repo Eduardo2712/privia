@@ -6,10 +6,12 @@ import { searchFile, uploadFile } from "../requests/file.request";
 import toast from "react-hot-toast";
 import { AxiosRequestConfig } from "axios";
 import { LoaderCircle } from "lucide-react";
+import { components } from "../types/api-types";
 
 export default function HomePage() {
     const [file, setFile] = useState<File | null>(null);
     const [searchText, setSearchText] = useState<string>("");
+    const [searchResults, setSearchResults] = useState<components["schemas"]["SearchFileResponseDto"] | null>(null);
 
     const { execute, loading } = useRequest({
         request: (config?: AxiosRequestConfig) => uploadFile(config?.data),
@@ -19,8 +21,16 @@ export default function HomePage() {
     });
 
     const { execute: searchExecute, loading: searchLoading } = useRequest({
-        request: () => searchFile({ search: searchText }),
-        onSuccess: () => toast.success("Busca realizada com sucesso!"),
+        request: () => {
+            setSearchResults(null);
+
+            return searchFile({ search: searchText });
+        },
+        onSuccess: (data) => {
+            toast.success("Busca realizada com sucesso!");
+
+            setSearchResults(data);
+        },
         onError: () => toast.error("Erro ao realizar busca."),
     });
 
@@ -75,6 +85,14 @@ export default function HomePage() {
             <button className="bg-green-500 rounded-2xl px-6 py-3 cursor-pointer text-white" onClick={handleSearch}>
                 {searchLoading ? <LoaderCircle className="animate-spin text-white" /> : "Buscar"}
             </button>
+
+            {searchResults?.response && (
+                <div className="mt-4 w-full max-w-md p-4 border border-gray-300 rounded bg-white">
+                    <h2 className="text-lg font-semibold mb-2">Resultados da Busca:</h2>
+
+                    <div className="whitespace-pre-wrap">{searchLoading ? "Carregando..." : searchResults.response}</div>
+                </div>
+            )}
         </div>
     );
 }

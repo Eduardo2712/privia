@@ -26,12 +26,32 @@ export class QdrantService {
                 await this.client.deleteCollection(name);
 
                 await this.client.createCollection(name, {
-                    vectors: { size: vectorSize, distance: "Cosine" }
+                    vectors: {
+                        size: vectorSize,
+                        distance: "Cosine"
+                    },
+                    optimizers_config: {
+                        indexing_threshold: 10000
+                    },
+                    hnsw_config: {
+                        m: 16,
+                        ef_construct: 100
+                    }
                 });
             }
         } catch {
             await this.client.createCollection(name, {
-                vectors: { size: vectorSize, distance: "Cosine" }
+                vectors: {
+                    size: vectorSize,
+                    distance: "Cosine"
+                },
+                optimizers_config: {
+                    indexing_threshold: 10000
+                },
+                hnsw_config: {
+                    m: 16,
+                    ef_construct: 100
+                }
             });
         }
     }
@@ -53,23 +73,27 @@ export class QdrantService {
         }
     }
 
-    async search(collection: string, vector: number[]): Promise<Array<{ score: number; text: string }>> {
+    async search(collection: string, vector: number[], limit = 7, scoreThreshold = 0.5): Promise<Array<{ score: number; text: string }>> {
         const result = await this.client.search(collection, {
             vector,
-            limit: 3
+            limit,
+            score_threshold: scoreThreshold,
+            with_payload: true
         });
 
-        return result.map((r) => {
-            const text: string =
-                typeof (r as unknown as { payload?: { text?: unknown } }).payload?.text === "string"
-                    ? ((r as unknown as { payload?: { text?: string } }).payload!.text as string)
-                    : "";
+        return result
+            .filter((r) => r.score >= scoreThreshold)
+            .map((r) => {
+                const text: string =
+                    typeof (r as unknown as { payload?: { text?: unknown } }).payload?.text === "string"
+                        ? ((r as unknown as { payload?: { text?: string } }).payload!.text as string)
+                        : "";
 
-            return {
-                score: r.score,
-                text
-            };
-        });
+                return {
+                    score: r.score,
+                    text
+                };
+            });
     }
 }
 
