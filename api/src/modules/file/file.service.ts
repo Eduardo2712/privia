@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { randomUUID } from "node:crypto";
 import { AiService } from "../ai/ai.service";
 import { QdrantService } from "../../infrastructure/qdrant/qdrant.service";
 import { SearchFileRequestDto } from "./dto/search-file-request.dto";
@@ -52,7 +51,10 @@ export class FileService extends BaseFileService {
         const topResults = rankedResults.slice(0, 5);
 
         const combinedText = topResults
-            .map((result, idx) => `[Trecho ${idx + 1}] (Relevância: ${(result.score * 100).toFixed(1)}%)\n${result.text}`)
+            .map((result, idx) => {
+                const marker = `C${typeof (result as any).chunkIndex === "number" ? (result as any).chunkIndex : idx}`;
+                return `[${marker}] (Relevância: ${(result.score * 100).toFixed(1)}%)\n${result.text}`;
+            })
             .join("\n\n---\n\n");
 
         const aiResponse = await this.aiService.generateResponse(combinedText, searchFileDto.search);

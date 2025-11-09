@@ -5,7 +5,7 @@ import { cleanSentences } from "../../common/utils/functions.util";
 export class BaseFileService {
     constructor() {}
 
-    protected chunkTextSmartRobust(rawText: string, maxLength = 1000, overlap = 150): string[] {
+    protected chunkTextSmartRobust(rawText: string, maxLength = 300, overlap = 30): string[] {
         if (!rawText) {
             return [];
         }

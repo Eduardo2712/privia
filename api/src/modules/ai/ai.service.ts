@@ -20,8 +20,8 @@ export class AiService extends BaseAiService {
 
     public async generateResponse(prompt: string, search: string): Promise<string> {
         return await this.sendPrompt(
-            `Você é um assistente que analisa documentos técnicos.  
-            Use SOMENTE as informações dos trechos abaixo para responder à consulta.  
+            `Você é um assistente que analisa documentos técnicos.
+            Use SOMENTE as informações dos trechos abaixo para responder à consulta. Cite os identificadores entre colchetes (ex.: [C12]).
             Não invente nada e não use conhecimento externo.
 
             Trechos (ordenados por relevância):
@@ -33,10 +33,8 @@ export class AiService extends BaseAiService {
             Instruções:
             1. Responda em português, de forma clara e objetiva.
             2. Baseie-se apenas nos trechos fornecidos.
-            3. Se possível, cite o número do trecho onde encontrou a informação (ex: [1]).
-            4. Se não houver dados suficientes, diga apenas: "Não há informações suficientes nos trechos fornecidos."
-
-            Resposta:`
+            3. Sempre cite os trechos de onde retirou a informação usando os identificadores [C#]. (Ex.: [C2][C5])
+            4. Se a resposta depender de conhecimento externo ou não houver dados suficientes, responda exatamente: "Não há informações suficientes nos trechos fornecidos."Resposta:`
         );
     }
 }

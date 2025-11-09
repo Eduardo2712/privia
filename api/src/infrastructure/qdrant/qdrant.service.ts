@@ -1,11 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { QdrantClient } from "@qdrant/js-client-rest";
-
-type UpsertPoint = {
-    id: number | string;
-    vector: number[] | Record<string, number[]>;
-    payload?: Record<string, unknown>;
-};
+import { UpsertPointInterface } from "./interfaces/qdrant.interface";
 
 @Injectable()
 export class QdrantService {
@@ -56,7 +51,7 @@ export class QdrantService {
         }
     }
 
-    async saveVectors(collection: string, points: UpsertPoint[]): Promise<void> {
+    async saveVectors(collection: string, points: UpsertPointInterface[]): Promise<void> {
         const batchSize = 100;
 
         for (let i = 0; i < points.length; i += batchSize) {

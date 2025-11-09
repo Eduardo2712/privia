@@ -21,7 +21,7 @@ export class BaseAiService {
 
         const text = form.prompt;
         const payload: AIGenerateFormInterface = {
-            model: "bge-m3",
+            model: "nomic-embed-text",
             prompt: text,
             stream: false
         };
@@ -70,7 +70,7 @@ export class BaseAiService {
 
         const text = prompt;
         const payload: AIGenerateFormInterface = {
-            model: "mistral",
+            model: "phi3:mini",
             prompt: text,
             stream: false
         };
