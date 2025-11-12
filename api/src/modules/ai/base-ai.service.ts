@@ -20,8 +20,9 @@ export class BaseAiService {
         const url = `${this.getUrlBase()}/embeddings`;
 
         const text = form.prompt;
+        const embeddingModel = this.configService.get<string>("AI_EMBEDDING_MODEL") as string;
         const payload: AIGenerateFormInterface = {
-            model: "nomic-embed-text",
+            model: embeddingModel,
             prompt: text,
             stream: false
         };
@@ -69,10 +70,18 @@ export class BaseAiService {
         const url = `${this.getUrlBase()}/generate`;
 
         const text = prompt;
+        const model = this.configService.get<string>("AI_MODEL") as string;
         const payload: AIGenerateFormInterface = {
-            model: "phi3:mini",
+            model,
             prompt: text,
-            stream: false
+            stream: false,
+            options: {
+                temperature: 0.2,
+                top_p: 0.9,
+                top_k: 40,
+                num_predict: 400,
+                num_ctx: 2048
+            }
         };
 
         try {

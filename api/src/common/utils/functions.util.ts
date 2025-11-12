@@ -81,13 +81,23 @@ export const decryptValue = (value: string): string => {
 export const cleanSentences = (text: string): string[] => {
     let aux = text.replace(/^\uFEFF/, "").trim();
 
-    aux = aux.replaceAll(/\r\n/g, "\n");
-    aux = aux.replaceAll(/\n?\s*-{3,}\s*\n?/g, "\n\n\n\n");
+    aux = aux.replaceAll("\r\n", "\n");
+
+    aux = aux.replaceAll(/[ \t]+/g, " ");
+
+    aux = aux.replaceAll(/\n?\s*-{3,}\s*\n?/g, "\n\n");
+
     aux = aux.replaceAll(/\n{3,}/g, "\n\n");
 
-    return aux.match(/[^.!?]+[.!?]+[\])'"`'"]*|.+/g) || [text];
+    aux = aux
+        .split("\n")
+        .map((line) => line.trim())
+        .join("\n");
+
+    return aux.match(/[^.!?]+[.!?]+[\])"`']*|.+/g) || [text];
 };
 
 export const calcHash = (text: string): string => {
     return crypto.createHash("sha256").update(text.trim().toLowerCase()).digest("hex");
 };
+

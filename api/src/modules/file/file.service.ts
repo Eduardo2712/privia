@@ -43,19 +43,10 @@ export class FileService extends BaseFileService {
         const searchResults = await this.qdrantService.search("files", queryEmbedding);
 
         if (searchResults.length === 0) {
-            return { response: "Nenhum trecho relevante encontrado para a consulta fornecida." };
+            return { response: "A informação solicitada não foi encontrada nos documentos fornecidos." };
         }
 
-        const rankedResults = this.rerankResults(searchResults);
-
-        const topResults = rankedResults.slice(0, 5);
-
-        const combinedText = topResults
-            .map((result, idx) => {
-                const marker = `C${typeof (result as any).chunkIndex === "number" ? (result as any).chunkIndex : idx}`;
-                return `[${marker}] (Relevância: ${(result.score * 100).toFixed(1)}%)\n${result.text}`;
-            })
-            .join("\n\n---\n\n");
+        const combinedText = searchResults.map((r) => r.text).join("\n\n");
 
         const aiResponse = await this.aiService.generateResponse(combinedText, searchFileDto.search);
 

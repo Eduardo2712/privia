@@ -5,7 +5,7 @@ import { cleanSentences } from "../../common/utils/functions.util";
 export class BaseFileService {
     constructor() {}
 
-    protected chunkTextSmartRobust(rawText: string, maxLength = 300, overlap = 30): string[] {
+    protected chunkTextSmartRobust(rawText: string, maxLength = 300, overlap = 50): string[] {
         if (!rawText) {
             return [];
         }
@@ -66,7 +66,7 @@ export class BaseFileService {
             chunks.push(currentChunk.trim());
         }
 
-        return chunks.filter((c) => c && c.trim().length > 20);
+        return chunks.filter((c) => c && c.trim().length > 50);
     }
 
     protected rerankResults(results: Array<{ score: number; text: string }>): Array<{ score: number; text: string }> {

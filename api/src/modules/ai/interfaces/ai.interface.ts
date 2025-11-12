@@ -23,6 +23,13 @@ export interface AIGenerateFormInterface {
         properties: Record<string, { type: string; items?: any }>;
         required: string[];
     };
+    options?: {
+        temperature?: number;
+        top_p?: number;
+        top_k?: number;
+        num_predict?: number;
+        num_ctx?: number;
+    };
 }
 
 export interface AIEmbeddingResponseInterface {

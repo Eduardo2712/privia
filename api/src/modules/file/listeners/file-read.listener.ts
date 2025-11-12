@@ -15,48 +15,75 @@ export class FileReadListener {
     @OnEvent("file.read")
     async handle(event: FileReadEvent): Promise<void> {
         console.log("FileReadListener: Evento 'file.read' recebido. Processando...");
-        const BATCH_SIZE = 5;
-        const embeddings: number[][] = [];
 
         const chunks = event.chunks;
         const file = event.file;
 
-        for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
-            const batch = chunks.slice(i, i + BATCH_SIZE);
-
-            const batchEmbeddings = await Promise.all(
-                batch.map(async (chunk) => {
-                    return await this.aiService.getEmbedding(chunk);
-                })
-            );
-
-            embeddings.push(...batchEmbeddings);
+        if (!chunks || chunks.length === 0) {
+            console.log("FileReadListener: Nenhum chunk para processar.");
+            return;
         }
 
-        if (!embeddings[0] || embeddings[0].length === 0) {
+        const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY));
+
+        const firstEmbedding = await this.aiService.getEmbedding(chunks[0]);
+
+        if (!firstEmbedding || firstEmbedding.length === 0) {
             throw new Error("Dimensão do embedding inválida (0). Abortando persistência no Qdrant.");
         }
 
-        await this.qdrantService.ensureCollection("files", embeddings[0].length);
+        await this.qdrantService.ensureCollection("files", firstEmbedding.length);
 
-        await this.qdrantService.saveVectors(
-            "files",
-            embeddings.map((embedding, index) => ({
+        const makePoint = (embedding: number[], index: number) => {
+            const text = chunks[index];
+            const words = text.split(/\s+/).filter((w) => w.length > 0);
+
+            const keywords = words
+                .filter((w) => w.length >= 4)
+                .map((w) => w.toLowerCase().replaceAll(/[^\w]/g, ""))
+                .filter((w) => w.length >= 4);
+
+            return {
                 id: randomUUID(),
                 vector: embedding,
                 payload: {
-                    text: chunks[index],
+                    text: text,
                     fileId: file.filename,
                     fileName: file.originalname,
                     chunkIndex: index,
                     totalChunks: chunks.length,
                     timestamp: new Date().toISOString(),
-                    textLength: chunks[index].length
+                    textLength: text.length,
+                    wordCount: words.length,
+                    keywords: Array.from(new Set(keywords)).slice(0, 10),
+                    hasNumbers: /\d/.test(text),
+                    hasBulletPoints: /^[\s-•*]\s/m.test(text),
+                    sentenceCount: (text.match(/[.!?]+/g) || []).length
                 }
-            }))
-        );
+            };
+        };
 
-        console.log(`FileReadListener: Processamento concluído. ${embeddings.length} embeddings salvos no Qdrant.`);
+        await this.qdrantService.saveVectors("files", [makePoint(firstEmbedding, 0)]);
+
+        const total = chunks.length;
+        let processed = 1;
+
+        for (let i = 1; i < total; i += CONCURRENCY) {
+            const batchStart = i;
+            const batchEnd = Math.min(i + CONCURRENCY, total);
+            const batch = chunks.slice(batchStart, batchEnd);
+
+            const batchEmbeddings = await Promise.all(batch.map(async (chunk) => this.aiService.getEmbedding(chunk)));
+
+            const points = batchEmbeddings.map((embedding, offset) => makePoint(embedding, batchStart + offset));
+
+            await this.qdrantService.saveVectors("files", points);
+
+            processed += points.length;
+            console.log(`FileReadListener: ${processed}/${total} embeddings salvos no Qdrant...`);
+        }
+
+        console.log(`FileReadListener: Processamento concluído. ${total} embeddings salvos no Qdrant.`);
     }
 }
 

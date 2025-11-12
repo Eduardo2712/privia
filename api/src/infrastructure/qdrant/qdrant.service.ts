@@ -68,12 +68,13 @@ export class QdrantService {
         }
     }
 
-    async search(collection: string, vector: number[], limit = 7, scoreThreshold = 0.5): Promise<Array<{ score: number; text: string }>> {
+    async search(collection: string, vector: number[], limit = 10, scoreThreshold = 0.5): Promise<Array<{ score: number; text: string }>> {
         const result = await this.client.search(collection, {
             vector,
             limit,
             score_threshold: scoreThreshold,
-            with_payload: true
+            with_payload: true,
+            with_vector: false
         });
 
         return result
