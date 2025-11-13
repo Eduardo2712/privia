@@ -18,12 +18,13 @@ export class AiService extends BaseAiService {
         return embedding;
     }
 
-    public async generateResponse(prompt: string, search: string): Promise<string> {
-        return await this.sendPrompt(
-            `Você é um assistente de pesquisa que analisa documentos e fornece respostas precisas.
+    public async generateResponse(chunks: Array<{ score: number; text: string }>, search: string): Promise<string> {
+        const context = chunks.map((c, i) => `Contexto ${i + 1}:\n${c.text}`).join("\n\n---\n\n");
+
+        const prompt = `Você é um assistente de pesquisa que analisa documentos e fornece respostas precisas.
 
             Trechos dos documentos:
-            ${prompt}
+            ${context}
 
             Pergunta: ${search}
 
@@ -36,8 +37,9 @@ export class AiService extends BaseAiService {
             - Use somente informações presentes nos trechos fornecidos
             - Cite trechos dos documentos referenciando-os
             - Seja direto, sem saudações ou comentários extra
-            Resposta detalhada:`.trim()
-        );
+            Resposta detalhada:`.trim();
+
+        return this.sendPrompt(prompt);
     }
 }
 

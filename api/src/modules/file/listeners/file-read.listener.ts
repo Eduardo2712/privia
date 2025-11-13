@@ -20,7 +20,6 @@ export class FileReadListener {
         const file = event.file;
 
         if (!chunks || chunks.length === 0) {
-            console.log("FileReadListener: Nenhum chunk para processar.");
             return;
         }
 

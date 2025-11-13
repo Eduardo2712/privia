@@ -19,6 +19,7 @@ export class BaseAiService {
         const url = `${this.getUrlBase()}/embeddings`;
 
         const embeddingModel = this.configService.get<string>("AI_EMBEDDING_MODEL") as string;
+
         const payload: AIGenerateFormInterface = {
             model: embeddingModel,
             prompt: form.prompt,
@@ -74,10 +75,9 @@ export class BaseAiService {
             stream: false,
             options: {
                 temperature: 0.1,
-                top_p: 0.8,
-                top_k: 40,
+                top_p: 0.85,
                 num_predict: 300,
-                num_ctx: 1024
+                num_ctx: 2048
             }
         };
 

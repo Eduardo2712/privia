@@ -1,73 +1,89 @@
 import { Injectable } from "@nestjs/common";
-import { cleanSentences } from "../../common/utils/functions.util";
+import { encode, decode } from "gpt-tokenizer";
 
 @Injectable()
 export class BaseFileService {
     constructor() {}
 
-    protected chunkTextSmartRobust(rawText: string, maxLength = 768, overlap = 50): string[] {
-        if (!rawText) {
+    protected smartChunker(rawText: string, maxTokens = 700, overlapTokens = 70, minBlockTokens = 30): string[] {
+        if (typeof rawText !== "string" || rawText.trim().length === 0) {
             return [];
         }
 
-        const sentences = cleanSentences(rawText);
+        let text = rawText.replace(/\r\n/g, "\n");
+        text = text.replace(/^\s*[-*_]{3,}\s*$/gm, "\n");
 
-        const chunks: string[] = [];
-        let currentChunk = "";
+        const isStructured = /(^|\n)#{1,6}\s|(^|\n)(-|\*|\d+\.)\s+/.test(text);
 
-        for (const sentence of sentences) {
-            const trimmedSentence = sentence.trim();
+        const blocks = (isStructured ? text.split(/\n(?=#+\s|(\d+\.)|- )/g) : text.split(/\n{2,}/g))
+            .map((b) => (b || "").trim())
+            .filter((b) => b.length > 0);
 
-            if (!trimmedSentence) {
-                continue;
-            }
+        const mergedBlocks: string[] = [];
+        for (let i = 0; i < blocks.length; i++) {
+            const blk = blocks[i];
+            const tokLen = encode(blk).length;
 
-            if (trimmedSentence.length > maxLength) {
-                if (currentChunk.trim()) {
-                    chunks.push(currentChunk.trim());
+            if (tokLen < minBlockTokens) {
+                if (i + 1 < blocks.length) {
+                    blocks[i + 1] = (blocks[i + 1] || "") + "\n\n" + blk;
 
-                    currentChunk = "";
+                    continue;
+                } else if (mergedBlocks.length > 0) {
+                    mergedBlocks[mergedBlocks.length - 1] += "\n\n" + blk;
+
+                    continue;
+                } else {
+                    mergedBlocks.push(blk);
                 }
-
-                const words = trimmedSentence.split(/\s+/);
-                let wordChunk = "";
-
-                for (const word of words) {
-                    if ((wordChunk + " " + word).length > maxLength && wordChunk) {
-                        chunks.push(wordChunk.trim());
-
-                        const overlapWords = wordChunk.split(/\s+/).slice(-Math.ceil(overlap / 10));
-                        wordChunk = overlapWords.join(" ") + " " + word;
-                    } else {
-                        wordChunk += (wordChunk ? " " : "") + word;
-                    }
-                }
-
-                if (wordChunk.trim()) {
-                    chunks.push(wordChunk.trim());
-                }
-
-                continue;
-            }
-
-            const testChunk = currentChunk + (currentChunk ? " " : "") + trimmedSentence;
-
-            if (testChunk.length > maxLength && currentChunk) {
-                chunks.push(currentChunk.trim());
-
-                const overlapSentences = currentChunk.match(/[^.!?]+[.!?]+[\])'"`'"]*|.+/g) || [];
-                const overlapText = overlapSentences.slice(-2).join(" ");
-                currentChunk = overlapText + " " + trimmedSentence;
             } else {
-                currentChunk = testChunk;
+                mergedBlocks.push(blk);
             }
         }
 
-        if (currentChunk.trim()) {
-            chunks.push(currentChunk.trim());
+        const finalChunks: string[] = [];
+
+        for (const block of mergedBlocks) {
+            const tokens = encode(block);
+
+            if (tokens.length <= maxTokens) {
+                const t = block.trim();
+
+                if (t && !/^[\-\*_]{1,}$/.test(t)) {
+                    finalChunks.push(t);
+                }
+
+                continue;
+            }
+
+            let start = 0;
+
+            while (start < tokens.length) {
+                const end = Math.min(start + maxTokens, tokens.length);
+                const slice = tokens.slice(start, end);
+                const chunkText = decode(slice).trim();
+
+                if (chunkText && !/^\s*[-*_]{1,}\s*$/.test(chunkText)) {
+                    finalChunks.push(chunkText);
+                }
+
+                start += Math.max(1, maxTokens - overlapTokens);
+            }
         }
 
-        return chunks.filter((c) => c && c.trim().length > 50);
+        const cleaned: string[] = [];
+
+        for (const c of finalChunks) {
+            const tokLen = encode(c).length;
+
+            if (tokLen < Math.max(10, Math.floor(minBlockTokens / 2)) && cleaned.length > 0) {
+                cleaned[cleaned.length - 1] = cleaned[cleaned.length - 1] + "\n\n" + c;
+            } else {
+                cleaned.push(c);
+            }
+        }
+
+        return cleaned;
     }
 }
 

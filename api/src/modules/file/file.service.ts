@@ -24,7 +24,7 @@ export class FileService extends BaseFileService {
 
         const text = file.buffer.toString("utf-8");
 
-        const chunks = this.chunkTextSmartRobust(text);
+        const chunks = this.smartChunker(text);
 
         if (!chunks) {
             throw new Error("Falha ao dividir o arquivo em partes.");
@@ -46,9 +46,7 @@ export class FileService extends BaseFileService {
             return { response: "A informação solicitada não foi encontrada nos documentos fornecidos." };
         }
 
-        const combinedText = searchResults.map((r) => r.text).join("\n\n");
-
-        const response = await this.aiService.generateResponse(combinedText, searchFileDto.search);
+        const response = await this.aiService.generateResponse(searchResults, searchFileDto.search);
 
         return { response };
     }
