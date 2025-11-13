@@ -48,9 +48,9 @@ export class FileService extends BaseFileService {
 
         const combinedText = searchResults.map((r) => r.text).join("\n\n");
 
-        const aiResponse = await this.aiService.generateResponse(combinedText, searchFileDto.search);
+        const response = await this.aiService.generateResponse(combinedText, searchFileDto.search);
 
-        return { response: aiResponse };
+        return { response };
     }
 }
 

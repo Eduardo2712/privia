@@ -5,7 +5,7 @@ import { cleanSentences } from "../../common/utils/functions.util";
 export class BaseFileService {
     constructor() {}
 
-    protected chunkTextSmartRobust(rawText: string, maxLength = 300, overlap = 50): string[] {
+    protected chunkTextSmartRobust(rawText: string, maxLength = 768, overlap = 50): string[] {
         if (!rawText) {
             return [];
         }
@@ -25,6 +25,7 @@ export class BaseFileService {
             if (trimmedSentence.length > maxLength) {
                 if (currentChunk.trim()) {
                     chunks.push(currentChunk.trim());
+
                     currentChunk = "";
                 }
 
@@ -67,34 +68,6 @@ export class BaseFileService {
         }
 
         return chunks.filter((c) => c && c.trim().length > 50);
-    }
-
-    protected rerankResults(results: Array<{ score: number; text: string }>): Array<{ score: number; text: string }> {
-        const unique: Array<{ score: number; text: string }> = [];
-
-        for (const result of results) {
-            const isDuplicate = unique.some((u) => {
-                const similarity = this.calculateTextSimilarity(u.text, result.text);
-
-                return similarity > 0.8;
-            });
-
-            if (!isDuplicate) {
-                unique.push(result);
-            }
-        }
-
-        return unique.sort((a, b) => b.score - a.score);
-    }
-
-    protected calculateTextSimilarity(text1: string, text2: string): number {
-        const words1 = new Set(text1.toLowerCase().split(/\s+/));
-        const words2 = new Set(text2.toLowerCase().split(/\s+/));
-
-        const intersection = new Set([...words1].filter((x) => words2.has(x)));
-        const union = new Set([...words1, ...words2]);
-
-        return intersection.size / union.size;
     }
 }
 

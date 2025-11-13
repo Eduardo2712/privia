@@ -3,7 +3,6 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AIGenerateFormInterface } from "./interfaces/ai.interface";
 import { firstValueFrom } from "rxjs";
-import { AxiosResponse } from "axios";
 
 @Injectable()
 export class BaseAiService {
@@ -19,16 +18,15 @@ export class BaseAiService {
     protected async sendEmbedding(form: Omit<AIGenerateFormInterface, "model">): Promise<number[]> {
         const url = `${this.getUrlBase()}/embeddings`;
 
-        const text = form.prompt;
         const embeddingModel = this.configService.get<string>("AI_EMBEDDING_MODEL") as string;
         const payload: AIGenerateFormInterface = {
             model: embeddingModel,
-            prompt: text,
+            prompt: form.prompt,
             stream: false
         };
 
         try {
-            const response: AxiosResponse = await firstValueFrom(this.http.post(url, payload));
+            const response = await firstValueFrom(this.http.post(url, payload));
 
             if (response.status !== HttpStatus.OK) {
                 throw new Error("Erro ao gerar resposta da IA: status inesperado");
@@ -69,23 +67,22 @@ export class BaseAiService {
     public async sendPrompt(prompt: string): Promise<string> {
         const url = `${this.getUrlBase()}/generate`;
 
-        const text = prompt;
         const model = this.configService.get<string>("AI_MODEL") as string;
         const payload: AIGenerateFormInterface = {
             model,
-            prompt: text,
+            prompt,
             stream: false,
             options: {
-                temperature: 0.2,
-                top_p: 0.9,
+                temperature: 0.1,
+                top_p: 0.8,
                 top_k: 40,
-                num_predict: 400,
-                num_ctx: 2048
+                num_predict: 300,
+                num_ctx: 1024
             }
         };
 
         try {
-            const response: AxiosResponse = await firstValueFrom(this.http.post(url, payload));
+            const response = await firstValueFrom(this.http.post(url, payload));
 
             if (response.status !== HttpStatus.OK) {
                 throw new Error("Erro ao gerar resposta da IA: status inesperado");
