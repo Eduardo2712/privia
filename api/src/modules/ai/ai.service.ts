@@ -19,25 +19,27 @@ export class AiService extends BaseAiService {
     }
 
     public async generateResponse(chunks: Array<{ score: number; text: string }>, search: string): Promise<string> {
-        const context = chunks.map((c, i) => `Contexto ${i + 1}:\n${c.text}`).join("\n\n---\n\n");
+        const sortedChunks = [...chunks].sort((a, b) => b.score - a.score);
+        const context = sortedChunks.map((c, i) => `[Trecho ${i + 1} | Relevância: ${(c.score * 100).toFixed(1)}%]\n${c.text}`).join("\n\n---\n\n");
 
-        const prompt = `Você é um assistente de pesquisa que analisa documentos e fornece respostas precisas.
+        const prompt =
+            `Analise os trechos do documento abaixo (ordenados por relevância) e responda a pergunta com base APENAS nas informações fornecidas.
 
-            Trechos dos documentos:
-            ${context}
+${context}
 
-            Pergunta: ${search}
+---
 
-            Instruções para sua resposta:
-            - Forneça uma resposta completa e bem estruturada
-            - Inclua todos os detalhes relevantes encontrados nos trechos
-            - Se houver múltiplos aspectos, liste-os de forma organizada
-            - Se houver exemplos, fórmulas ou processos importantes, inclua-os na resposta
-            - Não invente informações ou detalhes
-            - Use somente informações presentes nos trechos fornecidos
-            - Cite trechos dos documentos referenciando-os
-            - Seja direto, sem saudações ou comentários extra
-            Resposta detalhada:`.trim();
+PERGUNTA: ${search}
+
+INSTRUÇÕES:
+• Responda de forma direta e objetiva
+• Use SOMENTE informações dos trechos acima
+• Se a resposta estiver em múltiplos trechos, sintetize-os
+• Mantenha termos técnicos, números e exemplos exatos
+• Se não houver informação suficiente, indique claramente
+• Não adicione informações externas
+
+RESPOSTA:`.trim();
 
         return this.sendPrompt(prompt);
     }

@@ -28,7 +28,7 @@ export class QdrantService {
                     hnsw_config: {
                         m: 16,
                         ef_construct: 200,
-                        ef_search: 64
+                        ef_search: 128
                     }
                 });
             }
@@ -41,7 +41,7 @@ export class QdrantService {
                 hnsw_config: {
                     m: 16,
                     ef_construct: 200,
-                    ef_search: 64
+                    ef_search: 128
                 }
             });
         }
@@ -64,7 +64,7 @@ export class QdrantService {
         }
     }
 
-    async search(collection: string, vector: number[], limit = 5, scoreThreshold = 0.5): Promise<Array<{ score: number; text: string }>> {
+    async search(collection: string, vector: number[], limit = 12, scoreThreshold = 0.25): Promise<Array<{ score: number; text: string }>> {
         const result = await this.client.search(collection, {
             vector,
             limit,

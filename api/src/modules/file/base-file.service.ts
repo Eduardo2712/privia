@@ -5,17 +5,20 @@ import { encode, decode } from "gpt-tokenizer";
 export class BaseFileService {
     constructor() {}
 
-    protected smartChunker(rawText: string, maxTokens = 700, overlapTokens = 70, minBlockTokens = 30): string[] {
+    protected smartChunker(rawText: string, maxTokens = 600, overlapTokens = 150, minBlockTokens = 40): string[] {
         if (typeof rawText !== "string" || rawText.trim().length === 0) {
             return [];
         }
 
-        let text = rawText.replace(/\r\n/g, "\n");
-        text = text.replace(/^\s*[-*_]{3,}\s*$/gm, "\n");
+        let text = rawText.replaceAll("\r\n", "\n");
+        text = text.replaceAll(/^\s*[-*_]{3,}\s*$/gm, "\n");
+        text = text.replaceAll(/\n{3,}/g, "\n\n");
 
-        const isStructured = /(^|\n)#{1,6}\s|(^|\n)(-|\*|\d+\.)\s+/.test(text);
+        const hasHeaders = /^#{1,6}\s/m.test(text);
+        const hasLists = /^\s*[-*\d+.]\s/m.test(text);
+        const isStructured = hasHeaders || hasLists;
 
-        const blocks = (isStructured ? text.split(/\n(?=#+\s|(\d+\.)|- )/g) : text.split(/\n{2,}/g))
+        const blocks = (isStructured ? text.split(/\n(?=#{1,6}\s|\s*[-*+]\s|\s*\d+\.\s)/gm) : text.split(/\n{2,}/g))
             .map((b) => (b || "").trim())
             .filter((b) => b.length > 0);
 
@@ -49,7 +52,7 @@ export class BaseFileService {
             if (tokens.length <= maxTokens) {
                 const t = block.trim();
 
-                if (t && !/^[\-\*_]{1,}$/.test(t)) {
+                if (t && !/^[-*_]+$/.test(t)) {
                     finalChunks.push(t);
                 }
 
@@ -63,7 +66,7 @@ export class BaseFileService {
                 const slice = tokens.slice(start, end);
                 const chunkText = decode(slice).trim();
 
-                if (chunkText && !/^\s*[-*_]{1,}\s*$/.test(chunkText)) {
+                if (chunkText && !/^\s*[-*_]+\s*$/.test(chunkText)) {
                     finalChunks.push(chunkText);
                 }
 
@@ -76,8 +79,8 @@ export class BaseFileService {
         for (const c of finalChunks) {
             const tokLen = encode(c).length;
 
-            if (tokLen < Math.max(10, Math.floor(minBlockTokens / 2)) && cleaned.length > 0) {
-                cleaned[cleaned.length - 1] = cleaned[cleaned.length - 1] + "\n\n" + c;
+            if (tokLen < Math.max(15, Math.floor(minBlockTokens / 3)) && cleaned.length > 0) {
+                cleaned[cleaned.length - 1] = cleaned.at(-1) + "\n\n" + c;
             } else {
                 cleaned.push(c);
             }
