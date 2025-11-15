@@ -3,7 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { DatabaseModule } from "./infrastructure/database/database.module";
 import { ScheduleModule } from "@nestjs/schedule";
-import { BullModule } from "@nestjs/bull";
+import { BullModule } from "@nestjs/bullmq";
 import { CacheableMemory } from "cacheable";
 import { createKeyv } from "@keyv/redis";
 import { Keyv } from "keyv";
@@ -43,24 +43,9 @@ import { QdrantModule } from "./infrastructure/qdrant/qdrant.module";
             }
         }),
         BullModule.forRoot({
-            redis: {
+            connection: {
                 host: process.env.REDIS_HOST,
-                port: Number(process.env.REDIS_PORT),
-                maxRetriesPerRequest: 3,
-                connectTimeout: 5000
-            },
-            settings: {
-                stalledInterval: 30 * 1000,
-                maxStalledCount: 1
-            },
-            defaultJobOptions: {
-                removeOnComplete: 100,
-                removeOnFail: 1000,
-                attempts: 3,
-                backoff: {
-                    type: "exponential",
-                    delay: 1000
-                }
+                port: Number(process.env.REDIS_PORT)
             }
         }),
         ScheduleModule.forRoot(),

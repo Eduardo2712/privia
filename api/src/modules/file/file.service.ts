@@ -4,16 +4,17 @@ import { QdrantService } from "../../infrastructure/qdrant/qdrant.service";
 import { SearchFileRequestDto } from "./dto/search-file-request.dto";
 import { SearchFileResponseDto } from "./dto/search-file-response.dto";
 import { BaseFileService } from "./base-file.service";
-import { EventEmitter2 } from "@nestjs/event-emitter";
-import { FileReadEvent } from "./events/file-read.event";
 import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
+import { InjectQueue } from "@nestjs/bullmq";
+import { ProcessFileJob } from "./jobs/process-file.job";
+import { Queue } from "bullmq";
 
 @Injectable()
 export class FileService extends BaseFileService {
     constructor(
         private readonly aiService: AiService,
         private readonly qdrantService: QdrantService,
-        private readonly eventEmitter: EventEmitter2
+        @InjectQueue("process-file") private readonly processFileQueue: Queue<ProcessFileJob>
     ) {
         super();
     }
@@ -31,7 +32,7 @@ export class FileService extends BaseFileService {
             throw new Error("Falha ao dividir o arquivo em partes.");
         }
 
-        this.eventEmitter.emit("file.read", new FileReadEvent(chunks, file));
+        await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, user));
     }
 
     public async searchFile(user: LoggedUserInterface, searchFileDto: SearchFileRequestDto): Promise<SearchFileResponseDto> {

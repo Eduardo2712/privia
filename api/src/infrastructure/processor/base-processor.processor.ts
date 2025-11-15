@@ -1,21 +1,21 @@
-import { OnQueueActive, OnQueueCompleted, OnQueueFailed } from "@nestjs/bull";
+import { OnQueueEvent, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
-import { Job } from "bull";
+import { Job } from "bullmq";
 
-export abstract class BaseProcessor {
+export abstract class BaseProcessor extends WorkerHost {
     protected abstract readonly logger: Logger;
 
-    @OnQueueFailed()
+    @OnQueueEvent("failed")
     onQueueFailed(job: Job, err: Error): void {
         this.logger.error(`Job ${job.name} falhou: ${err.message}`);
     }
 
-    @OnQueueActive()
+    @OnQueueEvent("active")
     onQueueActive(job: Job): void {
         this.logger.log(`Job ${job.name} ${job.id} está ativo.`);
     }
 
-    @OnQueueCompleted()
+    @OnQueueEvent("completed")
     onQueueCompleted(job: Job): void {
         this.logger.log(`Job ${job.name} ${job.id} foi concluído.`);
     }

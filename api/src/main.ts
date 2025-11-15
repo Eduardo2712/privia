@@ -6,6 +6,10 @@ import { ClassSerializerInterceptor, ValidationPipe } from "@nestjs/common";
 import { HttpExceptionFilter } from "./infrastructure/filters/http-exception.filter";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { join } from "node:path";
+import { ExpressAdapter } from "@bull-board/express";
+import { createBullBoard } from "@bull-board/api";
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
+import { Queue } from "bullmq";
 
 const cookieParser = require("cookie-parser");
 
@@ -14,6 +18,32 @@ async function bootstrap() {
         logger: ["error", "warn", "log"],
         snapshot: true
     });
+
+    if (process.env.NODE_ENV === "development") {
+        const serverAdapter = new ExpressAdapter();
+        serverAdapter.setBasePath("/queues");
+
+        const queueNames = ["process-file"];
+
+        const queues = queueNames.map(
+            (name) =>
+                new BullMQAdapter(
+                    new Queue(name, {
+                        connection: {
+                            host: process.env.REDIS_HOST,
+                            port: Number(process.env.REDIS_PORT)
+                        }
+                    })
+                )
+        );
+
+        createBullBoard({
+            queues,
+            serverAdapter
+        });
+
+        app.use("/queues", serverAdapter.getRouter());
+    }
 
     app.use(cookieParser());
 

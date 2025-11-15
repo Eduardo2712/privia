@@ -1,23 +1,26 @@
-import { Injectable } from "@nestjs/common";
-import { OnEvent } from "@nestjs/event-emitter";
-import { FileReadEvent } from "../events/file-read.event";
-import { AiService } from "../../ai/ai.service";
+import { Processor, WorkerHost } from "@nestjs/bullmq";
+import { BaseProcessor } from "../../../infrastructure/processor/base-processor.processor";
+import { Logger } from "@nestjs/common";
 import { QdrantService } from "../../../infrastructure/qdrant/qdrant.service";
+import { AiService } from "../../ai/ai.service";
+import { Job } from "bullmq";
+import { ProcessFileJob } from "../jobs/process-file.job";
 import { randomUUID } from "node:crypto";
 import { PointInterface } from "../../../infrastructure/qdrant/interfaces/qdrant.interface";
 
-@Injectable()
-export class FileReadListener {
+@Processor("process-file")
+export class ProcessFileProcessor extends BaseProcessor {
+    readonly logger = new Logger(ProcessFileProcessor.name);
+
     constructor(
         private readonly aiService: AiService,
         private readonly qdrantService: QdrantService
-    ) {}
+    ) {
+        super();
+    }
 
-    @OnEvent("file.read")
-    async handle(event: FileReadEvent): Promise<void> {
-        console.log("FileReadListener: Evento 'file.read' recebido. Processando...");
-
-        const { chunks, file } = event;
+    async process(job: Job<ProcessFileJob>): Promise<void> {
+        const { chunks, file, user } = job.data;
 
         if (!chunks?.length) {
             return;
@@ -33,13 +36,6 @@ export class FileReadListener {
 
         await this.qdrantService.ensureCollection("files", firstEmbedding.length);
 
-        // await this.qdrantService.deleteByFilter("documents", {
-        //     must: [
-        //         { key: "userId", match: { value: userId } },
-        //         { key: "documentId", match: { value: documentId } }
-        //     ]
-        // });
-
         const makePoint = (embedding: number[], index: number): PointInterface => {
             return {
                 id: randomUUID(),
@@ -48,7 +44,7 @@ export class FileReadListener {
                     text: chunks[index].trim(),
                     chunkIndex: index,
                     documentId: 1,
-                    userId: 1,
+                    userId: user.id,
                     filename: file.originalname
                 }
             };
@@ -69,10 +65,7 @@ export class FileReadListener {
             await this.qdrantService.saveVectors("files", points);
 
             processed += points.length;
-            console.log(`Qdrant: ${processed}/${total} chunks salvos`);
         }
-
-        console.log(`FileReadListener: Finalizado. Total: ${total}`);
     }
 }
 
