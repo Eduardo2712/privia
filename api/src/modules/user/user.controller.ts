@@ -5,7 +5,7 @@ import { Public } from "../../common/decorators/is-public.decorator";
 import { GetUser } from "../../common/decorators/get-user.decorator";
 import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 import { UserService } from "./user.service";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags("user")
 @Controller("user")
@@ -15,18 +15,21 @@ export class UserController {
     @Public()
     @Post()
     @HttpCode(HttpStatus.CREATED)
+    @ApiOkResponse({ type: CreateUserDto })
     async create(@Body() createUserDto: CreateUserDto): Promise<void> {
         return this.userService.createByController(createUserDto);
     }
 
     @Patch()
     @HttpCode(HttpStatus.OK)
+    @ApiOkResponse({ type: UpdateUserDto })
     async update(@GetUser() user: LoggedUserInterface, @Body() updateUserDto: UpdateUserDto): Promise<void> {
         return this.userService.updateByController(user.id, updateUserDto);
     }
 
     @Delete()
     @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOkResponse({ type: void 0 })
     async delete(@GetUser() user: LoggedUserInterface): Promise<void> {
         return this.userService.deleteByController(user.id);
     }

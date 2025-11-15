@@ -23,6 +23,7 @@ export class BaseFileService {
             .filter((b) => b.length > 0);
 
         const mergedBlocks: string[] = [];
+
         for (let i = 0; i < blocks.length; i++) {
             const blk = blocks[i];
             const tokLen = encode(blk).length;

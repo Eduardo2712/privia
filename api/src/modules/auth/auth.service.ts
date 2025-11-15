@@ -57,6 +57,7 @@ export class AuthService {
         };
 
         const payload: JWTUserInterface = { sub: data.id };
+
         const token = await this.jwtService.signAsync(payload);
 
         return { token, user };

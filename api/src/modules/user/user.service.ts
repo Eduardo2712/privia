@@ -18,7 +18,7 @@ export class UserService {
 
         await this.userRepository.create({
             ...createUserDto,
-            password: hashSyncValue(createUserDto.password)
+            password: await hashSyncValue(createUserDto.password)
         });
     }
 
@@ -49,7 +49,7 @@ export class UserService {
     public async validateUser(email: string, password: string): Promise<UserEntity | null> {
         const user = await this.findOneByEmail(email);
 
-        const isValid = user && compareSyncValue(password, user.password);
+        const isValid = user && (await compareSyncValue(password, user.password));
 
         return isValid ? user : null;
     }

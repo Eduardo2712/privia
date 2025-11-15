@@ -15,7 +15,7 @@ export class BaseAiService {
         return this.configService.get<string>("AI_URL") as string;
     }
 
-    protected async sendEmbedding(form: Omit<AIGenerateFormInterface, "model">): Promise<number[]> {
+    protected async searchEmbedding(form: Omit<AIGenerateFormInterface, "model">): Promise<number[]> {
         const url = `${this.getUrlBase()}/embeddings`;
 
         const embeddingModel = this.configService.get<string>("AI_EMBEDDING_MODEL") as string;

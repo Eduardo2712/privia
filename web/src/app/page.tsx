@@ -1,98 +1,49 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRequest } from "../hooks/use-request.hook";
-import { searchFile, readFile } from "../requests/file.request";
-import toast from "react-hot-toast";
-import { AxiosRequestConfig } from "axios";
-import { LoaderCircle } from "lucide-react";
-import { components } from "../types/api-types";
+import Link from "next/link";
+import { Globe, ArrowRight } from "lucide-react";
 
 export default function HomePage() {
-    const [file, setFile] = useState<File | null>(null);
-    const [searchText, setSearchText] = useState<string>("");
-    const [searchResults, setSearchResults] = useState<components["schemas"]["SearchFileResponseDto"] | null>(null);
-
-    const { execute, loading } = useRequest({
-        request: (config?: AxiosRequestConfig) => readFile(config?.data),
-        onSuccess: () => toast.success("Arquivo enviado com sucesso!"),
-        onError: () => toast.error("Erro ao enviar arquivo."),
-        onFinally: () => setFile(null),
-    });
-
-    const { execute: searchExecute, loading: searchLoading } = useRequest({
-        request: () => {
-            setSearchResults(null);
-
-            return searchFile({ search: searchText });
-        },
-        onSuccess: (data) => {
-            toast.success("Busca realizada com sucesso!");
-
-            setSearchResults(data);
-        },
-        onError: () => toast.error("Erro ao realizar busca."),
-    });
-
-    const refButton = useRef<HTMLInputElement>(null);
-
-    const handleUpload = async (file: File | null) => {
-        if (!file) {
-            return;
-        }
-
-        setFile(file);
-
-        const formData = new FormData();
-
-        formData.append("file", file);
-
-        await execute({ data: formData, headers: { "Content-Type": "multipart/form-data" } });
-    };
-
-    const handleSearch = async () => {
-        if (!searchText) {
-            return toast.error("Por favor, insira um texto para buscar.");
-        }
-
-        await searchExecute();
-    };
-
     return (
-        <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 flex items-center justify-center text-black flex-col gap-4">
-            <input
-                type="file"
-                hidden
-                className="file-input file-input-bordered w-full max-w-xs"
-                onChange={(e) => handleUpload(e.target.files ? e.target.files[0] : null)}
-                ref={refButton}
-                accept=".pdf,.doc,.docx,.txt"
-            />
+        <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+            <div className="max-w-4xl mx-auto px-4 text-center">
+                <div className="mb-8">
+                    <div className="flex items-center justify-center mb-6">
+                        <div className="p-4 bg-linear-to-r from-blue-600 to-purple-600 rounded-2xl">
+                            <Globe className="h-12 w-12 text-white" />
+                        </div>
+                    </div>
 
-            <p className="text-black mt-2 mb-2 mr-2">{file?.name}</p>
+                    <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+                        Bem-vindo ao <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-purple-600">Privia</span>
+                    </h1>
 
-            <button className="bg-amber-500 rounded-2xl px-6 py-3 cursor-pointer text-white" onClick={() => refButton.current?.click()}>
-                {loading ? <LoaderCircle className="animate-spin text-white" /> : "Enviar arquivo"}
-            </button>
-
-            <textarea
-                className="p-2 border border-gray-300 rounded w-full max-w-md bg-white"
-                placeholder="Digite o texto para busca..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-            ></textarea>
-
-            <button className="bg-green-500 rounded-2xl px-6 py-3 cursor-pointer text-white" onClick={handleSearch}>
-                {searchLoading ? <LoaderCircle className="animate-spin text-white" /> : "Buscar"}
-            </button>
-
-            {searchResults?.response && (
-                <div className="mt-4 w-full max-w-md p-4 border border-gray-300 rounded bg-white">
-                    <h2 className="text-lg font-semibold mb-2">Resultados da Busca:</h2>
-
-                    <div className="whitespace-pre-wrap">{searchLoading ? "Carregando..." : searchResults.response}</div>
+                    <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                        Sua plataforma definitiva para gerenciar documentos e informações com eficiência e segurança.
+                    </p>
                 </div>
-            )}
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <Link
+                        href="/login"
+                        className="bg-linear-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-medium text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
+                    >
+                        <span>Começar agora</span>
+                        <ArrowRight className="h-5 w-5" />
+                    </Link>
+
+                    <Link
+                        href="/register"
+                        className="text-gray-600 hover:text-gray-900 font-medium text-lg transition-colors border border-gray-300 hover:border-gray-400 px-8 py-4 rounded-xl"
+                    >
+                        Criar conta
+                    </Link>
+                </div>
+
+                <div className="mt-12 text-gray-500">
+                    <p>Organize • Gerencie • Simplifique</p>
+                </div>
+            </div>
         </div>
     );
 }

@@ -6,6 +6,7 @@ import { SearchFileResponseDto } from "./dto/search-file-response.dto";
 import { BaseFileService } from "./base-file.service";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { FileReadEvent } from "./events/file-read.event";
+import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 
 @Injectable()
 export class FileService extends BaseFileService {
@@ -17,7 +18,7 @@ export class FileService extends BaseFileService {
         super();
     }
 
-    public async readFile(file: Express.Multer.File): Promise<void> {
+    public async readFile(user: LoggedUserInterface, file: Express.Multer.File): Promise<void> {
         if (!file?.buffer) {
             throw new Error("O buffer de arquivos enviados está vazio.");
         }
@@ -33,7 +34,7 @@ export class FileService extends BaseFileService {
         this.eventEmitter.emit("file.read", new FileReadEvent(chunks, file));
     }
 
-    public async searchFile(searchFileDto: SearchFileRequestDto): Promise<SearchFileResponseDto> {
+    public async searchFile(user: LoggedUserInterface, searchFileDto: SearchFileRequestDto): Promise<SearchFileResponseDto> {
         const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
 
         if (!Array.isArray(queryEmbedding) || queryEmbedding.length === 0) {

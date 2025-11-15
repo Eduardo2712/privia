@@ -4,3 +4,15 @@ export interface UpsertPointInterface {
     payload?: Record<string, unknown>;
 }
 
+export interface PointInterface {
+    id: string;
+    vector: number[];
+    payload: {
+        userId: number;
+        documentId: number;
+        text: string;
+        chunkIndex: number;
+        filename: string;
+    };
+}
+

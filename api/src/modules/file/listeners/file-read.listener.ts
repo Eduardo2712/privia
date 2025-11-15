@@ -4,6 +4,7 @@ import { FileReadEvent } from "../events/file-read.event";
 import { AiService } from "../../ai/ai.service";
 import { QdrantService } from "../../../infrastructure/qdrant/qdrant.service";
 import { randomUUID } from "node:crypto";
+import { PointInterface } from "../../../infrastructure/qdrant/interfaces/qdrant.interface";
 
 @Injectable()
 export class FileReadListener {
@@ -16,48 +17,39 @@ export class FileReadListener {
     async handle(event: FileReadEvent): Promise<void> {
         console.log("FileReadListener: Evento 'file.read' recebido. Processando...");
 
-        const chunks = event.chunks;
-        const file = event.file;
+        const { chunks, file } = event;
 
-        if (!chunks || chunks.length === 0) {
+        if (!chunks?.length) {
             return;
         }
 
-        const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY));
+        const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 3);
 
         const firstEmbedding = await this.aiService.getEmbedding(chunks[0]);
 
-        if (!firstEmbedding || firstEmbedding.length === 0) {
-            throw new Error("Dimensão do embedding inválida (0). Abortando persistência no Qdrant.");
+        if (!firstEmbedding?.length) {
+            throw new Error("Embedding inválido.");
         }
 
         await this.qdrantService.ensureCollection("files", firstEmbedding.length);
 
-        const makePoint = (embedding: number[], index: number) => {
-            const text = chunks[index];
-            const words = text.split(/\s+/).filter((w) => w.length > 0);
+        // await this.qdrantService.deleteByFilter("documents", {
+        //     must: [
+        //         { key: "userId", match: { value: userId } },
+        //         { key: "documentId", match: { value: documentId } }
+        //     ]
+        // });
 
-            const keywords = words
-                .filter((w) => w.length >= 4)
-                .map((w) => w.toLowerCase().replaceAll(/[^\w]/g, ""))
-                .filter((w) => w.length >= 4);
-
+        const makePoint = (embedding: number[], index: number): PointInterface => {
             return {
                 id: randomUUID(),
                 vector: embedding,
                 payload: {
-                    text: text,
-                    fileId: file.filename,
-                    fileName: file.originalname,
+                    text: chunks[index].trim(),
                     chunkIndex: index,
-                    totalChunks: chunks.length,
-                    timestamp: new Date().toISOString(),
-                    textLength: text.length,
-                    wordCount: words.length,
-                    keywords: Array.from(new Set(keywords)).slice(0, 10),
-                    hasNumbers: /\d/.test(text),
-                    hasBulletPoints: /^[\s-•*]\s/m.test(text),
-                    sentenceCount: (text.match(/[.!?]+/g) || []).length
+                    documentId: 1,
+                    userId: 1,
+                    filename: file.originalname
                 }
             };
         };
@@ -68,21 +60,19 @@ export class FileReadListener {
         let processed = 1;
 
         for (let i = 1; i < total; i += CONCURRENCY) {
-            const batchStart = i;
-            const batchEnd = Math.min(i + CONCURRENCY, total);
-            const batch = chunks.slice(batchStart, batchEnd);
+            const batch = chunks.slice(i, i + CONCURRENCY);
 
-            const batchEmbeddings = await Promise.all(batch.map(async (chunk) => this.aiService.getEmbedding(chunk)));
+            const batchEmbeddings = await Promise.all(batch.map((chunk) => this.aiService.getEmbedding(chunk)));
 
-            const points = batchEmbeddings.map((embedding, offset) => makePoint(embedding, batchStart + offset));
+            const points = batchEmbeddings.map((embedding, offset) => makePoint(embedding, i + offset));
 
             await this.qdrantService.saveVectors("files", points);
 
             processed += points.length;
-            console.log(`FileReadListener: ${processed}/${total} embeddings salvos no Qdrant...`);
+            console.log(`Qdrant: ${processed}/${total} chunks salvos`);
         }
 
-        console.log(`FileReadListener: Processamento concluído. ${total} embeddings salvos no Qdrant.`);
+        console.log(`FileReadListener: Finalizado. Total: ${total}`);
     }
 }
 

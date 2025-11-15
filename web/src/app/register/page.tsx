@@ -46,7 +46,7 @@ export default function Page() {
     };
 
     return (
-        <div className="relative min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div className="relative min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50">
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-purple-200/50 blur-3xl" />
 
@@ -58,27 +58,23 @@ export default function Page() {
                     <div className="text-center xl:text-left">
                         <h1 className="mb-4 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
                             Crie sua{" "}
-                            <span className="mx-2 inline-block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                conta
-                            </span>{" "}
+                            <span className="mx-2 inline-block bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">conta</span>{" "}
                             agora
                         </h1>
 
                         <p className="mx-auto max-w-md text-base text-slate-600 sm:text-lg">
-                            Leva menos de um minuto. Você terá acesso ao seu painel, fluxo de mensagens e notificações por e-mail.
+                            Leva menos de um minuto. Você terá acesso ao seu painel e poderá começar a gerenciar seus documentos.
                         </p>
 
                         <div className="mt-6 hidden gap-3 text-sm text-slate-600 sm:flex sm:justify-center">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 ring-1 ring-slate-200">
-                                🛡️ Segurança de ponta
-                            </span>
+                            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 ring-1 ring-slate-200">🛡️ Seguro</span>
 
                             <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 ring-1 ring-slate-200">
                                 ⚡ Rápido e simples
                             </span>
 
                             <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 ring-1 ring-slate-200">
-                                ✉️ Suporte por e-mail
+                                ✉️ Suporte 24/7
                             </span>
                         </div>
                     </div>
@@ -126,12 +122,12 @@ export default function Page() {
                                         ComponentRight={
                                             showPassword ? (
                                                 <Unlock
-                                                    className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
+                                                    className="cursor-pointer bg-linear-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
                                                     onClick={() => setShowPassword((prev) => !prev)}
                                                 />
                                             ) : (
                                                 <Lock
-                                                    className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
+                                                    className="cursor-pointer bg-linear-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
                                                     onClick={() => setShowPassword((prev) => !prev)}
                                                 />
                                             )
@@ -149,12 +145,12 @@ export default function Page() {
                                         ComponentRight={
                                             showPassword ? (
                                                 <Unlock
-                                                    className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
+                                                    className="cursor-pointer bg-linear-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
                                                     onClick={() => setShowPassword((prev) => !prev)}
                                                 />
                                             ) : (
                                                 <Lock
-                                                    className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
+                                                    className="cursor-pointer bg-linear-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
                                                     onClick={() => setShowPassword((prev) => !prev)}
                                                 />
                                             )
@@ -187,7 +183,7 @@ export default function Page() {
                                         <button
                                             type="submit"
                                             disabled={isSubmitting}
-                                            className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 text-lg font-medium text-white shadow-lg transition-all hover:from-blue-700 hover:to-purple-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-80"
+                                            className="w-full inline-flex items-center justify-center rounded-xl bg-linear-to-r from-blue-600 to-purple-600 px-8 py-4 text-lg font-medium text-white shadow-lg transition-all hover:from-blue-700 hover:to-purple-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-80"
                                         >
                                             {isSubmitting && (
                                                 <svg
