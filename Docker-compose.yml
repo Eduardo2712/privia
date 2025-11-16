@@ -72,6 +72,7 @@ services:
   ollama:
     image: ollama/ollama
     container_name: privia-ollama
+    restart: always
     ports:
       - "11434:11434"
     volumes:
@@ -79,9 +80,16 @@ services:
     environment:
       - OLLAMA_NUM_CTX=2048
       - OLLAMA_NUM_GPU=0
+      - OLLAMA_KEEP_ALIVE=60m
+    ulimits:
+      memlock: -1       
+      stack: 67108864
+    deploy:
+      resources:
+        limits:
+          memory: 6g   
     networks:
       - privia-network
-    mem_limit: 6g
 
   qdrant:
     image: qdrant/qdrant
