@@ -20,30 +20,27 @@ export class AiService extends BaseAiService {
     }
 
     public async generateResponse(chunks: Array<{ score: number; text: string }>, search: string): Promise<string> {
-        const sorted = chunks
-            .sort((a, b) => b.score - a.score)
-            .map((c, i) => `${i + 1}. ${sanitize(c.text)}`)
-            .join("\n\n");
+        const K = Math.min(8, chunks.length);
+        const unique = Array.from(new Map(chunks.sort((a, b) => b.score - a.score).map((c) => [c.text.trim(), c])).values()).slice(0, K);
 
-        const prompt = `
-           Responda somente com base nos trechos fornecidos.
+        const sorted = unique.map((c, i) => `${i + 1}. ${sanitize(c.text)}`).join("\n\n");
 
-Regras:
-- Não invente nada que não esteja nos trechos.
-- Use apenas suas palavras (não copie frases).
-- Se a informação existir mesmo que parcialmente, use.
-- Se NÃO existir em nenhum trecho, responda exatamente:
-  "Informação não encontrada nos trechos."
-
-            Trechos:
-            ${sorted}
-
-            Pergunta:
-            ${search}
-
-            Responda de forma curta, direta e objetiva:`.trim();
-
-        console.log("Prompt para IA:", prompt);
+        const prompt = [
+            "Você é um assistente em português. Responda SOMENTE com base nos trechos.",
+            '- Se a resposta não estiver nos trechos, responda exatamente: "Informação não encontrada nos trechos."',
+            "- Seja direto e preciso.",
+            "- Não invente fatos nem use fontes externas.",
+            '- Se a informação for incompleta, responda o que houver e marque como "parcial".',
+            '- Se houver contradição, diga: "informação conflitante nos trechos".',
+            "",
+            "Trechos numerados:",
+            sorted,
+            "",
+            "Pergunta:",
+            search,
+            "",
+            "Resposta (inclua referências como [1], [2] quando útil):"
+        ].join("\n");
 
         return this.sendPrompt(prompt);
     }

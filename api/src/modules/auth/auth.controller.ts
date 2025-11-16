@@ -25,7 +25,7 @@ export class AuthController {
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             path: "/",
-            maxAge: maxAgeToken
+            maxAge: maxAgeToken * 1000
         });
 
         return { user };

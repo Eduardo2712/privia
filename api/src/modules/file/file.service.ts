@@ -47,12 +47,18 @@ export class FileService extends BaseFileService {
         const searchResults = await this.qdrantService.search(user, documentId, "files", queryEmbedding);
 
         if (searchResults.length === 0) {
-            return { response: "A informação solicitada não foi encontrada nos documentos fornecidos." };
+            return {
+                response: "A informação solicitada não foi encontrada nos documentos fornecidos.",
+                references: []
+            };
         }
 
         const response = await this.aiService.generateResponse(searchResults, searchFileDto.search);
 
-        return { response };
+        return {
+            response,
+            references: searchResults.map((r, i) => ({ text: r.text, index: i + 1 }))
+        };
     }
 }
 

@@ -78,19 +78,14 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     environment:
-      - OLLAMA_NUM_CTX=2048
-      - OLLAMA_NUM_GPU=0
-      - OLLAMA_KEEP_ALIVE=60m
+      - OLLAMA_NUM_CTX=512
+      - OLLAMA_KEEP_ALIVE=5m
     ulimits:
-      memlock: -1       
+      memlock: -1
       stack: 67108864
-    deploy:
-      resources:
-        limits:
-          memory: 6g   
     networks:
       - privia-network
-
+      
   qdrant:
     image: qdrant/qdrant
     container_name: qdrant

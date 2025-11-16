@@ -155,9 +155,17 @@ export interface components {
             /** @example Text to search */
             search: string;
         };
+        SearchFileReferenceDto: {
+            /** @description Referenced text snippet */
+            text: string;
+            /** @description Index of the reference in the source */
+            index: number;
+        };
         SearchFileResponseDto: {
             /** @description The AI-generated response based on the search query */
             response: string;
+            /** @description References to the sources used in the response */
+            references: components["schemas"]["SearchFileReferenceDto"][];
         };
     };
     responses: never;

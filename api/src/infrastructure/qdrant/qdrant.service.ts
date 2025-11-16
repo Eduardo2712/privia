@@ -66,7 +66,7 @@ export class QdrantService {
         documentId: number,
         collection: string,
         vector: number[],
-        limit = 7,
+        limit = 5,
         scoreThreshold = 0.4
     ): Promise<Array<{ score: number; text: string }>> {
         const result = await this.client.search(collection, {
@@ -83,16 +83,14 @@ export class QdrantService {
             }
         });
 
-        return result
-            .filter((r) => r.score >= scoreThreshold)
-            .map((r) => {
-                const text = (r.payload?.text as string) || "";
+        return result.map((r) => {
+            const text = (r.payload?.text as string) || "";
 
-                return {
-                    score: r.score,
-                    text
-                };
-            });
+            return {
+                score: r.score,
+                text
+            };
+        });
     }
 
     async deleteByFilter(collection: string, userId: number, documentId: number): Promise<void> {

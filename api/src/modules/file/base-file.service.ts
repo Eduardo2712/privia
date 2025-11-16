@@ -1,18 +1,22 @@
 import { Injectable } from "@nestjs/common";
 import { encode, decode } from "gpt-tokenizer";
+import { SmartChunkerOptsInterface } from "./interfaces/file.interface";
+import { similarity } from "../../common/utils/functions.util";
 
 @Injectable()
 export class BaseFileService {
     constructor() {}
 
-    protected smartChunker(opts: {
-        text: string;
-        maxTokens?: number;
-        overlapTokens?: number;
-        minBlockTokens?: number;
-        semanticMergeThreshold?: number;
-    }) {
-        let { text, maxTokens = 600, overlapTokens = 150, minBlockTokens = 40 } = opts;
+    protected smartChunker(opts: SmartChunkerOptsInterface): string[] {
+        let {
+            text,
+            maxTokens = 300,
+            overlapTokens = 75,
+            minBlockTokens = 40,
+            semanticMergeThreshold,
+            tokenizer = (t) => encode(t),
+            detokenizer = (t) => decode(t)
+        } = opts;
 
         if (!text.trim()) {
             return [];
@@ -37,11 +41,11 @@ export class BaseFileService {
 
         for (let i = 0; i < blocks.length; i++) {
             const b = blocks[i];
-            const tok = encode(b).length;
+            const tokCount = tokenizer(b).length;
 
-            if (tok < minBlockTokens) {
+            if (tokCount < minBlockTokens) {
                 if (i < blocks.length - 1) {
-                    blocks[i + 1] = blocks[i + 1] + "\n\n" + b;
+                    blocks[i + 1] = b + "\n\n" + blocks[i + 1];
                 } else if (merged.length > 0) {
                     merged[merged.length - 1] += "\n\n" + b;
                 } else {
@@ -52,31 +56,54 @@ export class BaseFileService {
             }
         }
 
-        let semMerged = [...merged];
-
         const finalChunks: string[] = [];
 
-        for (const block of semMerged) {
-            const tokens = encode(block);
+        for (const block of merged) {
+            const tokens = tokenizer(block);
 
             if (tokens.length <= maxTokens) {
                 finalChunks.push(block.trim());
-
                 continue;
             }
 
-            let start = 0;
-            const step = Math.max(50, maxTokens - overlapTokens);
+            let cursor = 0;
+            const overlap = Math.min(overlapTokens, Math.floor(maxTokens / 2));
 
-            while (start < tokens.length) {
-                const end = Math.min(start + maxTokens, tokens.length);
-                const slice = decode(tokens.slice(start, end)).trim();
+            while (cursor < tokens.length) {
+                const remaining = tokens.length - cursor;
 
-                if (slice) {
-                    finalChunks.push(slice);
+                let windowSize = Math.min(maxTokens, remaining);
+                let windowTokens = tokens.slice(cursor, cursor + windowSize);
+                let windowText = detokenizer(windowTokens).trim();
+
+                const boundaryRegex = /[\.!?…](?=\s|$)/g;
+
+                let match: RegExpExecArray | null;
+                let lastBoundaryIndex = -1;
+
+                while ((match = boundaryRegex.exec(windowText)) !== null) {
+                    lastBoundaryIndex = match.index + match[0].length;
                 }
 
-                start += step;
+                if (lastBoundaryIndex > 0 && lastBoundaryIndex >= Math.floor(windowText.length * 0.55)) {
+                    const trimmed = windowText.slice(0, lastBoundaryIndex).trim();
+                    const trimmedTokens = tokenizer(trimmed);
+
+                    if (trimmedTokens.length > Math.max(80, minBlockTokens)) {
+                        windowTokens = trimmedTokens;
+                        windowText = trimmed;
+                    }
+                }
+
+                if (windowText) {
+                    finalChunks.push(windowText);
+                }
+
+                if (cursor + windowTokens.length >= tokens.length) {
+                    break;
+                }
+
+                cursor += Math.max(1, windowTokens.length - overlap);
             }
         }
 
@@ -84,13 +111,18 @@ export class BaseFileService {
 
         for (let c of finalChunks) {
             c = c.trim();
-            const tok = encode(c).length;
 
-            if (tok < Math.max(20, minBlockTokens / 2) && cleaned.length > 0) {
+            const tokCount = tokenizer(c).length;
+
+            if (tokCount < Math.max(20, minBlockTokens / 2) && cleaned.length > 0) {
                 cleaned[cleaned.length - 1] += "\n\n" + c;
             } else {
                 cleaned.push(c);
             }
+        }
+
+        if (semanticMergeThreshold != null && cleaned.length > 1) {
+            similarity(semanticMergeThreshold, tokenizer, cleaned);
         }
 
         return cleaned;

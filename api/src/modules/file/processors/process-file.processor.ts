@@ -7,6 +7,7 @@ import { Job } from "bullmq";
 import { ProcessFileJob } from "../jobs/process-file.job";
 import { randomUUID } from "node:crypto";
 import { PointInterface } from "../../../infrastructure/qdrant/interfaces/qdrant.interface";
+import { encode } from "gpt-tokenizer";
 
 @Processor("process-file")
 export class ProcessFileProcessor extends BaseProcessor {
@@ -45,7 +46,8 @@ export class ProcessFileProcessor extends BaseProcessor {
                     chunkIndex: index,
                     documentId: 1,
                     userId: user.id,
-                    filename: file.originalname
+                    filename: file.originalname,
+                    chunkTokens: encode(chunks[index]).length
                 }
             };
         };

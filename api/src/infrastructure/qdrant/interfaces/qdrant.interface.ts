@@ -13,6 +13,7 @@ export interface PointInterface {
         text: string;
         chunkIndex: number;
         filename: string;
+        chunkTokens: number;
     };
 }
 

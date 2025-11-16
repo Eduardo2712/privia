@@ -76,8 +76,8 @@ export class BaseAiService {
             options: {
                 temperature: 0.0,
                 top_p: 1,
-                num_predict: 120,
-                num_ctx: 1536
+                num_predict: 350,
+                num_ctx: 3000
             }
         };
 

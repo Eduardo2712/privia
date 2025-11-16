@@ -115,3 +115,103 @@ export const sanitize = (text: string): string => {
         .replace(/\s+/g, " ")
         .trim();
 };
+
+export const similarity = (semanticMergeThreshold: number, tokenizer: (text: string) => number[], cleaned: string[]) => {
+    const clamp = (n: number, min = 0, max = 1) => Math.max(min, Math.min(max, n));
+    const threshold = clamp(semanticMergeThreshold);
+
+    const toVec = (s: string) => {
+        const ids = tokenizer(s) as number[];
+        const m = new Map<number, number>();
+
+        for (const id of ids) {
+            m.set(id, (m.get(id) ?? 0) + 1);
+        }
+
+        let norm = 0;
+
+        for (const v of m.values()) {
+            norm += v * v;
+        }
+
+        norm = Math.sqrt(norm) || 1;
+
+        for (const [k, v] of m) {
+            m.set(k, v / norm);
+        }
+
+        return m;
+    };
+
+    const cosine = (a: Map<number, number>, b: Map<number, number>) => {
+        let sum = 0;
+
+        if (a.size < b.size) {
+            for (const [k, va] of a) {
+                const vb = b.get(k);
+                if (vb) sum += va * vb;
+            }
+        } else {
+            for (const [k, vb] of b) {
+                const va = a.get(k);
+                if (va) sum += va * vb;
+            }
+        }
+
+        return sum;
+    };
+
+    const mergeAdjacentBySimilarity = (chunks: string[]): string[] => {
+        const vecCache = new Map<string, Map<number, number>>();
+
+        const getVec = (s: string) => {
+            const cached = vecCache.get(s);
+
+            if (cached) {
+                return cached;
+            }
+
+            const v = toVec(s);
+            vecCache.set(s, v);
+
+            return v;
+        };
+
+        let arr = chunks.slice();
+        let changed = true;
+
+        while (changed) {
+            changed = false;
+
+            const next: string[] = [];
+            let i = 0;
+
+            while (i < arr.length) {
+                if (i < arr.length - 1) {
+                    const a = arr[i];
+                    const b = arr[i + 1];
+                    const sim = cosine(getVec(a), getVec(b));
+
+                    if (sim >= threshold) {
+                        const mergedText = (a + "\n\n" + b).trim();
+                        next.push(mergedText);
+                        i += 2;
+                        changed = true;
+                        continue;
+                    }
+                }
+                next.push(arr[i]);
+                i += 1;
+            }
+
+            arr = next;
+        }
+
+        return arr;
+    };
+
+    const merged = mergeAdjacentBySimilarity(cleaned);
+
+    cleaned.splice(0, cleaned.length, ...merged);
+};
+
