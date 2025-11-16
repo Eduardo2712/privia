@@ -26,7 +26,7 @@ export class FileService extends BaseFileService {
 
         const text = file.buffer.toString("utf-8");
 
-        const chunks = this.smartChunker(text);
+        const chunks = this.smartChunker({ text });
 
         if (!chunks) {
             throw new Error("Falha ao dividir o arquivo em partes.");
@@ -42,7 +42,9 @@ export class FileService extends BaseFileService {
             throw new Error("Erro ao gerar embedding para a busca.");
         }
 
-        const searchResults = await this.qdrantService.search("files", queryEmbedding);
+        const documentId = 1;
+
+        const searchResults = await this.qdrantService.search(user, documentId, "files", queryEmbedding);
 
         if (searchResults.length === 0) {
             return { response: "A informação solicitada não foi encontrada nos documentos fornecidos." };

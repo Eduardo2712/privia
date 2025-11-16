@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from "@nestjs/bullmq";
+import { Processor } from "@nestjs/bullmq";
 import { BaseProcessor } from "../../../infrastructure/processor/base-processor.processor";
 import { Logger } from "@nestjs/common";
 import { QdrantService } from "../../../infrastructure/qdrant/qdrant.service";

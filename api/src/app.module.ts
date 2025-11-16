@@ -33,12 +33,7 @@ import { QdrantModule } from "./infrastructure/qdrant/qdrant.module";
         CacheModule.registerAsync({
             useFactory: async () => {
                 return {
-                    stores: [
-                        new Keyv({
-                            store: new CacheableMemory({ ttl: 60000, lruSize: 5000 })
-                        }),
-                        createKeyv("redis://localhost:6379")
-                    ]
+                    stores: [new Keyv({ store: new CacheableMemory({ ttl: 60000, lruSize: 5000 }) }), createKeyv("redis://localhost:6379")]
                 };
             }
         }),

@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { UpsertPointInterface } from "./interfaces/qdrant.interface";
+import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 
 @Injectable()
 export class QdrantService {
@@ -60,13 +61,26 @@ export class QdrantService {
         }
     }
 
-    async search(collection: string, vector: number[], limit = 10, scoreThreshold = 0.5): Promise<Array<{ score: number; text: string }>> {
+    async search(
+        user: LoggedUserInterface,
+        documentId: number,
+        collection: string,
+        vector: number[],
+        limit = 7,
+        scoreThreshold = 0.4
+    ): Promise<Array<{ score: number; text: string }>> {
         const result = await this.client.search(collection, {
             vector,
             limit,
             score_threshold: scoreThreshold,
             with_payload: true,
-            with_vector: false
+            with_vector: false,
+            filter: {
+                must: [
+                    { key: "userId", match: { value: user.id } },
+                    { key: "documentId", match: { value: documentId } }
+                ]
+            }
         });
 
         return result

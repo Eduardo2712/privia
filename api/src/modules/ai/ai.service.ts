@@ -19,19 +19,26 @@ export class AiService extends BaseAiService {
     }
 
     public async generateResponse(chunks: Array<{ score: number; text: string }>, search: string): Promise<string> {
-        const sortedChunks = [...chunks].sort((a, b) => b.score - a.score);
+        const sorted = chunks
+            .sort((a, b) => b.score - a.score)
+            .map((c) => `• ${c.text.replace(/\s+/g, " ").trim()}`)
+            .join("\n\n");
 
-        const prompt = `Use apenas as informações dos TRECHOS abaixo para responder a PERGUNTA.
+        const prompt = `
+Responda somente com informações presentes nos trechos.
+Não copie frases dos trechos.
+Use suas próprias palavras.
+Se a resposta não estiver nos trechos, responda exatamente:
+"Informação não encontrada nos trechos."
 
-        Se a resposta não estiver nos trechos, diga: "Informação não encontrada nos trechos."
+Trechos:
+${sorted}
 
-        TRECHOS:        
-        ${sortedChunks}
+Pergunta:
+${search}
 
-        PERGUNTA:
-        ${search}
-
-        RESPOSTA:`.trim();
+Resposta:
+`.trim();
 
         return this.sendPrompt(prompt);
     }

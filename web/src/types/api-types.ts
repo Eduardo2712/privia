@@ -152,7 +152,7 @@ export interface components {
             file: string;
         };
         SearchFileRequestDto: {
-            /** @example <search_text> */
+            /** @example Text to search */
             search: string;
         };
         SearchFileResponseDto: {
