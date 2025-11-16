@@ -84,27 +84,17 @@ export class BaseAiService {
         try {
             const response = await firstValueFrom(this.http.post(url, payload));
 
-            if (response.status !== HttpStatus.OK) {
-                throw new Error("Erro ao gerar resposta da IA: status inesperado");
-            }
-
             const data = response.data;
 
-            let aiResponse: string | undefined;
-
-            if (data && typeof data.response === "string") {
-                aiResponse = data.response;
+            if (data?.response) {
+                return data.response;
             }
 
-            if (!aiResponse && data?.choices && Array.isArray(data.choices) && typeof data.choices[0]?.text === "string") {
-                aiResponse = data.choices[0].text as string;
+            if (data?.choices?.[0]?.text) {
+                return data.choices[0].text;
             }
 
-            if (!aiResponse || typeof aiResponse !== "string") {
-                throw new Error("Formato de resposta inválido da IA para geração de texto");
-            }
-
-            return aiResponse;
+            throw new Error("Formato de resposta inválido da IA para geração de texto");
         } catch (error) {
             const message = error?.response?.data?.error || error?.message || "Erro desconhecido";
 

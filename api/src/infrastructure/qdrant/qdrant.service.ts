@@ -67,7 +67,7 @@ export class QdrantService {
         collection: string,
         vector: number[],
         limit = 5,
-        scoreThreshold = 0.4
+        scoreThreshold = 0.5
     ): Promise<Array<{ score: number; text: string }>> {
         const result = await this.client.search(collection, {
             vector,
