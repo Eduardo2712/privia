@@ -20,26 +20,27 @@ export class AiService extends BaseAiService {
     }
 
     public async generateResponse(chunks: Array<{ score: number; text: string }>, search: string): Promise<string> {
-        const K = Math.min(8, chunks.length);
+        const K = Math.min(7, chunks.length);
         const unique = Array.from(new Map(chunks.sort((a, b) => b.score - a.score).map((c) => [c.text.trim(), c])).values()).slice(0, K);
 
         const sorted = unique.map((c, i) => `${i + 1}. ${sanitize(c.text)}`).join("\n\n");
 
         const prompt = [
-            "Você é um assistente em português. Responda SOMENTE com base nos trechos.",
-            '- Se a resposta não estiver nos trechos, responda exatamente: "Informação não encontrada nos trechos."',
-            "- Seja direto e preciso.",
-            "- Não invente fatos nem use fontes externas.",
-            '- Se a informação for incompleta, responda o que houver e marque como "parcial".',
-            '- Se houver contradição, diga: "informação conflitante nos trechos".',
+            "Responda em português usando SÓ os trechos numerados.",
+            '- Se não houver resposta nos trechos, responda exatamente: "Informação não encontrada nos trechos."',
+            "- Seja objetivo (1–3 frases).",
+            "- Não invente nem use fontes externas.",
+            '- Se a informação estiver incompleta, marque como "parcial".',
+            '- Se houver contradição, responda: "informação conflitante nos trechos".',
+            "- Cite fontes como [n] correspondentes aos trechos usados.",
             "",
-            "Trechos numerados:",
+            "Trechos:",
             sorted,
             "",
             "Pergunta:",
             search,
             "",
-            "Resposta (inclua referências como [1], [2] quando útil):"
+            "Resposta:"
         ].join("\n");
 
         return this.sendPrompt(prompt);
