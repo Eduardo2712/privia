@@ -1,4 +1,5 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFile, UseInterceptors, Res } from "@nestjs/common";
+import { Response } from "express";
 import { FileService } from "./file.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { FileSizeValidationPipe } from "../../common/pipe/file-validation-size.pipe";
@@ -30,9 +31,22 @@ export class FileController {
 
     @Post("/search")
     @HttpCode(HttpStatus.OK)
-    @ApiOkResponse({ type: SearchFileResponseDto })
-    async searchFile(@GetUser() user: LoggedUserInterface, @Body() searchFileDto: SearchFileRequestDto): Promise<SearchFileResponseDto> {
-        return await this.fileService.searchFile(user, searchFileDto);
+    @ApiOkResponse({ type: SearchFileResponseDto, isArray: true })
+    async searchFile(@GetUser() user: LoggedUserInterface, @Body() searchFileDto: SearchFileRequestDto, @Res() res: Response): Promise<void> {
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+
+        const { stream, references } = await this.fileService.searchFileStream(user, searchFileDto);
+
+        for await (const chunk of stream) {
+            res.write(`data: ${JSON.stringify({ type: "chunk", content: chunk })}\n\n`);
+        }
+
+        res.write(`data: ${JSON.stringify({ type: "references", references })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: "done" })}\n\n`);
+
+        res.end();
     }
 }
 

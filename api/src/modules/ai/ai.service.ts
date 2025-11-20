@@ -19,8 +19,9 @@ export class AiService extends BaseAiService {
         return embedding;
     }
 
-    public async generateResponse(chunks: Array<{ score: number; text: string }>, search: string): Promise<string> {
+    public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
         const K = Math.min(7, chunks.length);
+
         const unique = Array.from(new Map(chunks.sort((a, b) => b.score - a.score).map((c) => [c.text.trim(), c])).values()).slice(0, K);
 
         const sorted = unique.map((c, i) => `${i + 1}. ${sanitize(c.text)}`).join("\n");
@@ -40,7 +41,7 @@ export class AiService extends BaseAiService {
             "Resposta:"
         ].join("\n");
 
-        return this.sendPrompt(prompt);
+        return this.sendPromptStream(prompt);
     }
 }
 

@@ -11,7 +11,7 @@ import { components } from "../../types/api-types";
 export default function HomePage() {
     const [file, setFile] = useState<File | null>(null);
     const [searchText, setSearchText] = useState<string>("");
-    const [searchResults, setSearchResults] = useState<components["schemas"]["SearchFileResponseDto"] | null>(null);
+    const [searchResults, setSearchResults] = useState<components["schemas"]["SearchFileResponseDto"][]>([]);
 
     const { execute, loading } = useRequest({
         request: (config?: AxiosRequestConfig) => readFile(config?.data),
@@ -22,7 +22,7 @@ export default function HomePage() {
 
     const { execute: searchExecute, loading: searchLoading } = useRequest({
         request: () => {
-            setSearchResults(null);
+            setSearchResults([]);
 
             return searchFile({ search: searchText });
         },
@@ -86,13 +86,13 @@ export default function HomePage() {
                 {searchLoading ? <LoaderCircle className="animate-spin text-white" /> : "Buscar"}
             </button>
 
-            {searchResults?.response && (
+            {/* {searchResults?.response && (
                 <div className="mt-4 w-full max-w-md p-4 border border-gray-300 rounded bg-white">
                     <h2 className="text-lg font-semibold mb-2">Resultados da Busca:</h2>
 
                     <div className="whitespace-pre-wrap">{searchLoading ? "Carregando..." : searchResults.response}</div>
                 </div>
-            )}
+            )} */}
         </div>
     );
 }

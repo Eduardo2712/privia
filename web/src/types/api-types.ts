@@ -156,16 +156,13 @@ export interface components {
             search: string;
         };
         SearchFileReferenceDto: {
-            /** @description Referenced text snippet */
-            text: string;
-            /** @description Index of the reference in the source */
-            index: number;
+            /** @description chunk */
+            type: string;
+            T: string;
         };
         SearchFileResponseDto: {
-            /** @description The AI-generated response based on the search query */
-            response: string;
             /** @description References to the sources used in the response */
-            references: components["schemas"]["SearchFileReferenceDto"][];
+            data: components["schemas"]["SearchFileReferenceDto"][];
         };
     };
     responses: never;
@@ -339,7 +336,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SearchFileResponseDto"];
+                    "application/json": components["schemas"]["SearchFileResponseDto"][];
                 };
             };
         };

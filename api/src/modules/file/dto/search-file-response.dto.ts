@@ -1,22 +1,19 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-export class SearchFileReferenceDto {
-    @ApiProperty({ description: "Referenced text snippet", type: String })
-    text: string;
+export class SearchFileReferenceDto<T> {
+    @ApiProperty({ description: "chunk", type: String })
+    type: string;
 
-    @ApiProperty({ description: "Index of the reference in the source", type: Number })
-    index: number;
+    @ApiProperty({ description: "", type: String })
+    T: string;
 }
 
-export class SearchFileResponseDto {
-    @ApiProperty({ description: "The AI-generated response based on the search query", type: String })
-    response: string;
-
+export class SearchFileResponseDto<T> {
     @ApiProperty({
         description: "References to the sources used in the response",
-        type: () => SearchFileReferenceDto,
+        type: () => SearchFileReferenceDto<T>,
         isArray: true
     })
-    references: SearchFileReferenceDto[];
+    data: SearchFileReferenceDto<T>[];
 }
 

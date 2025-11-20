@@ -9,7 +9,14 @@ type SearchFileResponse = operations["FileController_searchFile"]["responses"]["
 type SearchFileRequest = operations["FileController_searchFile"]["requestBody"]["content"]["application/json"];
 
 export const searchFile = async (data: SearchFileRequest): AxiosPromise<SearchFileResponse> => {
-    return axios.post("/file/search", data);
+    return fetch(`${process.env.NEXT_PUBLIC_URL_API}/file/search`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(data),
+    }) as unknown as AxiosPromise<SearchFileResponse>;
 };
 
 export const readFile = async (data: ReadFileRequest): AxiosPromise<ReadFileResponse> => {

@@ -65,14 +65,15 @@ export class BaseAiService {
         }
     }
 
-    public async sendPrompt(prompt: string): Promise<string> {
+    public async sendPromptStream(prompt: string): Promise<AsyncIterable<string>> {
         const url = `${this.getUrlBase()}/generate`;
 
         const model = this.configService.get<string>("AI_MODEL") as string;
+
         const payload: AIGenerateFormInterface = {
             model,
             prompt,
-            stream: false,
+            stream: true,
             options: {
                 temperature: 0.0,
                 top_p: 1,
@@ -81,25 +82,67 @@ export class BaseAiService {
             }
         };
 
-        try {
-            const response = await firstValueFrom(this.http.post(url, payload));
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
 
-            const data = response.data;
-
-            if (data?.response) {
-                return data.response;
-            }
-
-            if (data?.choices?.[0]?.text) {
-                return data.choices[0].text;
-            }
-
-            throw new Error("Formato de resposta inválido da IA para geração de texto");
-        } catch (error) {
-            const message = error?.response?.data?.error || error?.message || "Erro desconhecido";
-
-            throw new Error(`Erro ao gerar resposta da IA: ${message}`);
+        if (!response.body) {
+            throw new Error("Stream não disponível da IA");
         }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+
+        const asyncIterator: AsyncIterable<string> = {
+            [Symbol.asyncIterator]() {
+                let buffer = "";
+
+                return {
+                    async next() {
+                        while (true) {
+                            const { value, done } = await reader.read();
+
+                            if (done) {
+                                return { value: undefined, done: true };
+                            }
+
+                            buffer += decoder.decode(value, { stream: true });
+
+                            const lines = buffer.split(/\r?\n/);
+
+                            buffer = lines.pop() || "";
+
+                            for (const line of lines) {
+                                const trimmed = line.trim();
+
+                                if (!trimmed) {
+                                    continue;
+                                }
+
+                                try {
+                                    const parsed = JSON.parse(trimmed);
+
+                                    if (parsed?.response) {
+                                        return { value: parsed.response as string, done: false };
+                                    }
+
+                                    if (parsed?.choices?.[0]?.delta?.content) {
+                                        return { value: parsed.choices[0].delta.content as string, done: false };
+                                    }
+
+                                    if (parsed?.done) {
+                                        return { value: undefined, done: true };
+                                    }
+                                } catch (_) {}
+                            }
+                        }
+                    }
+                };
+            }
+        };
+        return asyncIterator;
     }
 }
 

@@ -36,3 +36,11 @@ export interface AIEmbeddingResponseInterface {
     embedding: number[];
 }
 
+export interface AIStreamResponseChunkInterface {
+    id: string;
+    createdAt: number;
+    data: string;
+    finished: boolean;
+    finishReason?: string;
+}
+

@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { AiService } from "../ai/ai.service";
 import { QdrantService } from "../../infrastructure/qdrant/qdrant.service";
 import { SearchFileRequestDto } from "./dto/search-file-request.dto";
-import { SearchFileResponseDto } from "./dto/search-file-response.dto";
 import { BaseFileService } from "./base-file.service";
 import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 import { InjectQueue } from "@nestjs/bullmq";
@@ -35,7 +34,10 @@ export class FileService extends BaseFileService {
         await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, user));
     }
 
-    public async searchFile(user: LoggedUserInterface, searchFileDto: SearchFileRequestDto): Promise<SearchFileResponseDto> {
+    public async searchFileStream(
+        user: LoggedUserInterface,
+        searchFileDto: SearchFileRequestDto
+    ): Promise<{ stream: AsyncIterable<string>; references: Array<{ text: string; index: number }> }> {
         const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
 
         if (!Array.isArray(queryEmbedding) || queryEmbedding.length === 0) {
@@ -43,22 +45,22 @@ export class FileService extends BaseFileService {
         }
 
         const documentId = 1;
-
         const searchResults = await this.qdrantService.search(user, documentId, "files", queryEmbedding);
 
         if (searchResults.length === 0) {
-            return {
-                response: "A informação solicitada não foi encontrada nos documentos fornecidos.",
-                references: []
+            const emptyIterator: AsyncIterable<string> = {
+                async *[Symbol.asyncIterator]() {
+                    yield "Informação não encontrada nos trechos.";
+                }
             };
+
+            return { stream: emptyIterator, references: [] };
         }
 
-        const response = await this.aiService.generateResponse(searchResults, searchFileDto.search);
+        const stream = await this.aiService.generateResponseStream(searchResults, searchFileDto.search);
+        const references = searchResults.map((r, i) => ({ text: r.text, index: i + 1 }));
 
-        return {
-            response,
-            references: searchResults.map((r, i) => ({ text: r.text, index: i + 1 }))
-        };
+        return { stream, references };
     }
 }
 
