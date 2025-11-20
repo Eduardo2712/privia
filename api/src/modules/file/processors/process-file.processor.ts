@@ -1,23 +1,39 @@
 import { Processor } from "@nestjs/bullmq";
 import { BaseProcessor } from "../../../infrastructure/processor/base-processor.processor";
-import { Logger } from "@nestjs/common";
+import { Logger, OnModuleDestroy } from "@nestjs/common";
 import { QdrantService } from "../../../infrastructure/qdrant/qdrant.service";
 import { AiService } from "../../ai/ai.service";
 import { Job } from "bullmq";
 import { ProcessFileJob } from "../jobs/process-file.job";
 import { randomUUID } from "node:crypto";
 import { PointInterface } from "../../../infrastructure/qdrant/interfaces/qdrant.interface";
-import { encode } from "gpt-tokenizer";
+import { get_encoding, Tiktoken } from "tiktoken";
 
 @Processor("process-file")
-export class ProcessFileProcessor extends BaseProcessor {
+export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestroy {
     readonly logger = new Logger(ProcessFileProcessor.name);
+    private encoding: Tiktoken | null = null;
 
     constructor(
         private readonly aiService: AiService,
         private readonly qdrantService: QdrantService
     ) {
         super();
+    }
+
+    private getEncoding(): Tiktoken {
+        if (!this.encoding) {
+            this.encoding = get_encoding("cl100k_base");
+        }
+
+        return this.encoding;
+    }
+
+    onModuleDestroy() {
+        if (this.encoding) {
+            this.encoding.free();
+            this.encoding = null;
+        }
     }
 
     async process(job: Job<ProcessFileJob>): Promise<void> {
@@ -37,6 +53,8 @@ export class ProcessFileProcessor extends BaseProcessor {
 
         await this.qdrantService.ensureCollection("files", firstEmbedding.length);
 
+        const encoding = this.getEncoding();
+
         const makePoint = (embedding: number[], index: number): PointInterface => {
             return {
                 id: randomUUID(),
@@ -47,7 +65,7 @@ export class ProcessFileProcessor extends BaseProcessor {
                     documentId: 1,
                     userId: user.id,
                     filename: file.originalname,
-                    chunkTokens: encode(chunks[index]).length
+                    chunkTokens: encoding.encode(chunks[index]).length
                 }
             };
         };

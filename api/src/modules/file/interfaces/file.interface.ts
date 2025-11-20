@@ -7,3 +7,4 @@ export interface SmartChunkerOptsInterface {
     tokenizer?: (text: string) => number[];
     detokenizer?: (tokens: number[]) => string;
 }
+

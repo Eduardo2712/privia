@@ -1,33 +1,50 @@
-import { Injectable } from "@nestjs/common";
-import { encode, decode } from "gpt-tokenizer";
+import { Injectable, OnModuleDestroy } from "@nestjs/common";
+import { get_encoding, Tiktoken } from "tiktoken";
 import { SmartChunkerOptsInterface } from "./interfaces/file.interface";
-import { similarity } from "../../common/utils/functions.util";
+import { sanitize, similarity } from "../../common/utils/functions.util";
 
 @Injectable()
-export class BaseFileService {
+export class BaseFileService implements OnModuleDestroy {
+    private encoding: Tiktoken | null = null;
+
     constructor() {}
 
+    private getEncoding(): Tiktoken {
+        if (!this.encoding) {
+            this.encoding = get_encoding("cl100k_base");
+        }
+        return this.encoding;
+    }
+
+    onModuleDestroy() {
+        if (this.encoding) {
+            this.encoding.free();
+            this.encoding = null;
+        }
+    }
+
     protected smartChunker(opts: SmartChunkerOptsInterface): string[] {
+        const encoding = this.getEncoding();
+
         let {
             text,
             maxTokens = 300,
             overlapTokens = 75,
             minBlockTokens = 40,
             semanticMergeThreshold,
-            tokenizer = (t) => encode(t),
-            detokenizer = (t) => decode(t)
+            tokenizer = (t) => Array.from(encoding.encode(t)),
+            detokenizer = (t) => {
+                const decoded = encoding.decode(new Uint32Array(t));
+
+                return typeof decoded === "string" ? decoded : new TextDecoder().decode(decoded);
+            }
         } = opts;
 
         if (!text.trim()) {
             return [];
         }
 
-        text = text
-            .replace(/\r\n/g, "\n")
-            .replace(/[ \t]+\n/g, "\n")
-            .replace(/\n{3,}/g, "\n\n")
-            .replace(/^\s*[-*_]{3,}\s*$/gm, "")
-            .trim();
+        text = sanitize(text);
 
         const hasHeaders = /^#{1,6}\s/m.test(text);
         const hasList = /^\s*[-*+]\s/m.test(text) || /^\s*\d+\.\s/m.test(text);

@@ -23,7 +23,7 @@ export class AiService extends BaseAiService {
         const K = Math.min(7, chunks.length);
         const unique = Array.from(new Map(chunks.sort((a, b) => b.score - a.score).map((c) => [c.text.trim(), c])).values()).slice(0, K);
 
-        const sorted = unique.map((c, i) => `${i + 1}. ${sanitize(c.text)}`).join("\n\n");
+        const sorted = unique.map((c, i) => `${i + 1}. ${sanitize(c.text)}`).join("\n");
 
         const prompt = [
             "Responda em português usando SÓ os trechos numerados.",
@@ -33,13 +33,10 @@ export class AiService extends BaseAiService {
             '- Se a informação estiver incompleta, marque como "parcial".',
             '- Se houver contradição, responda: "informação conflitante nos trechos".',
             "- Cite fontes como [n] correspondentes aos trechos usados.",
-            "",
             "Trechos:",
             sorted,
-            "",
             "Pergunta:",
             search,
-            "",
             "Resposta:"
         ].join("\n");
 

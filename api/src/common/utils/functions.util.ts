@@ -108,11 +108,8 @@ export const calcHash = (text: string): string => {
 
 export const sanitize = (text: string): string => {
     return text
-        .replace(/\*\*/g, "")
-        .replace(/\*/g, "")
-        .replace(/#+/g, "")
-        .replace(/[\-•▪●]\s*/g, "")
         .replace(/\s+/g, " ")
+        .replace(/\n{2,}/g, "\n\n")
         .trim();
 };
 
