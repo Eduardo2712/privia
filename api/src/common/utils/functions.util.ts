@@ -212,3 +212,11 @@ export const similarity = (semanticMergeThreshold: number, tokenizer: (text: str
     cleaned.splice(0, cleaned.length, ...merged);
 };
 
+export const fileName = (originalName: string): string => {
+    const timestamp = Date.now();
+
+    const sanitizedFileName = originalName.replace(/[^a-zA-Z0-9.-]/g, "_");
+
+    return `${timestamp}-${sanitizedFileName}`;
+};
+

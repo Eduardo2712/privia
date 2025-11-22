@@ -12,10 +12,11 @@ import { FileRepository } from "./entities/file.repository";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { NestMinioModule } from "nestjs-minio";
 import { MinioFileService } from "./minio-file.service";
+import { ChunkerFileService } from "./chunker-file.service";
 
 @Module({
     controllers: [FileController],
-    providers: [FileService, ProcessFileProcessor, FileRepository, MinioFileService],
+    providers: [FileService, ProcessFileProcessor, FileRepository, MinioFileService, ChunkerFileService],
     exports: [FileService],
     imports: [
         AiModule,

@@ -75,10 +75,7 @@ export class BaseAiService {
             prompt,
             stream: true,
             options: {
-                temperature: 0.0,
-                top_p: 1,
-                num_predict: 350,
-                num_ctx: 3000
+                temperature: 0.0
             }
         };
 

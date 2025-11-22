@@ -1,14 +1,13 @@
 import { Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
 import { MINIO_CONNECTION } from "nestjs-minio";
 import { Client } from "minio";
 import { FileEntity } from "./entities/file.entity";
 import { FileRepository } from "./entities/file.repository";
+import { fileName } from "../../common/utils/functions.util";
 
 @Injectable()
 export class MinioFileService {
     constructor(
-        @InjectRepository(FileEntity)
         private readonly fileRepository: FileRepository,
         @Inject(MINIO_CONNECTION) private readonly minioClient: Client
     ) {}
@@ -18,10 +17,14 @@ export class MinioFileService {
 
     public async create(file: Express.Multer.File): Promise<FileEntity> {
         try {
-            await this.minioClient.fPutObject(process.env.MINIO_BUCKET_NAME as string, file.path, file.originalname);
+            const objectName = fileName(file.originalname);
+
+            await this.minioClient.putObject(process.env.MINIO_BUCKET_NAME as string, objectName, file.buffer, file.size, {
+                "Content-Type": file.mimetype
+            });
 
             const obj = await this.fileRepository.create({
-                path: file.path,
+                path: objectName,
                 name: file.originalname,
                 size: file.size,
                 mimeType: file.mimetype

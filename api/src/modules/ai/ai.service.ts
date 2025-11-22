@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { BaseAiService } from "./base-ai.service";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
-import { sanitize } from "../../common/utils/functions.util";
 
 @Injectable()
 export class AiService extends BaseAiService {
@@ -20,26 +19,34 @@ export class AiService extends BaseAiService {
     }
 
     public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
-        const K = Math.min(7, chunks.length);
-
-        const unique = Array.from(new Map(chunks.sort((a, b) => b.score - a.score).map((c) => [c.text.trim(), c])).values()).slice(0, K);
-
-        const sorted = unique.map((c, i) => `${i + 1}. ${sanitize(c.text)}`).join("\n");
+        const sorted = chunks.map((c, i) => `${i + 1}. ${c.text}`).join("\n\n");
 
         const prompt = [
-            "Você é um assistente de IA especializado em responder perguntas com base em trechos de documentos fornecidos.",
-            "Responda em português usando SÓ os trechos numerados.",
-            '- Se não houver resposta nos trechos, responda exatamente: "Informação não encontrada."',
-            "- Seja objetivo (1–3 frases).",
-            "- Não invente nem use fontes externas.",
-            '- Se a informação estiver incompleta, marque como "parcial".',
-            '- Se houver contradição, responda: "informação conflitante".',
-            "- Cite fontes como [n] correspondentes aos trechos usados.",
-            "Trechos:",
+            "Você é um assistente especializado em respostas baseadas exclusivamente em trechos numerados.",
+            "",
+            "REGRAS FUNDAMENTAIS:",
+            "1. Use SOMENTE o que está literalmente escrito nos trechos.",
+            "2. Não deduza, não interprete, não explique além do texto.",
+            "3. Não use conhecimento externo, nem conhecimento prévio do mundo real.",
+            '4. Se qualquer parte necessária da resposta NÃO estiver presente nos trechos, responda exatamente:\n   "Informação não encontrada nos trechos."',
+            '5. Se houver contradição direta entre trechos, responda exatamente:\n   "Informação conflitante nos trechos."',
+            '6. Se houver apenas parte da resposta disponível, responda normalmente e finalize com: "(parcial)".',
+            "7. A resposta deve ter no máximo 3 frases curtas, objetivas e literais.",
+            "8. Sempre cite os trechos utilizados no formato: [n].",
+            "9. Não altere o sentido literal de nenhuma palavra presente nos trechos; não resuma de forma interpretativa.",
+            "10. Se os trechos forem técnicos (manuais, tabelas, PDFs técnicos), siga a literalidade e terminologia original.",
+            "11. Se os trechos forem literários (romance, narrativa), ainda assim responda de forma literal, sem interpretar emoções, intenções, metáforas ou contexto não dito explicitamente.",
+            "",
+            "TAREFA:",
+            "Responder à pergunta usando exclusivamente os trechos numerados abaixo.",
+            "",
+            "TRECHOS:",
             sorted,
-            "Pergunta:",
+            "",
+            "PERGUNTA:",
             search,
-            "Resposta:"
+            "",
+            "RESPOSTA:"
         ].join("\n");
 
         return this.sendPromptStream(prompt);

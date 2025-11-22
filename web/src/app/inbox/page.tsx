@@ -6,6 +6,7 @@ import { searchFileStream, readFile } from "../../requests/file.request";
 import toast from "react-hot-toast";
 import { AxiosRequestConfig } from "axios";
 import { LoaderCircle } from "lucide-react";
+import { formatTime } from "../../utils/functions";
 
 export default function HomePage() {
     const [file, setFile] = useState<File | null>(null);
@@ -114,7 +115,7 @@ export default function HomePage() {
                                 ))}
                             </div>
 
-                            <p className="mt-4 text-sm text-gray-900 font-semibold">Tempo de busca: {timeInMs} ms</p>
+                            <p className="mt-4 text-sm text-gray-900 font-semibold">Tempo de busca: {formatTime(timeInMs)}</p>
                         </>
                     )}
                 </div>

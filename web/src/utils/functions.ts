@@ -137,11 +137,18 @@ export const addLeadingZero = (value: number): string => {
     return String(value).padStart(2, "0");
 };
 
-export const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+export const formatTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
 
-    return `${addLeadingZero(minutes)}:${addLeadingZero(secs)}`;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+        return `${addLeadingZero(hours)}H${addLeadingZero(minutes)}m${addLeadingZero(seconds)}s`;
+    }
+
+    return `${addLeadingZero(minutes)}m${addLeadingZero(seconds)}s`;
 };
 
 export const formatErrorMessage = (message: unknown): string => {
