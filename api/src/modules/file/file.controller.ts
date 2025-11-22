@@ -33,20 +33,31 @@ export class FileController {
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse({ type: SearchFileResponseDto, isArray: true })
     async searchFile(@GetUser() user: LoggedUserInterface, @Body() searchFileDto: SearchFileRequestDto, @Res() res: Response): Promise<void> {
-        res.setHeader("Content-Type", "text/event-stream");
-        res.setHeader("Cache-Control", "no-cache");
-        res.setHeader("Connection", "keep-alive");
+        try {
+            res.setHeader("Content-Type", "text/event-stream");
+            res.setHeader("Cache-Control", "no-cache");
+            res.setHeader("Connection", "keep-alive");
+            res.setHeader("X-Accel-Buffering", "no");
 
-        const { stream, references } = await this.fileService.searchFileStream(user, searchFileDto);
+            const { stream, references, timeInMs } = await this.fileService.searchFileStream(user, searchFileDto);
 
-        for await (const chunk of stream) {
-            res.write(`data: ${JSON.stringify({ type: "chunk", content: chunk })}\n\n`);
+            for await (const chunk of stream) {
+                res.write(`data: ${JSON.stringify({ type: "chunk", content: chunk })}\n\n`);
+            }
+
+            res.write(`data: ${JSON.stringify({ type: "references", references })}\n\n`);
+            res.write(`data: ${JSON.stringify({ type: "timeInMs", timeInMs })}\n\n`);
+            res.write(`data: ${JSON.stringify({ type: "done" })}\n\n`);
+
+            res.end();
+        } catch (error) {
+            if (!res.headersSent) {
+                res.status(500).json({ message: error?.message || "Erro ao processar busca" });
+            } else {
+                res.write(`data: ${JSON.stringify({ type: "error", message: error?.message || "Erro" })}\n\n`);
+                res.end();
+            }
         }
-
-        res.write(`data: ${JSON.stringify({ type: "references", references })}\n\n`);
-        res.write(`data: ${JSON.stringify({ type: "done" })}\n\n`);
-
-        res.end();
     }
 }
 

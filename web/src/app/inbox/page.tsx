@@ -2,36 +2,24 @@
 
 import { useRef, useState } from "react";
 import { useRequest } from "../../hooks/use-request.hook";
-import { searchFile, readFile } from "../../requests/file.request";
+import { searchFileStream, readFile } from "../../requests/file.request";
 import toast from "react-hot-toast";
 import { AxiosRequestConfig } from "axios";
 import { LoaderCircle } from "lucide-react";
-import { components } from "../../types/api-types";
 
 export default function HomePage() {
     const [file, setFile] = useState<File | null>(null);
     const [searchText, setSearchText] = useState<string>("");
-    const [searchResults, setSearchResults] = useState<components["schemas"]["SearchFileResponseDto"][]>([]);
+    const [streamingText, setStreamingText] = useState<string>("");
+    const [references, setReferences] = useState<Array<{ text: string; index: number }>>([]);
+    const [timeInMs, setTimeInMs] = useState<number>(0);
+    const [streaming, setStreaming] = useState<boolean>(false);
 
     const { execute, loading } = useRequest({
         request: (config?: AxiosRequestConfig) => readFile(config?.data),
         onSuccess: () => toast.success("Arquivo enviado com sucesso!"),
         onError: () => toast.error("Erro ao enviar arquivo."),
         onFinally: () => setFile(null),
-    });
-
-    const { execute: searchExecute, loading: searchLoading } = useRequest({
-        request: () => {
-            setSearchResults([]);
-
-            return searchFile({ search: searchText });
-        },
-        onSuccess: (data) => {
-            toast.success("Busca realizada com sucesso!");
-
-            setSearchResults(data);
-        },
-        onError: () => toast.error("Erro ao realizar busca."),
     });
 
     const refButton = useRef<HTMLInputElement>(null);
@@ -55,7 +43,27 @@ export default function HomePage() {
             return toast.error("Por favor, insira um texto para buscar.");
         }
 
-        await searchExecute();
+        setStreaming(true);
+        setStreamingText("");
+        setTimeInMs(0);
+        setReferences([]);
+
+        await searchFileStream(
+            { search: searchText },
+            (chunk) => setStreamingText((prev) => prev + chunk),
+            (refs) => setReferences(refs),
+            (time) => setTimeInMs(time),
+            () => {
+                setStreaming(false);
+
+                toast.success("Busca realizada com sucesso!");
+            },
+            (error) => {
+                setStreaming(false);
+
+                toast.error("Erro ao realizar busca: " + (error instanceof Error ? error.message : "Desconhecido"));
+            }
+        );
     };
 
     return (
@@ -82,17 +90,35 @@ export default function HomePage() {
                 onChange={(e) => setSearchText(e.target.value)}
             ></textarea>
 
-            <button className="bg-green-500 rounded-2xl px-6 py-3 cursor-pointer text-white" onClick={handleSearch}>
-                {searchLoading ? <LoaderCircle className="animate-spin text-white" /> : "Buscar"}
+            <button className="bg-green-500 rounded-2xl px-6 py-3 cursor-pointer text-white" onClick={handleSearch} disabled={streaming}>
+                {streaming ? <LoaderCircle className="animate-spin text-white" /> : "Buscar"}
             </button>
 
-            {/* {searchResults?.response && (
+            {(streaming || streamingText) && (
                 <div className="mt-4 w-full max-w-md p-4 border border-gray-300 rounded bg-white">
                     <h2 className="text-lg font-semibold mb-2">Resultados da Busca:</h2>
 
-                    <div className="whitespace-pre-wrap">{searchLoading ? "Carregando..." : searchResults.response}</div>
+                    <div className="whitespace-pre-wrap">{streamingText || "Iniciando busca..."}</div>
+
+                    {references.length > 0 && (
+                        <>
+                            <div className="mt-4 space-y-2">
+                                <h3 className="font-medium">Referências:</h3>
+
+                                {references.map((r) => (
+                                    <div key={r.index} className="text-sm border border-gray-200 rounded p-2 bg-gray-50">
+                                        <span className="font-semibold">[{r.index}] </span>
+
+                                        {r.text}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <p className="mt-4 text-sm text-gray-900 font-semibold">Tempo de busca: {timeInMs} ms</p>
+                        </>
+                    )}
                 </div>
-            )} */}
+            )}
         </div>
     );
 }

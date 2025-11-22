@@ -7,12 +7,15 @@ import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 import { InjectQueue } from "@nestjs/bullmq";
 import { ProcessFileJob } from "./jobs/process-file.job";
 import { Queue } from "bullmq";
+import { SearchFileStreamResponseInterface } from "./interfaces/file.interface";
+import { MinioFileService } from "./minio-file.service";
 
 @Injectable()
 export class FileService extends BaseFileService {
     constructor(
         private readonly aiService: AiService,
         private readonly qdrantService: QdrantService,
+        private readonly minioFileService: MinioFileService,
         @InjectQueue("process-file") private readonly processFileQueue: Queue<ProcessFileJob>
     ) {
         super();
@@ -31,13 +34,14 @@ export class FileService extends BaseFileService {
             throw new Error("Falha ao dividir o arquivo em partes.");
         }
 
-        await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, user));
+        const fileEntity = await this.minioFileService.create(file);
+
+        await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, user, fileEntity));
     }
 
-    public async searchFileStream(
-        user: LoggedUserInterface,
-        searchFileDto: SearchFileRequestDto
-    ): Promise<{ stream: AsyncIterable<string>; references: Array<{ text: string; index: number }> }> {
+    public async searchFileStream(user: LoggedUserInterface, searchFileDto: SearchFileRequestDto): Promise<SearchFileStreamResponseInterface> {
+        const startTime = Date.now();
+
         const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
 
         if (!Array.isArray(queryEmbedding) || queryEmbedding.length === 0) {
@@ -54,13 +58,14 @@ export class FileService extends BaseFileService {
                 }
             };
 
-            return { stream: emptyIterator, references: [] };
+            return { stream: emptyIterator, references: [], timeInMs: Date.now() - startTime };
         }
 
         const stream = await this.aiService.generateResponseStream(searchResults, searchFileDto.search);
+
         const references = searchResults.map((r, i) => ({ text: r.text, index: i + 1 }));
 
-        return { stream, references };
+        return { stream, references, timeInMs: Date.now() - startTime };
     }
 }
 

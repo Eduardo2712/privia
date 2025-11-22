@@ -27,12 +27,13 @@ export class AiService extends BaseAiService {
         const sorted = unique.map((c, i) => `${i + 1}. ${sanitize(c.text)}`).join("\n");
 
         const prompt = [
+            "Você é um assistente de IA especializado em responder perguntas com base em trechos de documentos fornecidos.",
             "Responda em português usando SÓ os trechos numerados.",
-            '- Se não houver resposta nos trechos, responda exatamente: "Informação não encontrada nos trechos."',
+            '- Se não houver resposta nos trechos, responda exatamente: "Informação não encontrada."',
             "- Seja objetivo (1–3 frases).",
             "- Não invente nem use fontes externas.",
             '- Se a informação estiver incompleta, marque como "parcial".',
-            '- Se houver contradição, responda: "informação conflitante nos trechos".',
+            '- Se houver contradição, responda: "informação conflitante".',
             "- Cite fontes como [n] correspondentes aos trechos usados.",
             "Trechos:",
             sorted,

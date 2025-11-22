@@ -37,7 +37,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
     }
 
     async process(job: Job<ProcessFileJob>): Promise<void> {
-        const { chunks, file, user } = job.data;
+        const { chunks, file, user, fileEntity } = job.data;
 
         if (!chunks?.length) {
             return;
@@ -62,7 +62,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 payload: {
                     text: chunks[index].trim(),
                     chunkIndex: index,
-                    documentId: 1,
+                    documentId: fileEntity.id,
                     userId: user.id,
                     filename: file.originalname,
                     chunkTokens: encoding.encode(chunks[index]).length

@@ -9,12 +9,32 @@ import { CommonModule } from "../../common/common.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { FileEntity } from "./entities/file.entity";
 import { FileRepository } from "./entities/file.repository";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { NestMinioModule } from "nestjs-minio";
+import { MinioFileService } from "./minio-file.service";
 
 @Module({
     controllers: [FileController],
-    providers: [FileService, ProcessFileProcessor, FileRepository],
+    providers: [FileService, ProcessFileProcessor, FileRepository, MinioFileService],
     exports: [FileService],
-    imports: [AiModule, QdrantModule, BullModule.registerQueue({ name: "process-file" }), CommonModule, TypeOrmModule.forFeature([FileEntity])]
+    imports: [
+        AiModule,
+        QdrantModule,
+        BullModule.registerQueue({ name: "process-file" }),
+        CommonModule,
+        TypeOrmModule.forFeature([FileEntity]),
+        NestMinioModule.registerAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                endPoint: configService.get<string>("MINIO_END_POINT", "localhost"),
+                port: configService.get<number>("MINIO_PORT", 9000),
+                useSSL: false,
+                accessKey: configService.get<string>("MINIO_ACCESS_KEY"),
+                secretKey: configService.get<string>("MINIO_SECRET_KEY")
+            }),
+            inject: [ConfigService]
+        })
+    ]
 })
 export class FileModule {}
 

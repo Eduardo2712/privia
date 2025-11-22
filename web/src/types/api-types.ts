@@ -155,9 +155,14 @@ export interface components {
             /** @example Text to search */
             search: string;
         };
+        /**
+         * @description Type of search result
+         * @enum {string}
+         */
+        SearchFileChunkType: "chunk" | "reference" | "timeInMs";
         SearchFileReferenceDto: {
-            /** @description chunk */
-            type: string;
+            /** @description Type of search result */
+            type: components["schemas"]["SearchFileChunkType"];
             T: string;
         };
         SearchFileResponseDto: {
