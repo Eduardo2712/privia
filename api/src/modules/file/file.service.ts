@@ -20,6 +20,31 @@ export class FileService {
         @InjectQueue("process-file") private readonly processFileQueue: Queue<ProcessFileJob>
     ) {}
 
+    private rerankByKeywords(chunks: Array<{ score: number; text: string }>, query: string): Array<{ score: number; text: string }> {
+        const keywords = query
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((w) => w.length > 2);
+
+        return chunks
+            .map((chunk) => {
+                const textLower = chunk.text.toLowerCase();
+                let keywordScore = 0;
+
+                keywords.forEach((keyword) => {
+                    const count = (textLower.match(new RegExp(keyword, "g")) || []).length;
+
+                    keywordScore += count;
+                });
+
+                return {
+                    ...chunk,
+                    score: chunk.score + keywordScore * 0.1
+                };
+            })
+            .sort((a, b) => b.score - a.score);
+    }
+
     public async readFile(user: LoggedUserInterface, file: Express.Multer.File): Promise<void> {
         if (!file?.buffer) {
             throw new Error("O buffer de arquivos enviados está vazio.");
@@ -48,7 +73,7 @@ export class FileService {
         }
 
         const documentId = 1; // FAZER
-        const searchResults = await this.qdrantService.search(user, documentId, "files", queryEmbedding);
+        const searchResults = await this.qdrantService.search(user, documentId, "files", queryEmbedding, 24, 0.2);
 
         if (searchResults.length === 0) {
             const emptyIterator: AsyncIterable<string> = {
@@ -60,11 +85,12 @@ export class FileService {
             return { stream: emptyIterator, references: [], timeInMs: Date.now() - startTime };
         }
 
-        const rerankedChunks = await this.aiService.rerankChunksByRelevance(searchResults, searchFileDto.search);
+        const rerankedChunks = this.rerankByKeywords(searchResults, searchFileDto.search);
+        const topChunks = rerankedChunks.slice(0, 6);
 
-        const stream = await this.aiService.generateResponseStream(rerankedChunks, searchFileDto.search);
+        const stream = await this.aiService.generateResponseStream(topChunks, searchFileDto.search);
 
-        const references = rerankedChunks.map((r, i) => ({ text: r.text, index: i + 1 }));
+        const references = topChunks.map((r, i) => ({ text: r.text, index: i + 1 }));
 
         return { stream, references, timeInMs: Date.now() - startTime };
     }

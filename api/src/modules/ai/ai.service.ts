@@ -18,81 +18,44 @@ export class AiService extends BaseAiService {
         return embedding;
     }
 
-    public async rerankChunksByRelevance(
-        chunks: Array<{ score: number; text: string }>,
-        search: string
-    ): Promise<Array<{ score: number; text: string }>> {
-        const aux = chunks.sort((a, b) => b.score - a.score).slice(0, 10);
+    public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
+        const tokens = search
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((w) => w.length > 2);
+        const strong = [...tokens].sort((a, b) => b.length - a.length).slice(0, 3);
+        const compressed = chunks
+            .map((c, i) => {
+                const sentences = c.text.split(/(?<=[\.\!?])\s+/).slice(0, 60);
+                const withStrong = sentences.filter((s) => strong.some((k) => s.toLowerCase().includes(k)));
+                let selected: string[];
 
-        const prompt = [
-            "Você é um assistente especializado em ranqueamento de trechos.",
-            "",
-            "TAREFA:",
-            "Com base na consulta fornecida, reordene os trechos abaixo pelo nível de relevância.",
-            "Retorne SOMENTE uma lista de números separados por vírgulas. Nada mais.",
-            "",
-            "Exemplo de resposta válida:",
-            "1, 3, 2",
-            "",
-            "Consulta:",
-            search,
-            "",
-            "Trechos:",
-            aux.map((c, i) => `${i + 1}. ${c.text}`).join("\n"),
-            "",
-            "Resposta:"
-        ].join("\n");
+                if (withStrong.length > 0) {
+                    selected = withStrong.slice(0, 4);
+                } else {
+                    const scored = sentences.map((s) => {
+                        const ls = s.toLowerCase();
+                        let score = 0;
 
-        const stream = await this.sendPromptStream(prompt);
+                        tokens.forEach((k) => {
+                            if (ls.includes(k)) score += 1;
+                        });
 
-        let responseText = "";
+                        return { s, score };
+                    });
 
-        for await (const chunk of stream) {
-            responseText += chunk;
-        }
-
-        const matches = responseText.match(/\b\d+\b/g);
-
-        if (!matches) {
-            return chunks;
-        }
-
-        const seen = new Set<number>();
-        const rankedIndexes = matches
-            .map((n) => parseInt(n, 10) - 1)
-            .filter((i) => i >= 0 && i < chunks.length)
-            .filter((i) => {
-                if (seen.has(i)) {
-                    return false;
+                    scored.sort((a, b) => b.score - a.score || a.s.length - b.s.length);
+                    selected = scored.slice(0, 3).map((x) => x.s);
                 }
 
-                seen.add(i);
+                const base = selected.join(" ") || sentences.slice(0, 2).join(" ");
+                const trimmed = base.length > 600 ? base.slice(0, 600) : base;
 
-                return true;
-            });
+                return `[${i + 1}] ${trimmed}`;
+            })
+            .join("\n\n");
 
-        if (rankedIndexes.length === 0) {
-            return chunks;
-        }
-
-        return rankedIndexes.map((i) => chunks[i]);
-    }
-
-    public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
-        const sorted = chunks.map((c, i) => `${i + 1}. ${c.text}`).join("\n\n");
-
-        const prompt = `
-            Você é um assistente especializado em responder usando exclusivamente os trechos numerados.
-            Responda objetivamente, cite trechos usados entre colchetes [n], onde n é o número do trecho, e não invente nada. Somente use os trechos fornecidos e que estejam diretamente relacionados à pergunta.
-
-            TRECHOS:
-            ${sorted}
-
-            PERGUNTA:
-            ${search}
-
-            RESPOSTA:
-            `;
+        const prompt = `Contexto:\n${compressed}\n\nPergunta: ${search}\n\nInstruções:\n- Responda de forma direta e completa usando APENAS o contexto\n- Se houver qualquer menção ao termo consultado, responda objetivamente onde e para qual finalidade\n- Nunca responda "não encontrado" quando houver ao menos uma menção no contexto\n- Cite as fontes relevantes usando [n]\n\nResposta:`;
 
         return this.sendPromptStream(prompt);
     }

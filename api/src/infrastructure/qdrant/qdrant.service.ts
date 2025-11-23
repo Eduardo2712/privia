@@ -26,9 +26,9 @@ export class QdrantService {
                         distance: "Cosine"
                     },
                     hnsw_config: {
-                        m: 16,
-                        ef_construct: 200,
-                        ef_search: 128
+                        m: 32,
+                        ef_construct: 256,
+                        on_disk: false
                     }
                 });
             }
@@ -39,9 +39,9 @@ export class QdrantService {
                     distance: "Cosine"
                 },
                 hnsw_config: {
-                    m: 16,
-                    ef_construct: 200,
-                    ef_search: 128
+                    m: 32,
+                    ef_construct: 256,
+                    on_disk: false
                 }
             });
         }
@@ -75,6 +75,10 @@ export class QdrantService {
             score_threshold: scoreThreshold,
             with_payload: true,
             with_vector: false,
+            params: {
+                hnsw_ef: 128,
+                exact: false
+            },
             filter: {
                 must: [
                     { key: "userId", match: { value: user.id } }
