@@ -1,9 +1,13 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { UserEntity } from "../../user/entities/user.entity";
 
 @Entity("files")
 export class FileEntity {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @Column({ nullable: false, type: "integer", name: "user_id" })
+    userId: number;
 
     @Column({ nullable: false, type: "text", name: "path" })
     path: string;
@@ -25,6 +29,9 @@ export class FileEntity {
 
     @DeleteDateColumn({ name: "deleted_at" })
     deletedAt?: Date;
+
+    @ManyToOne(() => UserEntity, (user) => user.files, { onDelete: "CASCADE" })
+    user?: UserEntity;
 
     constructor(partial: Partial<FileEntity>) {
         Object.assign(this, partial);

@@ -4,6 +4,7 @@ import { Client } from "minio";
 import { FileEntity } from "./entities/file.entity";
 import { FileRepository } from "./entities/file.repository";
 import { fileName } from "../../common/utils/functions.util";
+import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 
 @Injectable()
 export class MinioFileService {
@@ -15,7 +16,7 @@ export class MinioFileService {
     private urlCache = new Map<string, { url: string; expiresAt: number }>();
     private DEFAULT_EXPIRY = 3600;
 
-    public async create(file: Express.Multer.File): Promise<FileEntity> {
+    public async create(file: Express.Multer.File, user: LoggedUserInterface): Promise<FileEntity> {
         try {
             const objectName = fileName(file.originalname);
 
@@ -27,7 +28,8 @@ export class MinioFileService {
                 path: objectName,
                 name: file.originalname,
                 size: file.size,
-                mimeType: file.mimetype
+                mimeType: file.mimetype,
+                userId: user.id
             });
 
             return obj;

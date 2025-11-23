@@ -9,6 +9,9 @@ import { ProcessFileJob } from "./jobs/process-file.job";
 import { Queue } from "bullmq";
 import { SearchFileStreamResponseInterface } from "./interfaces/file.interface";
 import { MinioFileService } from "./minio-file.service";
+import { ListFileRequestDto } from "./dto/list-file-request.dto";
+import { FileRepository } from "./entities/file.repository";
+import { ListFileResponseDto } from "./dto/list-file-response.dto";
 
 @Injectable()
 export class FileService {
@@ -17,33 +20,9 @@ export class FileService {
         private readonly qdrantService: QdrantService,
         private readonly minioFileService: MinioFileService,
         private readonly chunkerFileService: ChunkerFileService,
+        private readonly fileRepository: FileRepository,
         @InjectQueue("process-file") private readonly processFileQueue: Queue<ProcessFileJob>
     ) {}
-
-    private rerankByKeywords(chunks: Array<{ score: number; text: string }>, query: string): Array<{ score: number; text: string }> {
-        const keywords = query
-            .toLowerCase()
-            .split(/\s+/)
-            .filter((w) => w.length > 2);
-
-        return chunks
-            .map((chunk) => {
-                const textLower = chunk.text.toLowerCase();
-                let keywordScore = 0;
-
-                keywords.forEach((keyword) => {
-                    const count = (textLower.match(new RegExp(keyword, "g")) || []).length;
-
-                    keywordScore += count;
-                });
-
-                return {
-                    ...chunk,
-                    score: chunk.score + keywordScore * 0.1
-                };
-            })
-            .sort((a, b) => b.score - a.score);
-    }
 
     public async readFile(user: LoggedUserInterface, file: Express.Multer.File): Promise<void> {
         if (!file?.buffer) {
@@ -58,9 +37,12 @@ export class FileService {
             throw new Error("Falha ao dividir o arquivo em partes.");
         }
 
-        const newFile = await this.minioFileService.create(file);
+        const newFile = await this.minioFileService.create(file, user);
 
-        await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, user, newFile));
+        await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, user, newFile), {
+            attempts: 3,
+            backoff: { type: "exponential", delay: 5000 }
+        });
     }
 
     public async searchFileStream(user: LoggedUserInterface, searchFileDto: SearchFileRequestDto): Promise<SearchFileStreamResponseInterface> {
@@ -85,7 +67,7 @@ export class FileService {
             return { stream: emptyIterator, references: [], timeInMs: Date.now() - startTime };
         }
 
-        const rerankedChunks = this.rerankByKeywords(searchResults, searchFileDto.search);
+        const rerankedChunks = this.chunkerFileService.rerankByKeywords(searchResults, searchFileDto.search);
         const topChunks = rerankedChunks.slice(0, 6);
 
         const stream = await this.aiService.generateResponseStream(topChunks, searchFileDto.search);
@@ -93,6 +75,25 @@ export class FileService {
         const references = topChunks.map((r, i) => ({ text: r.text, index: i + 1 }));
 
         return { stream, references, timeInMs: Date.now() - startTime };
+    }
+
+    public async list(user: LoggedUserInterface, listFileRequestDto: ListFileRequestDto): Promise<ListFileResponseDto> {
+        const result = await this.fileRepository.listFiles(user, listFileRequestDto);
+
+        const items = await Promise.all(
+            result.items.map(async (file) => ({
+                url: await this.minioFileService.getUrl(file.name),
+                id: file.id,
+                name: file.name
+            }))
+        );
+
+        return {
+            items,
+            page: listFileRequestDto.page,
+            totalItems: result.total,
+            totalPages: Math.ceil(result.total / 10)
+        };
     }
 }
 

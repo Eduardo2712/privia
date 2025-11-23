@@ -5,12 +5,10 @@ import { operations } from "../types/api-types";
 type ReadFileResponse = operations["FileController_readFile"]["responses"]["200"];
 type ReadFileRequest = operations["FileController_readFile"]["requestBody"]["content"]["multipart/form-data"];
 
-type SearchFileResponse = operations["FileController_searchFile"]["responses"]["200"]["content"]["application/json"];
 type SearchFileRequest = operations["FileController_searchFile"]["requestBody"]["content"]["application/json"];
 
-export const searchFile = async (data: SearchFileRequest): AxiosPromise<SearchFileResponse> => {
-    return axios.post("/file/search", data);
-};
+type ListFileRequest = operations["FileController_list"]["parameters"]["query"];
+type ListFileResponse = operations["FileController_list"]["responses"]["200"]["content"]["application/json"];
 
 export const searchFileStream = async (
     data: SearchFileRequest,
@@ -93,4 +91,8 @@ export const searchFileStream = async (
 
 export const readFile = async (data: ReadFileRequest): AxiosPromise<ReadFileResponse> => {
     return axios.post("/file/read", data);
+};
+
+export const list = async (data: ListFileRequest): AxiosPromise<ListFileResponse> => {
+    return axios.get("/file/list", { params: data });
 };

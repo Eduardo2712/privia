@@ -37,54 +37,58 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
     }
 
     async process(job: Job<ProcessFileJob>): Promise<void> {
-        const { chunks, file, user, fileEntity } = job.data;
+        try {
+            const { chunks, file, user, fileEntity } = job.data;
 
-        if (!chunks?.length) {
-            return;
-        }
+            if (!chunks?.length) {
+                return;
+            }
 
-        const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 3);
+            const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 3);
 
-        const firstEmbedding = await this.aiService.getEmbedding(chunks[0]);
+            const firstEmbedding = await this.aiService.getEmbedding(chunks[0]);
 
-        if (!firstEmbedding?.length) {
-            throw new Error("Embedding inválido.");
-        }
+            if (!firstEmbedding?.length) {
+                throw new Error("Embedding inválido.");
+            }
 
-        await this.qdrantService.ensureCollection("files", firstEmbedding.length);
+            await this.qdrantService.ensureCollection("files", firstEmbedding.length);
 
-        const encoding = this.getEncoding();
+            const encoding = this.getEncoding();
 
-        const makePoint = (embedding: number[], index: number): PointInterface => {
-            return {
-                id: randomUUID(),
-                vector: embedding,
-                payload: {
-                    text: chunks[index].trim(),
-                    chunkIndex: index,
-                    documentId: fileEntity.id,
-                    userId: user.id,
-                    filename: file.originalname,
-                    chunkTokens: encoding.encode(chunks[index]).length
-                }
+            const makePoint = (embedding: number[], index: number): PointInterface => {
+                return {
+                    id: randomUUID(),
+                    vector: embedding,
+                    payload: {
+                        text: chunks[index].trim(),
+                        chunkIndex: index,
+                        documentId: fileEntity.id,
+                        userId: user.id,
+                        filename: file.originalname,
+                        chunkTokens: encoding.encode(chunks[index]).length
+                    }
+                };
             };
-        };
 
-        await this.qdrantService.saveVectors("files", [makePoint(firstEmbedding, 0)]);
+            await this.qdrantService.saveVectors("files", [makePoint(firstEmbedding, 0)]);
 
-        const total = chunks.length;
-        let processed = 1;
+            const total = chunks.length;
+            let processed = 1;
 
-        for (let i = 1; i < total; i += CONCURRENCY) {
-            const batch = chunks.slice(i, i + CONCURRENCY);
+            for (let i = 1; i < total; i += CONCURRENCY) {
+                const batch = chunks.slice(i, i + CONCURRENCY);
 
-            const batchEmbeddings = await Promise.all(batch.map((chunk) => this.aiService.getEmbedding(chunk)));
+                const batchEmbeddings = await Promise.all(batch.map((chunk) => this.aiService.getEmbedding(chunk)));
 
-            const points = batchEmbeddings.map((embedding, offset) => makePoint(embedding, i + offset));
+                const points = batchEmbeddings.map((embedding, offset) => makePoint(embedding, i + offset));
 
-            await this.qdrantService.saveVectors("files", points);
+                await this.qdrantService.saveVectors("files", points);
 
-            processed += points.length;
+                processed += points.length;
+            }
+        } catch (err) {
+            throw err;
         }
     }
 }

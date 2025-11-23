@@ -1,15 +1,21 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRequest } from "../../hooks/use-request.hook";
-import { searchFileStream, readFile } from "../../requests/file.request";
+import { searchFileStream, readFile, list } from "../../requests/file.request";
 import toast from "react-hot-toast";
 import { AxiosRequestConfig } from "axios";
 import { LoaderCircle } from "lucide-react";
 import { formatTime } from "../../utils/functions";
+import InboxHeader from "../../components/InboxHeader";
+import InboxLateralList from "../../components/InboxLateralList";
+import { components } from "../../types/api-types";
 
 export default function HomePage() {
     const [file, setFile] = useState<File | null>(null);
+    const [listFiles, setListFiles] = useState<components["schemas"]["ListFileResponseDto"]["items"]>([]);
+    const [fileSelected, setFileSelected] = useState<components["schemas"]["FileResponseDto"] | null>(null);
+    const [listPage, setListPage] = useState<number>(1);
     const [searchText, setSearchText] = useState<string>("");
     const [streamingText, setStreamingText] = useState<string>("");
     const [references, setReferences] = useState<Array<{ text: string; index: number }>>([]);
@@ -23,7 +29,26 @@ export default function HomePage() {
         onFinally: () => setFile(null),
     });
 
+    const { execute: executeList } = useRequest<components["schemas"]["ListFileResponseDto"]>({
+        request: () => list({ page: listPage }),
+        onSuccess: (data) => {
+            setListFiles(data.items);
+        },
+        onError: () => toast.error("Erro ao listar arquivos."),
+    });
+
     const refButton = useRef<HTMLInputElement>(null);
+
+    const fetchList = async (page: number) => {
+        setListPage(page);
+
+        await executeList();
+    };
+
+    useEffect(() => {
+        fetchList(listPage);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [listPage]);
 
     const handleUpload = async (file: File | null) => {
         if (!file) {
@@ -68,58 +93,66 @@ export default function HomePage() {
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 flex items-center justify-center text-black flex-col gap-4">
-            <input
-                type="file"
-                hidden
-                className="file-input file-input-bordered w-full max-w-xs"
-                onChange={(e) => handleUpload(e.target.files ? e.target.files[0] : null)}
-                ref={refButton}
-                accept=".pdf,.doc,.docx,.txt"
-            />
+        <div className="h-screen bg-gray-800 text-black flex flex-col overflow-hidden">
+            <InboxHeader />
 
-            <p className="text-black mt-2 mb-2 mr-2">{file?.name}</p>
+            <div className="flex flex-row flex-1 overflow-hidden">
+                <InboxLateralList listFiles={listFiles} setFileSelected={setFileSelected} fileSelected={fileSelected} />
 
-            <button className="bg-amber-500 rounded-2xl px-6 py-3 cursor-pointer text-white" onClick={() => refButton.current?.click()}>
-                {loading ? <LoaderCircle className="animate-spin text-white" /> : "Enviar arquivo"}
-            </button>
+                {/* <div className="flex flex-col items-center justify-center space-y-4">
+                    <input
+                        type="file"
+                        hidden
+                        className="file-input file-input-bordered w-full max-w-xs"
+                        onChange={(e) => handleUpload(e.target.files ? e.target.files[0] : null)}
+                        ref={refButton}
+                        accept=".pdf,.doc,.docx,.txt"
+                    />
 
-            <textarea
-                className="p-2 border border-gray-300 rounded w-full max-w-md bg-white"
-                placeholder="Digite o texto para busca..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-            ></textarea>
+                    <p className="text-black mt-2 mb-2 mr-2">{file?.name}</p>
 
-            <button className="bg-green-500 rounded-2xl px-6 py-3 cursor-pointer text-white" onClick={handleSearch} disabled={streaming}>
-                {streaming ? <LoaderCircle className="animate-spin text-white" /> : "Buscar"}
-            </button>
+                    <button className="bg-amber-500 rounded-2xl px-6 py-3 cursor-pointer text-white" onClick={() => refButton.current?.click()}>
+                        {loading ? <LoaderCircle className="animate-spin text-white" /> : "Enviar arquivo"}
+                    </button>
 
-            {(streaming || streamingText) && (
-                <div className="mt-4 w-full max-w-md p-4 border border-gray-300 rounded bg-white">
-                    <h2 className="text-lg font-semibold mb-2">Resultados da Busca:</h2>
+                    <textarea
+                        className="p-2 border border-gray-300 rounded w-full max-w-md bg-white"
+                        placeholder="Digite o texto para busca..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    ></textarea>
 
-                    <div className="whitespace-pre-wrap">{streamingText || "Iniciando busca..."}</div>
+                    <button className="bg-green-500 rounded-2xl px-6 py-3 cursor-pointer text-white" onClick={handleSearch} disabled={streaming}>
+                        {streaming ? <LoaderCircle className="animate-spin text-white" /> : "Buscar"}
+                    </button>
 
-                    {references.length > 0 && (
-                        <>
-                            <div className="mt-4 space-y-2">
-                                <h3 className="font-medium">Referências:</h3>
+                    {(streaming || streamingText) && (
+                        <div className="mt-4 w-full max-w-md p-4 border border-gray-300 rounded bg-white">
+                            <h2 className="text-lg font-semibold mb-2">Resultados da Busca:</h2>
 
-                                {references.map((r) => (
-                                    <div key={r.index} className="text-sm border border-gray-200 rounded p-2 bg-gray-50">
-                                        <span className="font-semibold">[{r.index}] </span>
+                            <div className="whitespace-pre-wrap">{streamingText || "Iniciando busca..."}</div>
 
-                                        {r.text}
+                            {references.length > 0 && (
+                                <>
+                                    <div className="mt-4 space-y-2">
+                                        <h3 className="font-medium">Referências:</h3>
+
+                                        {references.map((r) => (
+                                            <div key={r.index} className="text-sm border border-gray-200 rounded p-2 bg-gray-50">
+                                                <span className="font-semibold">[{r.index}] </span>
+
+                                                {r.text}
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
 
-                            <p className="mt-4 text-sm text-gray-900 font-semibold">Tempo de busca: {formatTime(timeInMs)}</p>
-                        </>
+                                    <p className="mt-4 text-sm text-gray-900 font-semibold">Tempo de busca: {formatTime(timeInMs)}</p>
+                                </>
+                            )}
+                        </div>
                     )}
-                </div>
-            )}
+                </div> */}
+            </div>
         </div>
     );
 }
