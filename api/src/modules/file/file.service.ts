@@ -27,7 +27,7 @@ export class FileService {
 
         const text = file.buffer.toString("utf-8");
 
-        const chunks = this.chunkerFileService.chunkText({ text });
+        const chunks = await this.chunkerFileService.chunkText(text);
 
         if (!chunks) {
             throw new Error("Falha ao dividir o arquivo em partes.");
@@ -60,9 +60,11 @@ export class FileService {
             return { stream: emptyIterator, references: [], timeInMs: Date.now() - startTime };
         }
 
-        const stream = await this.aiService.generateResponseStream(searchResults, searchFileDto.search);
+        const rerankedChunks = await this.aiService.rerankChunksByRelevance(searchResults, searchFileDto.search);
 
-        const references = searchResults.map((r, i) => ({ text: r.text, index: i + 1 }));
+        const stream = await this.aiService.generateResponseStream(rerankedChunks, searchFileDto.search);
+
+        const references = rerankedChunks.map((r, i) => ({ text: r.text, index: i + 1 }));
 
         return { stream, references, timeInMs: Date.now() - startTime };
     }

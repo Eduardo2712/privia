@@ -66,8 +66,8 @@ export class QdrantService {
         documentId: number,
         collection: string,
         vector: number[],
-        limit = 5,
-        scoreThreshold = 0.4
+        limit = 100,
+        scoreThreshold = 0.001
     ): Promise<Array<{ score: number; text: string }>> {
         const result = await this.client.search(collection, {
             vector,
@@ -78,19 +78,15 @@ export class QdrantService {
             filter: {
                 must: [
                     { key: "userId", match: { value: user.id } }
-                    // { key: "documentId", match: { value: documentId } } // FAZER
+                    // { key: "documentId", match: { value: documentId } }
                 ]
             }
         });
 
-        return result.map((r) => {
-            const text = (r.payload?.text as string) || "";
-
-            return {
-                score: r.score,
-                text
-            };
-        });
+        return result.map((r) => ({
+            score: r.score,
+            text: r.payload?.text as string
+        }));
     }
 
     async deleteByFilter(collection: string, userId: number, documentId: number): Promise<void> {
