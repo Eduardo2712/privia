@@ -6,7 +6,8 @@ export class ProcessFileJob {
         public readonly chunks: string[],
         public readonly file: Express.Multer.File,
         public readonly user: LoggedUserInterface,
-        public readonly fileEntity: FileEntity
+        public readonly fileEntity: FileEntity,
+        public readonly text: string
     ) {}
 }
 

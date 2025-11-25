@@ -21,7 +21,7 @@ export class FileEntity {
     @Column({ nullable: false, type: "varchar", name: "mime_type" })
     mimeType: string;
 
-    @Column({ nullable: false, type: "text", name: "summary" })
+    @Column({ nullable: true, type: "text", name: "summary" })
     summary: string;
 
     @CreateDateColumn({ name: "created_at" })

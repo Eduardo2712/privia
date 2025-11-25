@@ -8,6 +8,7 @@ import { ProcessFileJob } from "../jobs/process-file.job";
 import { randomUUID } from "node:crypto";
 import { PointInterface } from "../../../infrastructure/qdrant/interfaces/qdrant.interface";
 import { get_encoding, Tiktoken } from "tiktoken";
+import { FileRepository } from "../entities/file.repository";
 
 @Processor("process-file")
 export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestroy {
@@ -16,7 +17,8 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
     constructor(
         private readonly aiService: AiService,
-        private readonly qdrantService: QdrantService
+        private readonly qdrantService: QdrantService,
+        private readonly fileRepository: FileRepository
     ) {
         super();
     }
@@ -87,6 +89,10 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
                 processed += points.length;
             }
+
+            const summary = await this.aiService.generateSummary(job.data.text);
+
+            await this.fileRepository.update(fileEntity.id, { summary: summary ?? "" });
         } catch (err) {
             throw err;
         }
