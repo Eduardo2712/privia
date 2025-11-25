@@ -34,13 +34,13 @@ export default function HomePage() {
     }, [listPage]);
 
     return (
-        <div className="h-screen bg-gray-800 text-black flex flex-col overflow-hidden">
+        <div className="h-screen bg-linear-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#0f0f0f] text-white flex flex-col overflow-hidden">
             <InboxHeader />
 
-            <div className="flex flex-row flex-1 overflow-hidden">
+            <div className="flex flex-row flex-1 overflow-hidden gap-0">
                 <InboxLateralList listFiles={listFiles} setFileSelected={setFileSelected} fileSelected={fileSelected} />
 
-                <InboxFileBox />
+                <InboxFileBox fileSelected={fileSelected} />
             </div>
         </div>
     );

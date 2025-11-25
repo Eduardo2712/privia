@@ -141,5 +141,48 @@ export class BaseAiService {
         };
         return asyncIterator;
     }
+
+    public async sendPrompt(prompt: string): Promise<string> {
+        const url = `${this.getUrlBase()}/generate`;
+
+        const model = this.configService.get<string>("AI_MODEL") as string;
+
+        const payload: AIGenerateFormInterface = {
+            model,
+            prompt,
+            stream: false,
+            options: {
+                temperature: 0.0
+            }
+        };
+
+        try {
+            const response = await firstValueFrom(this.http.post(url, payload));
+
+            if (response.status !== HttpStatus.OK) {
+                throw new Error("Erro ao gerar resposta da IA: status inesperado");
+            }
+
+            const data = response.data;
+
+            let answer: string | undefined;
+
+            if (data && typeof data.response === "string") {
+                answer = data.response;
+            }
+
+            if (!answer && data?.choices && Array.isArray(data.choices) && typeof data.choices[0]?.text === "string") {
+                answer = data.choices[0].text;
+            }
+
+            if (!answer) {
+                throw new Error("Resposta da IA não encontrada");
+            }
+
+            return answer;
+        } catch (error) {
+            throw new Error(`Erro ao gerar resposta da IA: ${error.message}`);
+        }
+    }
 }
 

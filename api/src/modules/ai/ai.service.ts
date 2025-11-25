@@ -38,7 +38,9 @@ export class AiService extends BaseAiService {
                         let score = 0;
 
                         tokens.forEach((k) => {
-                            if (ls.includes(k)) score += 1;
+                            if (ls.includes(k)) {
+                                score += 1;
+                            }
                         });
 
                         return { s, score };
@@ -58,6 +60,16 @@ export class AiService extends BaseAiService {
         const prompt = `Contexto:\n${compressed}\n\nPergunta: ${search}\n\nInstruções:\n- Responda de forma direta e completa usando APENAS o contexto\n- Se houver qualquer menção ao termo consultado, responda objetivamente onde e para qual finalidade\n- Nunca responda "não encontrado" quando houver ao menos uma menção no contexto\n- Cite as fontes relevantes usando [n]\n\nResposta:`;
 
         return this.sendPromptStream(prompt);
+    }
+
+    public async generateSummary(text: string): Promise<string> {
+        const limit = 10000;
+
+        const prompt = `Resuma o seguinte texto de forma clara e objetiva, destacando os pontos principais, sem inventar nada além do que está no texto:
+            ${text.slice(0, limit)}
+            Resumo:`;
+
+        return this.sendPrompt(prompt);
     }
 }
 

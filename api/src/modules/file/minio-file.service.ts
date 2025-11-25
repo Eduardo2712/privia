@@ -1,22 +1,16 @@
 import { Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { MINIO_CONNECTION } from "nestjs-minio";
 import { Client } from "minio";
-import { FileEntity } from "./entities/file.entity";
-import { FileRepository } from "./entities/file.repository";
 import { fileName } from "../../common/utils/functions.util";
-import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 
 @Injectable()
 export class MinioFileService {
-    constructor(
-        private readonly fileRepository: FileRepository,
-        @Inject(MINIO_CONNECTION) private readonly minioClient: Client
-    ) {}
+    constructor(@Inject(MINIO_CONNECTION) private readonly minioClient: Client) {}
 
     private urlCache = new Map<string, { url: string; expiresAt: number }>();
     private DEFAULT_EXPIRY = 3600;
 
-    public async create(file: Express.Multer.File, user: LoggedUserInterface): Promise<FileEntity> {
+    public async create(file: Express.Multer.File): Promise<string> {
         try {
             const objectName = fileName(file.originalname);
 
@@ -24,15 +18,7 @@ export class MinioFileService {
                 "Content-Type": file.mimetype
             });
 
-            const obj = await this.fileRepository.create({
-                path: objectName,
-                name: file.originalname,
-                size: file.size,
-                mimeType: file.mimetype,
-                userId: user.id
-            });
-
-            return obj;
+            return objectName;
         } catch (err) {
             throw new InternalServerErrorException(err ?? "Erro");
         }

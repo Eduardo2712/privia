@@ -192,6 +192,8 @@ export interface components {
             name: string;
             /** @example https://example.com/file-name.pdf */
             url: string;
+            /** @example This is a summary of the file. */
+            summary: string;
         };
         ListFileResponseDto: {
             /** @example 1 */

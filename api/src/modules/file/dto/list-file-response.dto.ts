@@ -9,6 +9,9 @@ class FileResponseDto {
 
     @ApiProperty({ example: "https://example.com/file-name.pdf", type: String })
     url: string;
+
+    @ApiProperty({ example: "This is a summary of the file.", type: String })
+    summary: string;
 }
 
 export class ListFileResponseDto {

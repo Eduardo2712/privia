@@ -1,19 +1,27 @@
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, Sparkles } from "lucide-react";
 
 export default function InboxHeader() {
     return (
-        <header className="flex items-center justify-between px-6 py-4 bg-gray-600 w-full">
-            <p className="text-white text-2xl font-semibold">Privia</p>
+        <header className="flex items-center justify-between px-8 py-5 bg-[#1e1e1e]/80 backdrop-blur-xl border-b border-white/5 w-full">
+            <div className="flex items-center gap-3">
+                <div className="bg-linear-to-br from-blue-500 to-purple-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
+                    <Sparkles size={24} className="text-white" />
+                </div>
 
-            <div className="flex items-center gap-4">
-                <button className="bg-blue-500 rounded px-3 py-2 text-white text-sm hover:bg-blue-600">
-                    <Settings className="inline-block mr-2" size={18} />
-                    Configurações
+                <p className="text-2xl font-bold tracking-tight bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent">Privia</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+                <button className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-gray-300 text-sm font-medium hover:bg-white/5 transition-all duration-200 border border-white/5 hover:border-white/10">
+                    <Settings size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+
+                    <span className="hidden sm:inline">Configurações</span>
                 </button>
 
-                <button className="bg-red-500 rounded px-3 py-2 text-white text-sm hover:bg-red-600">
-                    <LogOut className="inline-block mr-2" size={18} />
-                    Sair
+                <button className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-gray-300 text-sm font-medium hover:bg-red-500/10 hover:text-red-400 transition-all duration-200 border border-white/5 hover:border-red-500/30">
+                    <LogOut size={18} className="group-hover:translate-x-0.5 transition-transform duration-200" />
+
+                    <span className="hidden sm:inline">Sair</span>
                 </button>
             </div>
         </header>

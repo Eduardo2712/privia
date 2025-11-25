@@ -37,7 +37,18 @@ export class FileService {
             throw new Error("Falha ao dividir o arquivo em partes.");
         }
 
-        const newFile = await this.minioFileService.create(file, user);
+        const summary = await this.aiService.generateSummary(text);
+
+        const objectName = await this.minioFileService.create(file);
+
+        const newFile = await this.fileRepository.create({
+            path: objectName,
+            name: file.originalname,
+            size: file.size,
+            mimeType: file.mimetype,
+            userId: user.id,
+            summary: summary ?? ""
+        });
 
         await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, user, newFile), {
             attempts: 3,
@@ -84,7 +95,8 @@ export class FileService {
             result.items.map(async (file) => ({
                 url: await this.minioFileService.getUrl(file.name),
                 id: file.id,
-                name: file.name
+                name: file.name,
+                summary: file.summary ?? ""
             }))
         );
 
