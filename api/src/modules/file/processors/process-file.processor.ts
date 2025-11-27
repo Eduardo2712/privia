@@ -54,7 +54,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 throw new Error("Embedding inválido.");
             }
 
-            await this.qdrantService.ensureCollection("files", firstEmbedding.length);
+            await this.qdrantService.ensureCollection(firstEmbedding.length);
 
             const encoding = this.getEncoding();
 
@@ -73,7 +73,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 };
             };
 
-            await this.qdrantService.saveVectors("files", [makePoint(firstEmbedding, 0)]);
+            await this.qdrantService.saveVectors([makePoint(firstEmbedding, 0)]);
 
             const total = chunks.length;
             let processed = 1;
@@ -85,7 +85,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
                 const points = batchEmbeddings.map((embedding, offset) => makePoint(embedding, i + offset));
 
-                await this.qdrantService.saveVectors("files", points);
+                await this.qdrantService.saveVectors(points);
 
                 processed += points.length;
             }
@@ -94,6 +94,8 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
             await this.fileRepository.update(fileEntity.id, { summary: summary ?? "" });
         } catch (err) {
+            this.qdrantService.deleteByFilter(job.data.user.id, job.data.fileEntity.id);
+
             throw err;
         }
     }

@@ -6,21 +6,22 @@ import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 @Injectable()
 export class QdrantService {
     readonly client: QdrantClient;
+    readonly collectionName = "files";
 
     constructor() {
         this.client = new QdrantClient({ url: process.env.QDRANT_URL });
     }
 
-    async ensureCollection(name: string, vectorSize: number): Promise<void> {
+    async ensureCollection(vectorSize: number): Promise<void> {
         try {
-            const info = await this.client.getCollection(name);
+            const info = await this.client.getCollection(this.collectionName);
 
             const existingSize = info.config.params.vectors?.size;
 
             if (existingSize && existingSize !== vectorSize) {
-                await this.client.deleteCollection(name);
+                await this.client.deleteCollection(this.collectionName);
 
-                await this.client.createCollection(name, {
+                await this.client.createCollection(this.collectionName, {
                     vectors: {
                         size: vectorSize,
                         distance: "Cosine"
@@ -33,7 +34,7 @@ export class QdrantService {
                 });
             }
         } catch {
-            await this.client.createCollection(name, {
+            await this.client.createCollection(this.collectionName, {
                 vectors: {
                     size: vectorSize,
                     distance: "Cosine"
@@ -47,14 +48,14 @@ export class QdrantService {
         }
     }
 
-    async saveVectors(collection: string, points: UpsertPointInterface[]): Promise<void> {
+    async saveVectors(points: UpsertPointInterface[]): Promise<void> {
         const batchSize = 100;
 
         for (let i = 0; i < points.length; i += batchSize) {
             const batch = points.slice(i, i + batchSize);
 
             try {
-                await this.client.upsert(collection, { points: batch });
+                await this.client.upsert(this.collectionName, { points: batch });
             } catch (err) {
                 throw err;
             }
@@ -64,12 +65,11 @@ export class QdrantService {
     async search(
         user: LoggedUserInterface,
         documentId: number,
-        collection: string,
         vector: number[],
         limit = 100,
         scoreThreshold = 0.001
     ): Promise<Array<{ score: number; text: string }>> {
-        const result = await this.client.search(collection, {
+        const result = await this.client.search(this.collectionName, {
             vector,
             limit,
             score_threshold: scoreThreshold,
@@ -81,8 +81,8 @@ export class QdrantService {
             },
             filter: {
                 must: [
-                    { key: "userId", match: { value: user.id } }
-                    // { key: "documentId", match: { value: documentId } }
+                    { key: "userId", match: { value: user.id } },
+                    { key: "documentId", match: { value: documentId } }
                 ]
             }
         });
@@ -93,8 +93,8 @@ export class QdrantService {
         }));
     }
 
-    async deleteByFilter(collection: string, userId: number, documentId: number): Promise<void> {
-        await this.client.delete(collection, {
+    async deleteByFilter(userId: number, documentId: number): Promise<void> {
+        await this.client.delete(this.collectionName, {
             filter: {
                 must: [
                     { key: "userId", match: { value: userId } },

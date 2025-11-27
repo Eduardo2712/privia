@@ -170,6 +170,8 @@ export interface components {
         SearchFileRequestDto: {
             /** @example Text to search */
             search: string;
+            /** @example 5 */
+            documentId: number;
         };
         /**
          * @description Type of search result

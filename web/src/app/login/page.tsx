@@ -48,13 +48,13 @@ export default function Page() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 sm:p-6 lg:p-8">
             <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
                 <div className="text-center lg:text-left space-y-6 sm:space-y-8">
                     <div className="space-y-3 sm:space-y-4">
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                             Organize sua vida com{" "}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">simplicidade</span>
+                            <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-purple-600">simplicidade</span>
                         </h1>
 
                         <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto lg:mx-0">
@@ -64,7 +64,7 @@ export default function Page() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                            <div className="p-2 bg-blue-100 rounded-lg shrink-0">
                                 <Mail className="h-5 w-5 text-blue-600" />
                             </div>
 
@@ -72,7 +72,7 @@ export default function Page() {
                         </div>
 
                         <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
+                            <div className="p-2 bg-green-100 rounded-lg shrink-0">
                                 <MessageSquare className="h-5 w-5 text-green-600" />
                             </div>
 
@@ -80,7 +80,7 @@ export default function Page() {
                         </div>
 
                         <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-purple-100 rounded-lg flex-shrink-0">
+                            <div className="p-2 bg-purple-100 rounded-lg shrink-0">
                                 <Smartphone className="h-5 w-5 text-purple-600" />
                             </div>
 
@@ -88,7 +88,7 @@ export default function Page() {
                         </div>
 
                         <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-orange-100 rounded-lg flex-shrink-0">
+                            <div className="p-2 bg-orange-100 rounded-lg shrink-0">
                                 <Zap className="h-5 w-5 text-orange-600" />
                             </div>
 
@@ -101,7 +101,7 @@ export default function Page() {
                             {[1, 2, 3, 4].map((i) => (
                                 <div
                                     key={i}
-                                    className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full border-2 border-white flex items-center justify-center"
+                                    className="w-8 h-8 bg-linear-to-br from-blue-400 to-purple-500 rounded-full border-2 border-white flex items-center justify-center"
                                 >
                                     <Smile className="h-4 w-4 text-white" />
                                 </div>
@@ -125,7 +125,7 @@ export default function Page() {
                     <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
                         <div className="text-center mb-6 sm:mb-8">
                             <div className="flex items-center justify-center mb-3 sm:mb-4">
-                                <div className="p-2.5 sm:p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
+                                <div className="p-2.5 sm:p-3 bg-linear-to-r from-blue-600 to-purple-600 rounded-xl">
                                     <Globe className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                                 </div>
                             </div>
@@ -150,12 +150,12 @@ export default function Page() {
                                         ComponentRight={
                                             showPassword ? (
                                                 <Unlock
-                                                    className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
+                                                    className="cursor-pointer bg-linear-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
                                                     onClick={() => setShowPassword((prev) => !prev)}
                                                 />
                                             ) : (
                                                 <Lock
-                                                    className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
+                                                    className="cursor-pointer bg-linear-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-1 py-1 rounded-sm"
                                                     onClick={() => setShowPassword((prev) => !prev)}
                                                 />
                                             )
@@ -188,7 +188,7 @@ export default function Page() {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 sm:py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                                        className="w-full bg-linear-to-r from-blue-600 to-purple-600 text-white py-2.5 sm:py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                                     >
                                         {isSubmitting ? "Entrando..." : "Entrar"}
                                     </button>

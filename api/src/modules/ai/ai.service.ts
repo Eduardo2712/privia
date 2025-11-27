@@ -65,21 +65,22 @@ export class AiService extends BaseAiService {
     public async generateSummary(text: string): Promise<string> {
         const limit = 6000;
 
+        const clean = text.replace(/\s+/g, " ").trim();
+
+        const chunk = clean.length > limit * 2 ? clean.slice(0, limit) + " " + clean.slice(-limit) : clean;
+
         const prompt = `
-            Sua tarefa é gerar um resumo fiel, claro e objetivo do texto abaixo.
-            - Não invente informações.
-            - Não faça interpretações.
-            - Apenas destaque as ideias principais que estão realmente presentes no texto.
+            Resuma o texto abaixo sem adicionar informações, mantendo apenas as ideias principais.
 
             Texto a ser resumido:
             """
-            ${text.slice(0, limit)} ... ${text.slice(-limit)}
+            ${chunk}
             """
 
             Agora produza o resumo:
         `;
 
-        return this.sendPrompt(prompt);
+        return this.sendPrompt(prompt, 300);
     }
 }
 

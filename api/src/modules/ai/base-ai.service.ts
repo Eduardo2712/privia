@@ -142,7 +142,7 @@ export class BaseAiService {
         return asyncIterator;
     }
 
-    public async sendPrompt(prompt: string): Promise<string> {
+    public async sendPrompt(prompt: string, maxTokens: number | null = null): Promise<string> {
         const url = `${this.getUrlBase()}/generate`;
 
         const model = this.configService.get<string>("AI_MODEL") as string;
@@ -152,7 +152,8 @@ export class BaseAiService {
             prompt,
             stream: false,
             options: {
-                temperature: 0.0
+                temperature: 0.0,
+                ...(maxTokens ? { max_tokens: maxTokens } : {})
             }
         };
 
@@ -165,18 +166,10 @@ export class BaseAiService {
 
             const data = response.data;
 
-            let answer: string | undefined;
-
-            if (data && typeof data.response === "string") {
-                answer = data.response;
-            }
-
-            if (!answer && data?.choices && Array.isArray(data.choices) && typeof data.choices[0]?.text === "string") {
-                answer = data.choices[0].text;
-            }
+            const answer = data?.response ?? data?.choices?.[0]?.text;
 
             if (!answer) {
-                throw new Error("Resposta da IA não encontrada");
+                throw new Error("Resposta não encontrada");
             }
 
             return answer;

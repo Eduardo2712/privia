@@ -6,5 +6,8 @@ export class SearchFileRequestDto {
     @IsNotEmpty()
     @IsString()
     search: string;
+
+    @ApiProperty({ example: 5, type: Number })
+    documentId: number;
 }
 

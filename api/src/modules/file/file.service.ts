@@ -62,8 +62,8 @@ export class FileService {
             throw new Error("Erro ao gerar embedding para a busca.");
         }
 
-        const documentId = 1; // FAZER
-        const searchResults = await this.qdrantService.search(user, documentId, "files", queryEmbedding, 24, 0.2);
+        const documentId = searchFileDto.documentId;
+        const searchResults = await this.qdrantService.search(user, documentId, queryEmbedding, 24, 0.2);
 
         if (searchResults.length === 0) {
             const emptyIterator: AsyncIterable<string> = {
@@ -72,7 +72,11 @@ export class FileService {
                 }
             };
 
-            return { stream: emptyIterator, references: [], timeInMs: Date.now() - startTime };
+            return {
+                stream: emptyIterator,
+                references: [],
+                timeInMs: Date.now() - startTime
+            };
         }
 
         const rerankedChunks = this.chunkerFileService.rerankByKeywords(searchResults, searchFileDto.search);
