@@ -19,45 +19,66 @@ export class AiService extends BaseAiService {
     }
 
     public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
-        const tokens = search
-            .toLowerCase()
-            .split(/\s+/)
-            .filter((w) => w.length > 2);
-        const strong = [...tokens].sort((a, b) => b.length - a.length).slice(0, 3);
         const compressed = chunks
             .map((c, i) => {
-                const sentences = c.text.split(/(?<=[\.\!?])\s+/).slice(0, 60);
-                const withStrong = sentences.filter((s) => strong.some((k) => s.toLowerCase().includes(k)));
-                let selected: string[];
+                const sentences = c.text.split(/(?<=[.!?])\s+/).filter(Boolean);
 
-                if (withStrong.length > 0) {
-                    selected = withStrong.slice(0, 4);
-                } else {
-                    const scored = sentences.map((s) => {
-                        const ls = s.toLowerCase();
-                        let score = 0;
+                const prefix = sentences.slice(0, 2);
 
-                        tokens.forEach((k) => {
-                            if (ls.includes(k)) {
-                                score += 1;
-                            }
-                        });
+                const tokens = search
+                    .toLowerCase()
+                    .split(/\s+/)
+                    .filter((w) => w.length > 2);
 
-                        return { s, score };
+                const scored = sentences.slice(2).map((s) => {
+                    const ls = s.toLowerCase();
+
+                    let score = 0;
+
+                    tokens.forEach((t) => {
+                        if (ls.includes(t)) score += 2;
+                        if (ls.startsWith(t)) score += 1;
                     });
 
-                    scored.sort((a, b) => b.score - a.score || a.s.length - b.s.length);
-                    selected = scored.slice(0, 3).map((x) => x.s);
-                }
+                    score += Math.min(s.length / 80, 2);
 
-                const base = selected.join(" ") || sentences.slice(0, 2).join(" ");
-                const trimmed = base.length > 600 ? base.slice(0, 600) : base;
+                    return { s, score };
+                });
+
+                scored.sort((a, b) => b.score - a.score);
+
+                const selected = scored.map((x) => x.s).slice(0, 4);
+
+                const merged = [...prefix, ...selected].join(" ");
+
+                const trimmed = merged.length > 1200 ? merged.slice(0, 1200) : merged;
 
                 return `[${i + 1}] ${trimmed}`;
             })
             .join("\n\n");
 
-        const prompt = `Contexto:\n${compressed}\n\nPergunta: ${search}\n\nInstruções:\n- Responda de forma direta e completa usando APENAS o contexto\n- Se houver qualquer menção ao termo consultado, responda objetivamente onde e para qual finalidade\n- Nunca responda "não encontrado" quando houver ao menos uma menção no contexto\n- Cite as fontes relevantes usando [n]\n\nResposta:`;
+        const prompt = `IMPORTANTE:
+Você deve responder exclusivamente com base nos trechos fornecidos abaixo.
+Não use conhecimento externo.
+Não faça inferências que não estejam explicitamente presentes no texto.
+Se não houver evidência textual clara para responder, diga apenas:
+
+"Nenhuma evidência nos trechos fornecidos."
+
+Regras:
+- Se citar algo, cite apenas usando o número do trecho (ex: [3]).
+- Não invente informações implícitas.
+- Não complete lacunas com conhecimento externo.
+- Se houver informação parcial, responda apenas com o que os trechos permitem.
+
+Trechos relevantes:
+${compressed}
+
+Pergunta:
+${search}
+
+Agora responda seguindo as regras.
+`;
 
         return this.sendPromptStream(prompt);
     }

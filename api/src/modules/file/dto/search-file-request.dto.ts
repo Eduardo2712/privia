@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class SearchFileRequestDto {
     @ApiProperty({ example: "Text to search", type: String })
@@ -8,6 +9,9 @@ export class SearchFileRequestDto {
     search: string;
 
     @ApiProperty({ example: 5, type: Number })
+    @IsNotEmpty()
+    @IsNumber()
+    @Transform(({ value }) => Number(value))
     documentId: number;
 }
 

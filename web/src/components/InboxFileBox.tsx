@@ -156,6 +156,7 @@ export default function InboxFileBox({ fileSelected }: Props) {
                                     )}
                                 </button>
                             </div>
+
                             <p className="text-xs text-gray-500 mt-3 text-center">Pressione Enter para enviar, Shift + Enter para nova linha</p>
                         </div>
                     </div>
