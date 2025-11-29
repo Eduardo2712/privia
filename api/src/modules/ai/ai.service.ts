@@ -59,36 +59,39 @@ export class AiService extends BaseAiService {
 
         const prompt = `Responda exclusivamente com base nos trechos fornecidos.
 
-⚠️ Regras obrigatórias (não as ignore):
-- NÃO use qualquer conhecimento externo.
-- NÃO faça inferências, deduções, suposições, interpretações subjetivas ou leituras implícitas.
-- Só é permitido afirmar algo se existir evidência textual explícita.
-- Se a resposta exigir conectar informações que não estão explicitamente ligadas → considere como “sem evidência”.
-- Se houver qualquer dúvida → responda “Nenhuma evidência nos trechos fornecidos.”
+Regras:
+- Não use conhecimento externo.
+- Não invente fatos.
+- Você pode inferir informações quando:
+  • a conclusão deriva necessariamente do texto, mesmo que não seja dita de forma literal
+  • não exija interpretações subjetivas
+  • não introduza conhecimento de fora
 
-Processo antes de responder:
-1. Leia todos os trechos.
-2. Verifique se existe trecho que afirma direta e literalmente a resposta.
-3. Se existir, responda citando exatamente o trecho que comprova.
-4. Se NÃO existir, responda exatamente:
+Exemplos de inferências permitidas:
+- se o texto descreve ações humanas, pode concluir que é uma pessoa
+- se o texto se refere a alguém como “mais mulher do que eu era homem”, pode concluir que se trata de uma mulher
 
-"Nenhuma evidência nos trechos fornecidos."
+Se a resposta exigir suposições, especulações ou interpretações subjetivas, responda:
 
-Trechos:
-${compressed}
+"Não há evidências suficientes nos trechos fornecidos."
 
-Pergunta:
-${search}`;
+Quando responder, cite o trecho exato que justifica sua conclusão.
+
+                Trechos:
+                ${compressed}
+
+                Pergunta:
+                ${search}`;
 
         return this.sendPromptStream(prompt);
     }
 
     public async generateSummary(text: string): Promise<string> {
-        const limit = 6000;
+        const limit = 5000;
 
         const clean = text.replace(/\s+/g, " ").trim();
 
-        const chunk = clean.length > limit * 2 ? clean.slice(0, limit) + " " + clean.slice(-limit) : clean;
+        const chunk = clean.length > limit * 2 ? `${clean.slice(0, limit)}...${clean.slice(-limit)}` : clean;
 
         const prompt = `
             Resuma o texto abaixo sem adicionar informações, mantendo apenas as ideias principais.
