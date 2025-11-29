@@ -19,66 +19,66 @@ export class AiService extends BaseAiService {
     }
 
     public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
+        const tokens = search
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((w) => w.length > 2);
+        const strong = [...tokens].sort((a, b) => b.length - a.length).slice(0, 3);
         const compressed = chunks
             .map((c, i) => {
-                const sentences = c.text.split(/(?<=[.!?])\s+/).filter(Boolean);
+                const sentences = c.text.split(/(?<=[\.\!?])\s+/).slice(0, 60);
+                const withStrong = sentences.filter((s) => strong.some((k) => s.toLowerCase().includes(k)));
+                let selected: string[];
 
-                const prefix = sentences.slice(0, 2);
+                if (withStrong.length > 0) {
+                    selected = withStrong.slice(0, 4);
+                } else {
+                    const scored = sentences.map((s) => {
+                        const ls = s.toLowerCase();
+                        let score = 0;
 
-                const tokens = search
-                    .toLowerCase()
-                    .split(/\s+/)
-                    .filter((w) => w.length > 2);
+                        tokens.forEach((k) => {
+                            if (ls.includes(k)) {
+                                score += 1;
+                            }
+                        });
 
-                const scored = sentences.slice(2).map((s) => {
-                    const ls = s.toLowerCase();
-
-                    let score = 0;
-
-                    tokens.forEach((t) => {
-                        if (ls.includes(t)) score += 2;
-                        if (ls.startsWith(t)) score += 1;
+                        return { s, score };
                     });
 
-                    score += Math.min(s.length / 80, 2);
+                    scored.sort((a, b) => b.score - a.score || a.s.length - b.s.length);
+                    selected = scored.slice(0, 3).map((x) => x.s);
+                }
 
-                    return { s, score };
-                });
-
-                scored.sort((a, b) => b.score - a.score);
-
-                const selected = scored.map((x) => x.s).slice(0, 4);
-
-                const merged = [...prefix, ...selected].join(" ");
-
-                const trimmed = merged.length > 1200 ? merged.slice(0, 1200) : merged;
+                const base = selected.join(" ") || sentences.slice(0, 2).join(" ");
+                const trimmed = base.length > 600 ? base.slice(0, 600) : base;
 
                 return `[${i + 1}] ${trimmed}`;
             })
             .join("\n\n");
 
-        const prompt = `IMPORTANTE:
-Você deve responder exclusivamente com base nos trechos fornecidos abaixo.
-Não use conhecimento externo.
-Não faça inferências que não estejam explicitamente presentes no texto.
-Se não houver evidência textual clara para responder, diga apenas:
+        const prompt = `Responda exclusivamente com base nos trechos fornecidos.
+
+⚠️ Regras obrigatórias (não as ignore):
+- NÃO use qualquer conhecimento externo.
+- NÃO faça inferências, deduções, suposições, interpretações subjetivas ou leituras implícitas.
+- Só é permitido afirmar algo se existir evidência textual explícita.
+- Se a resposta exigir conectar informações que não estão explicitamente ligadas → considere como “sem evidência”.
+- Se houver qualquer dúvida → responda “Nenhuma evidência nos trechos fornecidos.”
+
+Processo antes de responder:
+1. Leia todos os trechos.
+2. Verifique se existe trecho que afirma direta e literalmente a resposta.
+3. Se existir, responda citando exatamente o trecho que comprova.
+4. Se NÃO existir, responda exatamente:
 
 "Nenhuma evidência nos trechos fornecidos."
 
-Regras:
-- Se citar algo, cite apenas usando o número do trecho (ex: [3]).
-- Não invente informações implícitas.
-- Não complete lacunas com conhecimento externo.
-- Se houver informação parcial, responda apenas com o que os trechos permitem.
-
-Trechos relevantes:
+Trechos:
 ${compressed}
 
 Pergunta:
-${search}
-
-Agora responda seguindo as regras.
-`;
+${search}`;
 
         return this.sendPromptStream(prompt);
     }
