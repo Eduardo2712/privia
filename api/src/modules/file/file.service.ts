@@ -63,7 +63,7 @@ export class FileService {
         }
 
         const documentId = searchFileDto.documentId;
-        const searchResults = await this.qdrantService.search(user, documentId, queryEmbedding, 24, 0.2);
+        const searchResults = await this.qdrantService.search(user, documentId, queryEmbedding, 25, 0.25);
 
         if (searchResults.length === 0) {
             const emptyIterator: AsyncIterable<string> = {
@@ -79,10 +79,28 @@ export class FileService {
             };
         }
 
-        const rerankedChunks = this.chunkerFileService.rerankByKeywords(searchResults, searchFileDto.search);
-        const topChunks = rerankedChunks.slice(0, 6);
+        const rerankedChunks = this.chunkerFileService.rerankHybrid(searchResults, searchFileDto.search);
+        const seen = new Set<string>();
+        const compact = rerankedChunks
+            .map((c) => {
+                const maxLen = 950;
+                let t = c.text.trim();
+                if (t.length > maxLen) {
+                    const trimmed = t.substring(0, maxLen);
+                    const lastPeriod = trimmed.lastIndexOf(".");
+                    t = lastPeriod > maxLen * 0.7 ? trimmed.substring(0, lastPeriod + 1) : trimmed;
+                }
+                return { score: c.score, text: t };
+            })
+            .filter((c) => {
+                const sig = c.text.substring(0, 120).toLowerCase().replaceAll(/\s+/g, " ");
+                if (seen.has(sig)) return false;
+                seen.add(sig);
+                return true;
+            });
+        const topChunks = compact.slice(0, 5);
 
-        const stream = await this.aiService.generateResponseStream(topChunks, searchFileDto.search);
+        const stream = await this.aiService.generateResponseStream(topChunks, searchFileDto.search, { k: 5, promptMode: "STRICT_QUOTE" });
 
         const references = topChunks.map((r, i) => ({ text: r.text, index: i + 1 }));
 

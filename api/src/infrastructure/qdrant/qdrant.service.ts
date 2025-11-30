@@ -27,8 +27,8 @@ export class QdrantService {
                         distance: "Cosine"
                     },
                     hnsw_config: {
-                        m: 32,
-                        ef_construct: 256,
+                        m: 16,
+                        ef_construct: 128,
                         on_disk: false
                     }
                 });
@@ -40,8 +40,8 @@ export class QdrantService {
                     distance: "Cosine"
                 },
                 hnsw_config: {
-                    m: 32,
-                    ef_construct: 256,
+                    m: 16,
+                    ef_construct: 128,
                     on_disk: false
                 }
             });
@@ -66,8 +66,8 @@ export class QdrantService {
         user: LoggedUserInterface,
         documentId: number,
         vector: number[],
-        limit = 100,
-        scoreThreshold = 0.001
+        limit = 25,
+        scoreThreshold = 0.25
     ): Promise<Array<{ score: number; text: string }>> {
         const result = await this.client.search(this.collectionName, {
             vector,
@@ -76,7 +76,7 @@ export class QdrantService {
             with_payload: true,
             with_vector: false,
             params: {
-                hnsw_ef: 128,
+                hnsw_ef: 64,
                 exact: false
             },
             filter: {

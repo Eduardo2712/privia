@@ -75,7 +75,10 @@ export class BaseAiService {
             prompt,
             stream: true,
             options: {
-                temperature: 0.0
+                temperature: 0,
+                top_p: 0.8,
+                top_k: 40,
+                repeat_penalty: 1.15
             }
         };
 
@@ -118,21 +121,19 @@ export class BaseAiService {
                                     continue;
                                 }
 
-                                try {
-                                    const parsed = JSON.parse(trimmed);
+                                const parsed = JSON.parse(trimmed);
 
-                                    if (parsed?.response) {
-                                        return { value: parsed.response as string, done: false };
-                                    }
+                                if (parsed?.response) {
+                                    return { value: parsed.response as string, done: false };
+                                }
 
-                                    if (parsed?.choices?.[0]?.delta?.content) {
-                                        return { value: parsed.choices[0].delta.content as string, done: false };
-                                    }
+                                if (parsed?.choices?.[0]?.delta?.content) {
+                                    return { value: parsed.choices[0].delta.content as string, done: false };
+                                }
 
-                                    if (parsed?.done) {
-                                        return { value: undefined, done: true };
-                                    }
-                                } catch (_) {}
+                                if (parsed?.done) {
+                                    return { value: undefined, done: true };
+                                }
                             }
                         }
                     }
@@ -152,7 +153,9 @@ export class BaseAiService {
             prompt,
             stream: false,
             options: {
-                temperature: 0.0,
+                temperature: 0,
+                top_p: 0.8,
+                repeat_penalty: 1.15,
                 ...(maxTokens ? { max_tokens: maxTokens } : {})
             }
         };

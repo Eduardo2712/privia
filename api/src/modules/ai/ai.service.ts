@@ -18,93 +18,118 @@ export class AiService extends BaseAiService {
         return embedding;
     }
 
-    public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
-        const tokens = search
-            .toLowerCase()
-            .split(/\s+/)
-            .filter((w) => w.length > 2);
-        const strong = [...tokens].sort((a, b) => b.length - a.length).slice(0, 3);
-        const compressed = chunks
+    public async generateResponseStream(
+        chunks: Array<{ score: number; text: string }>,
+        search: string,
+        opts?: { promptMode?: "STRICT_QUOTE" | "INFERENCE_SYNTHESIS"; k?: number }
+    ): Promise<AsyncIterable<string>> {
+        const envDefault = this.configService.get<string>("PROMPT_MODE") || "STRICT_QUOTE";
+        const auto = this.autoDecide(chunks);
+        const mode = opts?.promptMode || envDefault || auto.promptMode;
+        const kVal = typeof opts?.k === "number" && opts.k > 0 ? opts.k : auto.k;
+
+        const useChunks = typeof kVal === "number" && kVal > 0 ? chunks.slice(0, Math.min(kVal, chunks.length)) : chunks;
+
+        const fullChunks = useChunks
             .map((c, i) => {
-                const sentences = c.text.split(/(?<=[\.\!?])\s+/).slice(0, 60);
-                const withStrong = sentences.filter((s) => strong.some((k) => s.toLowerCase().includes(k)));
-                let selected: string[];
+                const maxLen = 1100;
+                let text = c.text;
 
-                if (withStrong.length > 0) {
-                    selected = withStrong.slice(0, 4);
-                } else {
-                    const scored = sentences.map((s) => {
-                        const ls = s.toLowerCase();
-                        let score = 0;
-
-                        tokens.forEach((k) => {
-                            if (ls.includes(k)) {
-                                score += 1;
-                            }
-                        });
-
-                        return { s, score };
-                    });
-
-                    scored.sort((a, b) => b.score - a.score || a.s.length - b.s.length);
-                    selected = scored.slice(0, 3).map((x) => x.s);
+                if (text.length > maxLen) {
+                    const trimmed = text.substring(0, maxLen);
+                    const lastPeriod = trimmed.lastIndexOf(".");
+                    text = lastPeriod > maxLen * 0.8 ? trimmed.substring(0, lastPeriod + 1) : trimmed;
                 }
 
-                const base = selected.join(" ") || sentences.slice(0, 2).join(" ");
-                const trimmed = base.length > 600 ? base.slice(0, 600) : base;
-
-                return `[${i + 1}] ${trimmed}`;
+                return `[Trecho ${i + 1}]\n${text}\n`;
             })
-            .join("\n\n");
+            .join("\n---\n\n");
 
-        const prompt = `Responda exclusivamente com base nos trechos fornecidos.
+        const promptInference = `Você é um assistente literário especializado em análise profunda e contextualizada de textos.
 
-Regras:
-- Não use conhecimento externo.
-- Não invente fatos.
-- Você pode inferir informações quando:
-  • a conclusão deriva necessariamente do texto, mesmo que não seja dita de forma literal
-  • não exija interpretações subjetivas
-  • não introduza conhecimento de fora
+MISSÃO:
+Analise os trechos fornecidos e responda à pergunta de forma completa, inteligente e bem fundamentada.
+Sintetize as informações mentalmente antes de responder para criar um entendimento unificado.
 
-Exemplos de inferências permitidas:
-- se o texto descreve ações humanas, pode concluir que é uma pessoa
-- se o texto se refere a alguém como “mais mulher do que eu era homem”, pode concluir que se trata de uma mulher
+CAPACIDADES PERMITIDAS:
+✓ Interpretar emoções, sentimentos e intenções descritas ou implícitas
+✓ Identificar características de personalidade baseadas em ações, diálogos e descrições
+✓ Inferir relações lógicas entre personagens, eventos e temas
+✓ Fazer conexões temáticas e narrativas entre diferentes partes do texto
+✓ Compreender contexto social, histórico e cultural implícito na narrativa
+✓ Analisar dinâmicas de relacionamentos, motivações e conflitos
+✓ Reconhecer recursos literários, simbolismos e metanarrativas evidentes
+✓ Sintetizar informações esparsas para formar visão completa
 
-Se a resposta exigir suposições, especulações ou interpretações subjetivas, responda:
+RESTRIÇÕES:
+✗ Não introduza fatos ou conhecimentos externos não presentes nos trechos
+✗ Não faça especulações sem base textual clara
+✗ Não contradiga informações explícitas do texto
 
-"Não há evidências suficientes nos trechos fornecidos."
+FORMATO IDEAL:
+- Comece com síntese direta e abrangente
+- Desenvolva os aspectos principais com profundidade
+- Organize em parágrafos temáticos lógicos
+- Cite trechos [N] quando usar evidências específicas
+- Seja eloquente, rico em detalhes, mas preciso
+- Se informação for insuficiente, indique claramente quais aspectos não podem ser determinados
 
-Quando responder, cite o trecho exato que justifica sua conclusão.
+TRECHOS DO DOCUMENTO:
+${fullChunks}
 
-                Trechos:
-                ${compressed}
+PERGUNTA: ${search}
 
-                Pergunta:
-                ${search}`;
+ANÁLISE:`;
+
+        const promptStrict = `Você é um assistente de RAG especializado. Responda APENAS com base nos trechos fornecidos, de forma completa e precisa.
+
+REGRAS FUNDAMENTAIS:
+- Use exclusivamente informações dos trechos abaixo.
+- Sintetize todas as informações relevantes encontradas nos trechos para fornecer uma resposta abrangente.
+- Cite as evidências como [N] onde N é o número do trecho.
+- Se algo não estiver presente nos trechos, diga explicitamente: "Os trechos não contêm essa informação."
+- Não introduza fatos externos ou suposições.
+
+OBJETIVO DE QUALIDADE:
+- Identifique TODOS os trechos que contêm informação relevante para a pergunta.
+- Combine e sintetize essas informações em uma resposta coerente e completa.
+- Seja específico: mencione contextos, exemplos, detalhes técnicos e casos de uso encontrados.
+- Se houver múltiplas menções ao mesmo conceito em diferentes trechos, integre-as em uma visão unificada.
+
+FORMATO DE SAÍDA OBRIGATÓRIO:
+1. Resposta principal: 2-4 parágrafos bem estruturados, citando [N] após cada afirmação baseada em evidência.
+2. Ao final, inclua SOMENTE:
+   Fontes: N1, N2, N3
+   (lista de números únicos, em ordem crescente, sem repetir)
+
+TRECHOS DO DOCUMENTO:
+${fullChunks}
+
+PERGUNTA: ${search}
+
+RESPOSTA COMPLETA:`;
+        const prompt = mode === "STRICT_QUOTE" ? promptStrict : promptInference;
 
         return this.sendPromptStream(prompt);
     }
 
+    private autoDecide(chunks: Array<{ score: number; text: string }>): { promptMode: "STRICT_QUOTE" | "INFERENCE_SYNTHESIS"; k: number } {
+        const promptMode = "STRICT_QUOTE" as const;
+        const k = Math.min(5, chunks.length);
+
+        return { promptMode, k };
+    }
+
     public async generateSummary(text: string): Promise<string> {
-        const limit = 5000;
+        const limit = 3000;
+        const clean = text.replaceAll(/\s+/g, " ").trim();
+        const chunk = clean.length > limit ? clean.slice(0, limit) : clean;
 
-        const clean = text.replace(/\s+/g, " ").trim();
+        const prompt = `Resuma em 2-3 frases:
 
-        const chunk = clean.length > limit * 2 ? `${clean.slice(0, limit)}...${clean.slice(-limit)}` : clean;
+        ${chunk}`;
 
-        const prompt = `
-            Resuma o texto abaixo sem adicionar informações, mantendo apenas as ideias principais.
-
-            Texto a ser resumido:
-            """
-            ${chunk}
-            """
-
-            Agora produza o resumo:
-        `;
-
-        return this.sendPrompt(prompt, 300);
+        return this.sendPrompt(prompt, 120);
     }
 }
 

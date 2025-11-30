@@ -4,3 +4,11 @@ export interface SearchFileStreamResponseInterface {
     timeInMs: number;
 }
 
+export interface ChunkOptionsInterface {
+    chunkSizeTokens?: number;
+    chunkOverlapTokens?: number;
+    separators?: string[];
+    semantic?: boolean;
+    strategy?: "fine" | "coarse" | "chapter";
+}
+

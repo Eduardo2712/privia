@@ -24,9 +24,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
     }
 
     private getEncoding(): Tiktoken {
-        if (!this.encoding) {
-            this.encoding = get_encoding("cl100k_base");
-        }
+        this.encoding ??= get_encoding("cl100k_base");
 
         return this.encoding;
     }
@@ -46,7 +44,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 return;
             }
 
-            const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 3);
+            const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 12);
 
             const firstEmbedding = await this.aiService.getEmbedding(chunks[0]);
 
@@ -73,22 +71,16 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 };
             };
 
-            await this.qdrantService.saveVectors([makePoint(firstEmbedding, 0)]);
+            const allPoints: PointInterface[] = [makePoint(firstEmbedding, 0)];
 
-            const total = chunks.length;
-            let processed = 1;
-
-            for (let i = 1; i < total; i += CONCURRENCY) {
+            for (let i = 1; i < chunks.length; i += CONCURRENCY) {
                 const batch = chunks.slice(i, i + CONCURRENCY);
-
                 const batchEmbeddings = await Promise.all(batch.map((chunk) => this.aiService.getEmbedding(chunk)));
-
                 const points = batchEmbeddings.map((embedding, offset) => makePoint(embedding, i + offset));
-
-                await this.qdrantService.saveVectors(points);
-
-                processed += points.length;
+                allPoints.push(...points);
             }
+
+            await this.qdrantService.saveVectors(allPoints);
 
             const summary = await this.aiService.generateSummary(job.data.text);
 

@@ -20,7 +20,7 @@ export interface AIGenerateFormInterface {
     stream?: boolean;
     format?: {
         type: string;
-        properties: Record<string, { type: string; items?: any }>;
+        properties: Record<string, { type: string; items?: unknown }>;
         required: string[];
     };
     options?: {
@@ -29,6 +29,8 @@ export interface AIGenerateFormInterface {
         top_k?: number;
         num_predict?: number;
         num_ctx?: number;
+        repeat_penalty?: number;
+        max_tokens?: number;
     };
 }
 

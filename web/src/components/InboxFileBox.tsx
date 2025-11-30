@@ -144,8 +144,9 @@ export default function InboxFileBox({ fileSelected }: Props) {
                                     rows={1}
                                     disabled={streaming}
                                 />
+
                                 <button
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-blue-500/25"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-blue-500/25 flex items-center justify-center"
                                     onClick={handleSearch}
                                     disabled={streaming || !searchText.trim()}
                                 >
