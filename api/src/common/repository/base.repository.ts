@@ -35,18 +35,18 @@ export abstract class BaseRepository<T extends ObjectLiteral & { id: number }> {
         return await repository.findOneOrFail({ where: { id } as FindOptionsWhere<T> });
     }
 
-    async delete(id: number): Promise<boolean> {
+    async delete(id: number, options?: FindOneOptions<T>): Promise<boolean> {
         const repository = this.getRepository();
 
-        const result = await repository.softDelete(id);
+        const result = await repository.softDelete({ id, ...options?.where } as FindOptionsWhere<T>);
 
         return !!result.affected && result.affected > 0;
     }
 
-    async hardDelete(id: number): Promise<boolean> {
+    async hardDelete(id: number, options?: FindOneOptions<T>): Promise<boolean> {
         const repository = this.getRepository();
 
-        const result = await repository.delete(id);
+        const result = await repository.delete({ id, ...options?.where } as FindOptionsWhere<T>);
 
         return !!result.affected && result.affected > 0;
     }

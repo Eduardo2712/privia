@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFile, UseInterceptors, Res, Get, Query } from "@nestjs/common";
+import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFile, UseInterceptors, Res, Get, Query, Delete, Param } from "@nestjs/common";
 import { Response } from "express";
 import { FileService } from "./file.service";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -55,11 +55,11 @@ export class FileController {
 
             res.end();
         } catch (error) {
-            if (!res.headersSent) {
-                res.status(500).json({ message: error?.message || "Erro ao processar busca" });
-            } else {
+            if (res.headersSent) {
                 res.write(`data: ${JSON.stringify({ type: "error", message: error?.message || "Erro" })}\n\n`);
                 res.end();
+            } else {
+                res.status(500).json({ message: error?.message || "Erro ao processar busca" });
             }
         }
     }
@@ -70,6 +70,13 @@ export class FileController {
     @ApiCookieAuth()
     async list(@GetUser() user: LoggedUserInterface, @Query() listFileRequestDto: ListFileRequestDto): Promise<ListFileResponseDto> {
         return await this.fileService.list(user, listFileRequestDto);
+    }
+
+    @Delete("/:fileId")
+    @HttpCode(HttpStatus.OK)
+    @ApiCookieAuth()
+    async deleteFile(@GetUser() user: LoggedUserInterface, @Param("fileId") fileId: number): Promise<void> {
+        return await this.fileService.deleteFile(user, fileId);
     }
 }
 

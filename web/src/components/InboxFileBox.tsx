@@ -1,12 +1,13 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { searchFileStream } from "../requests/file.request";
-import { Sparkles, Send, FileText, Clock, BookOpen } from "lucide-react";
+import { destroy, searchFileStream } from "../requests/file.request";
+import { Sparkles, Send, FileText, Clock, BookOpen, Trash2 } from "lucide-react";
 import { formatTime } from "../utils/functions";
 import { components } from "../types/api-types";
+import { useRequest } from "../hooks/use-request.hook";
 
 interface Props {
-    fileSelected: components["schemas"]["FileResponseDto"] | null;
+    readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
 }
 
 export default function InboxFileBox({ fileSelected }: Props) {
@@ -15,6 +16,14 @@ export default function InboxFileBox({ fileSelected }: Props) {
     const [timeInMs, setTimeInMs] = useState<number>(0);
     const [streaming, setStreaming] = useState<boolean>(false);
     const [searchText, setSearchText] = useState<string>("");
+    const [submitting, setSubmitting] = useState<boolean>(false);
+
+    const { execute, loading } = useRequest({
+        request: () => destroy({ fileId: fileSelected!.id }),
+        onSuccess: () => toast.success("Arquivo deletado com sucesso!"),
+        onError: () => toast.error("Erro ao deletar arquivo."),
+        onFinally: () => setSubmitting(false),
+    });
 
     const handleSearch = async () => {
         if (searchText.trim() === "") {
@@ -41,7 +50,7 @@ export default function InboxFileBox({ fileSelected }: Props) {
             },
             (error) => {
                 setStreaming(false);
-                toast.error("Erro ao realizar busca: " + (error instanceof Error ? error.message : "Desconhecido"));
+                toast.error(`Erro ao realizar busca: ${error instanceof Error ? error.message : "Desconhecido"}`);
             }
         );
     };
@@ -52,6 +61,16 @@ export default function InboxFileBox({ fileSelected }: Props) {
 
             handleSearch();
         }
+    };
+
+    const handleDeleteFile = async () => {
+        if (!fileSelected) {
+            return;
+        }
+
+        setSubmitting(true);
+
+        await execute();
     };
 
     return (
@@ -78,9 +97,11 @@ export default function InboxFileBox({ fileSelected }: Props) {
                                         <div className="bg-linear-to-br from-blue-500 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20 shrink-0">
                                             <Sparkles size={20} className="text-white" />
                                         </div>
+
                                         <div className="flex-1 min-w-0">
                                             <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">
                                                 {streamingText}
+
                                                 {streaming && <span className="inline-block w-2 h-4 ml-1 bg-blue-500 animate-pulse" />}
                                             </div>
                                         </div>
@@ -91,8 +112,10 @@ export default function InboxFileBox({ fileSelected }: Props) {
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-2 text-sm text-gray-400">
                                             <FileText size={16} />
+
                                             <span className="font-semibold">Fontes</span>
                                         </div>
+
                                         <div className="grid gap-3">
                                             {references.map((r) => (
                                                 <div
@@ -108,8 +131,10 @@ export default function InboxFileBox({ fileSelected }: Props) {
                                                 </div>
                                             ))}
                                         </div>
+
                                         <div className="flex items-center gap-2 text-xs text-gray-500 mt-4">
                                             <Clock size={14} />
+
                                             <span>Tempo de busca: {formatTime(timeInMs)}</span>
                                         </div>
                                     </div>
@@ -119,10 +144,21 @@ export default function InboxFileBox({ fileSelected }: Props) {
                             fileSelected && (
                                 <div className="max-w-4xl mx-auto">
                                     <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <FileText size={20} className="text-blue-400" />
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <FileText size={20} className="text-blue-400" />
 
-                                            <h3 className="text-lg font-semibold text-white">{fileSelected.name}</h3>
+                                                <h3 className="text-lg font-semibold text-white">{fileSelected.name}</h3>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                className="p-2 border-2 rounded-md border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 transition-colors duration-200 cursor-pointer"
+                                                onClick={handleDeleteFile}
+                                                disabled={loading || submitting}
+                                            >
+                                                <Trash2 size={20} />
+                                            </button>
                                         </div>
 
                                         <p className="text-gray-400 text-sm">{fileSelected.summary}</p>

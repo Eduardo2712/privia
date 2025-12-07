@@ -10,6 +10,9 @@ type SearchFileRequest = operations["FileController_searchFile"]["requestBody"][
 type ListFileRequest = operations["FileController_list"]["parameters"]["query"];
 type ListFileResponse = operations["FileController_list"]["responses"]["200"]["content"]["application/json"];
 
+type DestroyFileRequest = operations["FileController_deleteFile"]["parameters"]["path"];
+type DestroyFileResponse = operations["FileController_deleteFile"]["responses"]["200"];
+
 export const searchFileStream = async (
     data: SearchFileRequest,
     onChunk: (text: string) => void,
@@ -95,4 +98,8 @@ export const readFile = async (data: ReadFileRequest): AxiosPromise<ReadFileResp
 
 export const list = async (data: ListFileRequest): AxiosPromise<ListFileResponse> => {
     return axios.get("/file/list", { params: data });
+};
+
+export const destroy = async (data: DestroyFileRequest): AxiosPromise<DestroyFileResponse> => {
+    return axios.delete(`/file/${data.fileId}`);
 };

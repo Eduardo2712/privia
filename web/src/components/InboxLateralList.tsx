@@ -7,9 +7,9 @@ import { readFile } from "../requests/file.request";
 import toast from "react-hot-toast";
 
 interface Props {
-    listFiles: components["schemas"]["ListFileResponseDto"]["items"];
-    setFileSelected: (file: components["schemas"]["FileResponseDto"]) => void;
-    fileSelected: components["schemas"]["FileResponseDto"] | null;
+    readonly listFiles: components["schemas"]["ListFileResponseDto"]["items"];
+    readonly setFileSelected: (file: components["schemas"]["FileResponseDto"]) => void;
+    readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
 }
 
 export default function InboxLateralList({ listFiles, setFileSelected, fileSelected }: Props) {
@@ -44,7 +44,7 @@ export default function InboxLateralList({ listFiles, setFileSelected, fileSelec
                 <div className="px-4 py-4 border-b border-white/5">
                     <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Documentos</h2>
                     <p className="text-xs text-gray-500 mt-1">
-                        {listFiles.length} arquivo{listFiles.length !== 1 ? "s" : ""}
+                        {listFiles.length} arquivo{listFiles.length === 1 ? "" : "s"}
                     </p>
                 </div>
 
@@ -62,7 +62,7 @@ export default function InboxLateralList({ listFiles, setFileSelected, fileSelec
                                     <button
                                         className={`group w-full text-left px-3 py-3 rounded-xl transition-all duration-200 flex items-start gap-3 ${
                                             fileSelected?.id === file.id
-                                                ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 shadow-lg shadow-blue-500/10"
+                                                ? "bg-linear-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 shadow-lg shadow-blue-500/10"
                                                 : "hover:bg-white/5 border border-transparent hover:border-white/10"
                                         }`}
                                         onClick={() => setFileSelected(file)}
@@ -102,7 +102,7 @@ export default function InboxLateralList({ listFiles, setFileSelected, fileSelec
 
                     <button
                         type="button"
-                        className="group w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-semibold transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="group w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-semibold transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() => refInputFile.current?.click()}
                         disabled={loading}
                     >

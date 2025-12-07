@@ -126,5 +126,23 @@ export class FileService {
             totalPages: Math.ceil(result.total / 10)
         };
     }
+
+    public async deleteFile(user: LoggedUserInterface, fileId: number): Promise<void> {
+        try {
+            const file = await this.fileRepository.findOne({ where: { id: fileId, userId: user.id } });
+
+            if (!file) {
+                throw new Error("Arquivo não encontrado.");
+            }
+
+            await this.fileRepository.delete(fileId, { where: { userId: user.id } });
+
+            await this.minioFileService.delete(file.name);
+
+            await this.qdrantService.deleteByFilter(user.id, file.id);
+        } catch (error) {
+            throw new Error(`Erro ao deletar o arquivo: ${error?.message || "Erro desconhecido"}`);
+        }
+    }
 }
 
