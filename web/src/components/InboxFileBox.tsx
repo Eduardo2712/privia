@@ -1,6 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { destroy, searchFileStream } from "../requests/file.request";
+import { remove, searchFileStream } from "../requests/file.request";
 import { Sparkles, Send, FileText, Clock, BookOpen, Trash2 } from "lucide-react";
 import { formatTime } from "../utils/functions";
 import { components } from "../types/api-types";
@@ -8,9 +8,11 @@ import { useRequest } from "../hooks/use-request.hook";
 
 interface Props {
     readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
+    readonly setListFiles: React.Dispatch<React.SetStateAction<components["schemas"]["ListFileResponseDto"]["items"]>>;
+    readonly setFileSelected: React.Dispatch<React.SetStateAction<components["schemas"]["FileResponseDto"] | null>>;
 }
 
-export default function InboxFileBox({ fileSelected }: Props) {
+export default function InboxFileBox({ fileSelected, setListFiles, setFileSelected }: Props) {
     const [streamingText, setStreamingText] = useState<string>("");
     const [references, setReferences] = useState<Array<{ text: string; index: number }>>([]);
     const [timeInMs, setTimeInMs] = useState<number>(0);
@@ -19,8 +21,17 @@ export default function InboxFileBox({ fileSelected }: Props) {
     const [submitting, setSubmitting] = useState<boolean>(false);
 
     const { execute, loading } = useRequest({
-        request: () => destroy({ fileId: fileSelected!.id }),
-        onSuccess: () => toast.success("Arquivo deletado com sucesso!"),
+        request: () => remove({ fileId: fileSelected!.id }),
+        onSuccess: () => {
+            setListFiles((prev) => prev.filter((file) => file.id !== fileSelected!.id));
+            setStreamingText("");
+            setReferences([]);
+            setTimeInMs(0);
+            setSearchText("");
+            setFileSelected(null);
+
+            toast.success("Arquivo deletado com sucesso!");
+        },
         onError: () => toast.error("Erro ao deletar arquivo."),
         onFinally: () => setSubmitting(false),
     });

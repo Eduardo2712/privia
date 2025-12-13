@@ -54,7 +54,7 @@ export class ChunkerFileService {
 
     private normalizeWhitespace(text: string): string {
         return text
-            .replaceAll(/\r/g, "")
+            .replaceAll("\r", "")
             .replaceAll(/\t+/g, " ")
             .replaceAll(/ +/g, " ")
             .replaceAll(/\n{3,}/g, "\n\n")
@@ -139,6 +139,7 @@ export class ChunkerFileService {
 
         for (const term of expanded) {
             const df = chunks.reduce((acc, c) => (c.text.toLowerCase().includes(term) ? acc + 1 : acc), 0);
+
             idf.set(term, Math.log(1 + (docCount - df + 0.5) / (df + 0.5)));
         }
 
@@ -152,7 +153,13 @@ export class ChunkerFileService {
             let termMatches = 0;
 
             for (const term of expanded) {
-                const occurrences = lower.match(new RegExp(`\\b${this.escapeRegex(term)}\\b`, "g")) || [];
+                const regex = new RegExp(String.raw`\b${this.escapeRegex(term)}\b`, "g");
+                const occurrences: string[] = [];
+                let match: RegExpExecArray | null = null;
+
+                while ((match = regex.exec(lower)) !== null) {
+                    occurrences.push(match[0]);
+                }
 
                 if (!occurrences.length) {
                     continue;

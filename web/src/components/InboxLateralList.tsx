@@ -43,6 +43,7 @@ export default function InboxLateralList({ listFiles, setFileSelected, fileSelec
             <div className="flex flex-col h-full">
                 <div className="px-4 py-4 border-b border-white/5">
                     <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Documentos</h2>
+
                     <p className="text-xs text-gray-500 mt-1">
                         {listFiles.length} arquivo{listFiles.length === 1 ? "" : "s"}
                     </p>
@@ -52,7 +53,9 @@ export default function InboxLateralList({ listFiles, setFileSelected, fileSelec
                     {listFiles.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
                             <FileText size={48} className="text-gray-600 mb-3" />
+
                             <p className="text-sm text-gray-400">Nenhum documento ainda</p>
+
                             <p className="text-xs text-gray-600 mt-1">Envie seu primeiro arquivo</p>
                         </div>
                     ) : (
@@ -74,6 +77,7 @@ export default function InboxLateralList({ listFiles, setFileSelected, fileSelec
                                         >
                                             <FileText size={18} />
                                         </div>
+
                                         <div className="flex-1 min-w-0">
                                             <p
                                                 className={`text-sm font-medium truncate ${

@@ -40,7 +40,7 @@ export default function HomePage() {
             <div className="flex flex-row flex-1 overflow-hidden gap-0">
                 <InboxLateralList listFiles={listFiles} setFileSelected={setFileSelected} fileSelected={fileSelected} />
 
-                <InboxFileBox fileSelected={fileSelected} />
+                <InboxFileBox fileSelected={fileSelected} setListFiles={setListFiles} setFileSelected={setFileSelected} />
             </div>
         </div>
     );

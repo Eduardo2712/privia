@@ -10,8 +10,8 @@ type SearchFileRequest = operations["FileController_searchFile"]["requestBody"][
 type ListFileRequest = operations["FileController_list"]["parameters"]["query"];
 type ListFileResponse = operations["FileController_list"]["responses"]["200"]["content"]["application/json"];
 
-type DestroyFileRequest = operations["FileController_deleteFile"]["parameters"]["path"];
-type DestroyFileResponse = operations["FileController_deleteFile"]["responses"]["200"];
+type RemoveFileRequest = operations["FileController_deleteFile"]["parameters"]["path"];
+type RemoveFileResponse = operations["FileController_deleteFile"]["responses"]["200"];
 
 export const searchFileStream = async (
     data: SearchFileRequest,
@@ -100,6 +100,6 @@ export const list = async (data: ListFileRequest): AxiosPromise<ListFileResponse
     return axios.get("/file/list", { params: data });
 };
 
-export const destroy = async (data: DestroyFileRequest): AxiosPromise<DestroyFileResponse> => {
+export const remove = async (data: RemoveFileRequest): AxiosPromise<RemoveFileResponse> => {
     return axios.delete(`/file/${data.fileId}`);
 };
