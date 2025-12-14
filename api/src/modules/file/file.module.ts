@@ -13,6 +13,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { NestMinioModule } from "nestjs-minio";
 import { MinioFileService } from "./minio-file.service";
 import { ChunkerFileService } from "./chunker-file.service";
+import { SocketModule } from "../socket/socket.module";
 
 @Module({
     controllers: [FileController],
@@ -21,6 +22,7 @@ import { ChunkerFileService } from "./chunker-file.service";
     imports: [
         AiModule,
         QdrantModule,
+        SocketModule,
         BullModule.registerQueue({ name: "process-file" }),
         CommonModule,
         TypeOrmModule.forFeature([FileEntity]),

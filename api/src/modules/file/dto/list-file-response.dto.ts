@@ -1,18 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-
-class FileResponseDto {
-    @ApiProperty({ example: 1, type: Number })
-    id: number;
-
-    @ApiProperty({ example: "file-name.pdf", type: String })
-    name: string;
-
-    @ApiProperty({ example: "https://example.com/file-name.pdf", type: String })
-    url: string;
-
-    @ApiProperty({ example: "This is a summary of the file.", type: String })
-    summary: string;
-}
+import { FileResponseDto } from "./file-response.dto";
 
 export class ListFileResponseDto {
     @ApiProperty({ example: 1, type: Number })
@@ -24,7 +11,21 @@ export class ListFileResponseDto {
     @ApiProperty({ example: 100, type: Number })
     totalItems: number;
 
-    @ApiProperty({ example: [{ id: 1, name: "file-name.pdf", url: "https://example.com/file-name.pdf" }], type: [FileResponseDto] })
+    @ApiProperty({
+        example: <FileResponseDto[]>[
+            {
+                id: 1,
+                name: "file-name.pdf",
+                url: "https://example.com/file-name.pdf",
+                size: 1024,
+                mimeType: "application/pdf",
+                summary: "This is a summary of the file.",
+                createdAt: new Date("2024-01-01T12:00:00Z"),
+                updatedAt: new Date("2024-01-02T12:00:00Z")
+            }
+        ],
+        type: [FileResponseDto]
+    })
     items: Array<FileResponseDto>;
 }
 

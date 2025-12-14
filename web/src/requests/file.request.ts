@@ -100,6 +100,6 @@ export const list = async (data: ListFileRequest): AxiosPromise<ListFileResponse
     return axios.get("/file/list", { params: data });
 };
 
-export const remove = async (data: RemoveFileRequest): AxiosPromise<RemoveFileResponse> => {
-    return axios.delete(`/file/${data.fileId}`);
+export const remove = async (id: RemoveFileRequest["fileId"]): AxiosPromise<RemoveFileResponse> => {
+    return axios.delete(`/file/${id}`);
 };

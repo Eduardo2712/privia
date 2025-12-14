@@ -12,6 +12,8 @@ import { MinioFileService } from "./minio-file.service";
 import { ListFileRequestDto } from "./dto/list-file-request.dto";
 import { FileRepository } from "./entities/file.repository";
 import { ListFileResponseDto } from "./dto/list-file-response.dto";
+import { plainToInstance } from "class-transformer";
+import { FileResponseDto } from "./dto/file-response.dto";
 
 @Injectable()
 export class FileService {
@@ -48,7 +50,7 @@ export class FileService {
         });
 
         await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, user, newFile, text), {
-            attempts: 3,
+            attempts: 1,
             backoff: { type: "exponential", delay: 5000 }
         });
     }
@@ -119,14 +121,14 @@ export class FileService {
     public async list(user: LoggedUserInterface, listFileRequestDto: ListFileRequestDto): Promise<ListFileResponseDto> {
         const result = await this.fileRepository.listFiles(user, listFileRequestDto);
 
-        const items = await Promise.all(
-            result.items.map(async (file) => ({
-                url: await this.minioFileService.getUrl(file.name),
-                id: file.id,
-                name: file.name,
-                summary: file.summary ?? ""
+        const mapped = await Promise.all(
+            result.items.map(async (f) => ({
+                ...f,
+                url: await this.minioFileService.getUrl(f.path)
             }))
         );
+
+        const items = plainToInstance(FileResponseDto, mapped, { excludeExtraneousValues: true });
 
         return {
             items,

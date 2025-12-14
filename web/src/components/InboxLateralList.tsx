@@ -118,7 +118,8 @@ export default function InboxLateralList({ listFiles, setFileSelected, fileSelec
                         ) : (
                             <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
                         )}
-                        {loading ? "Enviando..." : "Novo documento"}
+
+                        {!loading && "Novo documento"}
                     </button>
                 </div>
             </div>

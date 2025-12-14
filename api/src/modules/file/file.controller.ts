@@ -57,6 +57,7 @@ export class FileController {
         } catch (error) {
             if (res.headersSent) {
                 res.write(`data: ${JSON.stringify({ type: "error", message: error?.message || "Erro" })}\n\n`);
+
                 res.end();
             } else {
                 res.status(500).json({ message: error?.message || "Erro ao processar busca" });

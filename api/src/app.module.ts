@@ -14,7 +14,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { AiModule } from "./modules/ai/ai.module";
 import { FileModule } from "./modules/file/file.module";
 import { QdrantModule } from "./infrastructure/qdrant/qdrant.module";
-import { SocketModule } from "./socket/socket.module";
+import { SocketModule } from "./modules/socket/socket.module";
 
 @Module({
     imports: [

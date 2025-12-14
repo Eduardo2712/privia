@@ -1,7 +1,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { remove, searchFileStream } from "../requests/file.request";
-import { Sparkles, Send, FileText, Clock, BookOpen, Trash2 } from "lucide-react";
+import { Sparkles, Send, FileText, Clock, BookOpen, Trash2, Loader2 } from "lucide-react";
 import { formatTime } from "../utils/functions";
 import { components } from "../types/api-types";
 import { useRequest } from "../hooks/use-request.hook";
@@ -21,7 +21,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
     const [submitting, setSubmitting] = useState<boolean>(false);
 
     const { execute, loading } = useRequest({
-        request: () => remove({ fileId: fileSelected!.id }),
+        request: () => remove(fileSelected!.id),
         onSuccess: () => {
             setListFiles((prev) => prev.filter((file) => file.id !== fileSelected!.id));
             setStreamingText("");
@@ -168,7 +168,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                                 onClick={handleDeleteFile}
                                                 disabled={loading || submitting}
                                             >
-                                                <Trash2 size={20} />
+                                                {loading || submitting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
                                             </button>
                                         </div>
 

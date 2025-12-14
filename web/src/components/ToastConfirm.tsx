@@ -28,6 +28,7 @@ export const ToastConfirm = ({
         (t) => (
             <div className={classContainer}>
                 <div className="text-lg">{message}</div>
+
                 <div className="flex gap-2 mt-3">
                     <button
                         className={classNo}
@@ -39,6 +40,7 @@ export const ToastConfirm = ({
                     >
                         {labelNo}
                     </button>
+
                     <button
                         className={classYes}
                         type="button"

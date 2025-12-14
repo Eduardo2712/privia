@@ -8,6 +8,7 @@ import { LoginRequestDto } from "./dto/login-request.dto";
 import { AuthInterface } from "./interfaces/auth.interface";
 import { JWTUserInterface } from "../../common/interfaces/jwt.interface";
 import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
@@ -15,7 +16,8 @@ export class AuthService {
         private readonly forgotPasswordRepository: ForgotPasswordRepository,
         private readonly userService: UserService,
         private readonly unitOfWork: UnitOfWorkService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly configService: ConfigService
     ) {}
 
     public async forgotPassword(forgotPasswordRequestDto: ForgotPasswordRequestDto): Promise<void> {
@@ -61,6 +63,12 @@ export class AuthService {
         const token = await this.jwtService.signAsync(payload);
 
         return { token, user };
+    }
+
+    public async validateToken(token: string): Promise<JWTUserInterface> {
+        return this.jwtService.verifyAsync<JWTUserInterface>(token, {
+            secret: this.configService.get<string>("JWT_SECRET")
+        });
     }
 }
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Formik, Form } from "formik";
 import { validationLogin } from "../../utils/validations";
-import { Mail, MessageSquare, Smartphone, Lock, Zap, Smile, Star, Globe, Unlock } from "lucide-react";
+import { Mail, MessageSquare, Smartphone, Lock, Zap, Smile, Star, Globe, Unlock, Loader2 } from "lucide-react";
 import { login } from "../../requests/auth.request";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -190,7 +190,7 @@ export default function Page() {
                                         disabled={isSubmitting}
                                         className="w-full bg-linear-to-r from-blue-600 to-purple-600 text-white py-2.5 sm:py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                                     >
-                                        {isSubmitting ? "Entrando..." : "Entrar"}
+                                        {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : "Entrar"}
                                     </button>
                                 </Form>
                             )}
