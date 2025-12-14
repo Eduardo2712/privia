@@ -4,9 +4,6 @@ import { ThrottlerModule } from "@nestjs/throttler";
 import { DatabaseModule } from "./infrastructure/database/database.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { BullModule } from "@nestjs/bullmq";
-import { CacheableMemory } from "cacheable";
-import { createKeyv } from "@keyv/redis";
-import { Keyv } from "keyv";
 import { CacheModule } from "@nestjs/cache-manager";
 import { AuthGuard } from "./common/guards/auth.guard";
 import { APP_GUARD } from "@nestjs/core";
@@ -17,6 +14,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { AiModule } from "./modules/ai/ai.module";
 import { FileModule } from "./modules/file/file.module";
 import { QdrantModule } from "./infrastructure/qdrant/qdrant.module";
+import { SocketModule } from "./socket/socket.module";
 
 @Module({
     imports: [
@@ -30,13 +28,7 @@ import { QdrantModule } from "./infrastructure/qdrant/qdrant.module";
             verboseMemoryLeak: false,
             ignoreErrors: false
         }),
-        CacheModule.registerAsync({
-            useFactory: async () => {
-                return {
-                    stores: [new Keyv({ store: new CacheableMemory({ ttl: 60000, lruSize: 5000 }) }), createKeyv("redis://localhost:6379")]
-                };
-            }
-        }),
+        CacheModule.register({ isGlobal: true, ttl: 300 }),
         BullModule.forRoot({
             connection: {
                 host: process.env.REDIS_HOST,
@@ -58,7 +50,8 @@ import { QdrantModule } from "./infrastructure/qdrant/qdrant.module";
         AuthModule,
         AiModule,
         FileModule,
-        QdrantModule
+        QdrantModule,
+        SocketModule
     ],
     controllers: [],
     providers: [

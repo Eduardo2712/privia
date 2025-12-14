@@ -23,9 +23,7 @@ export class AiService extends BaseAiService {
         search: string,
         opts?: { promptMode?: "STRICT_QUOTE" | "INFERENCE_SYNTHESIS"; k?: number }
     ): Promise<AsyncIterable<string>> {
-        const envDefault = this.configService.get<string>("PROMPT_MODE") || "STRICT_QUOTE";
         const auto = this.autoDecide(chunks);
-        const mode = opts?.promptMode || envDefault || auto.promptMode;
         const kVal = typeof opts?.k === "number" && opts.k > 0 ? opts.k : auto.k;
 
         const useChunks = typeof kVal === "number" && kVal > 0 ? chunks.slice(0, Math.min(kVal, chunks.length)) : chunks;
@@ -45,70 +43,33 @@ export class AiService extends BaseAiService {
             })
             .join("\n---\n\n");
 
-        const promptInference = `Você é um assistente literário especializado em análise profunda e contextualizada de textos.
+        const prompt = `Você é um assistente de análise textual baseado em evidências.
 
-MISSÃO:
-Analise os trechos fornecidos e responda à pergunta de forma completa, inteligente e bem fundamentada.
-Sintetize as informações mentalmente antes de responder para criar um entendimento unificado.
+                REGRAS:
+                - Use exclusivamente os trechos fornecidos.
+                - Inferências são permitidas APENAS quando sustentadas por múltiplos trechos.
+                - Não utilize conhecimento externo sobre a obra ou o autor.
+                - Diferencie claramente fatos do texto e interpretações.
 
-CAPACIDADES PERMITIDAS:
-✓ Interpretar emoções, sentimentos e intenções descritas ou implícitas
-✓ Identificar características de personalidade baseadas em ações, diálogos e descrições
-✓ Inferir relações lógicas entre personagens, eventos e temas
-✓ Fazer conexões temáticas e narrativas entre diferentes partes do texto
-✓ Compreender contexto social, histórico e cultural implícito na narrativa
-✓ Analisar dinâmicas de relacionamentos, motivações e conflitos
-✓ Reconhecer recursos literários, simbolismos e metanarrativas evidentes
-✓ Sintetizar informações esparsas para formar visão completa
+                FORMATO DE SAÍDA:
 
-RESTRIÇÕES:
-✗ Não introduza fatos ou conhecimentos externos não presentes nos trechos
-✗ Não faça especulações sem base textual clara
-✗ Não contradiga informações explícitas do texto
+                Fatos explícitos:
+                - Liste objetivamente o que os trechos afirmam, com citações [N].
 
-FORMATO IDEAL:
-- Comece com síntese direta e abrangente
-- Desenvolva os aspectos principais com profundidade
-- Organize em parágrafos temáticos lógicos
-- Cite trechos [N] quando usar evidências específicas
-- Seja eloquente, rico em detalhes, mas preciso
-- Se informação for insuficiente, indique claramente quais aspectos não podem ser determinados
+                Inferências sustentadas:
+                - Apresente conclusões que derivem diretamente da combinação dos fatos acima.
+                - Cada inferência deve citar pelo menos dois trechos [N][M].
+                
+                Observações narrativas (se aplicável):
+                - Elementos recorrentes de comportamento, tom ou relação, desde que evidentes no texto.
 
-TRECHOS DO DOCUMENTO:
-${fullChunks}
+                RECHOS:
+                ${fullChunks}
 
-PERGUNTA: ${search}
+                PERGUNTA: ${search}
 
-ANÁLISE:`;
-
-        const promptStrict = `Você é um assistente de RAG especializado. Responda APENAS com base nos trechos fornecidos, de forma completa e precisa.
-
-REGRAS FUNDAMENTAIS:
-- Use exclusivamente informações dos trechos abaixo.
-- Sintetize todas as informações relevantes encontradas nos trechos para fornecer uma resposta abrangente.
-- Cite as evidências como [N] onde N é o número do trecho.
-- Se algo não estiver presente nos trechos, diga explicitamente: "Os trechos não contêm essa informação."
-- Não introduza fatos externos ou suposições.
-
-OBJETIVO DE QUALIDADE:
-- Identifique TODOS os trechos que contêm informação relevante para a pergunta.
-- Combine e sintetize essas informações em uma resposta coerente e completa.
-- Seja específico: mencione contextos, exemplos, detalhes técnicos e casos de uso encontrados.
-- Se houver múltiplas menções ao mesmo conceito em diferentes trechos, integre-as em uma visão unificada.
-
-FORMATO DE SAÍDA OBRIGATÓRIO:
-1. Resposta principal: 2-4 parágrafos bem estruturados, citando [N] após cada afirmação baseada em evidência.
-2. Ao final, inclua SOMENTE:
-   Fontes: N1, N2, N3
-   (lista de números únicos, em ordem crescente, sem repetir)
-
-TRECHOS DO DOCUMENTO:
-${fullChunks}
-
-PERGUNTA: ${search}
-
-RESPOSTA COMPLETA:`;
-        const prompt = mode === "STRICT_QUOTE" ? promptStrict : promptInference;
+                RESPOSTA:
+                `;
 
         return this.sendPromptStream(prompt);
     }

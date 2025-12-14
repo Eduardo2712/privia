@@ -5,6 +5,7 @@ import { useRequest } from "../hooks/use-request.hook";
 import { AxiosRequestConfig } from "axios";
 import { readFile } from "../requests/file.request";
 import toast from "react-hot-toast";
+import useSocket from "../hooks/use-socket.hook";
 
 interface Props {
     readonly listFiles: components["schemas"]["ListFileResponseDto"]["items"];
@@ -16,6 +17,8 @@ export default function InboxLateralList({ listFiles, setFileSelected, fileSelec
     const [file, setFile] = useState<File | null>(null);
 
     const refInputFile = useRef<HTMLInputElement>(null);
+
+    const { socket } = useSocket();
 
     const { execute, loading } = useRequest({
         request: (config?: AxiosRequestConfig) => readFile(config?.data),

@@ -23,33 +23,68 @@ export class ChunkerFileService {
         const finalChunks: string[] = [];
 
         for (const segment of initialSegments) {
-            if (segment.split(/\s+/).length <= chunkSizeTokens + chunkOverlapTokens) {
-                finalChunks.push(segment.trim());
-                continue;
-            }
-
-            const recursive = new RecursiveCharacterTextSplitter({
-                chunkSize: (strategy === "coarse" ? targetSize : chunkSizeTokens) * 4,
-                chunkOverlap: (strategy === "coarse" ? targetOverlap : chunkOverlapTokens) * 4,
-                separators
+            const parts = await this.splitSegmentIntoChunks(segment, {
+                chunkSizeTokens,
+                chunkOverlapTokens,
+                separators,
+                strategy,
+                targetSize,
+                targetOverlap,
+                tokenSplitter
             });
 
-            const rough = await recursive.splitText(segment);
-
-            for (const piece of rough) {
-                const tokenized = strategy === "chapter" && piece.split(/\s+/).length <= 4500 ? [piece] : await tokenSplitter.splitText(piece);
-
-                for (const tk of tokenized) {
-                    const trimmed = tk.trim();
-
-                    if (trimmed) {
-                        finalChunks.push(trimmed);
-                    }
-                }
+            for (const p of parts) {
+                finalChunks.push(p);
             }
         }
 
         return this.dedupe(finalChunks);
+    }
+
+    private async splitSegmentIntoChunks(
+        segment: string,
+        opts: {
+            chunkSizeTokens: number;
+            chunkOverlapTokens: number;
+            separators: string[];
+            strategy: string;
+            targetSize: number;
+            targetOverlap: number;
+            tokenSplitter: TokenTextSplitter;
+        }
+    ): Promise<string[]> {
+        const { chunkSizeTokens, chunkOverlapTokens, separators, strategy, targetSize, targetOverlap, tokenSplitter } = opts;
+
+        const out: string[] = [];
+
+        if (segment.split(/\s+/).length <= chunkSizeTokens + chunkOverlapTokens) {
+            const t = segment.trim();
+
+            if (t) {
+                out.push(t);
+            }
+
+            return out;
+        }
+
+        const recursive = new RecursiveCharacterTextSplitter({
+            chunkSize: (strategy === "coarse" ? targetSize : chunkSizeTokens) * 4,
+            chunkOverlap: (strategy === "coarse" ? targetOverlap : chunkOverlapTokens) * 4,
+            separators
+        });
+
+        const rough = await recursive.splitText(segment);
+
+        for (const piece of rough) {
+            const tokenized = strategy === "chapter" && piece.split(/\s+/).length <= 4500 ? [piece] : await tokenSplitter.splitText(piece);
+
+            for (const tk of tokenized) {
+                const trimmed = tk.trim();
+                if (trimmed) out.push(trimmed);
+            }
+        }
+
+        return out;
     }
 
     private normalizeWhitespace(text: string): string {
