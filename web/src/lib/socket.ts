@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import { ServerToClientEvents, ClientToServerEvents } from "@shared/socket-types";
+import { ClientToServerEvents, ServerToClientEvents } from "../interfaces/socket.interface";
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 

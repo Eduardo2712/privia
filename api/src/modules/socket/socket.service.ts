@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { ServerToClientEvents } from "@shared/socket-types";
 import { Server } from "socket.io";
+import { ServerToClientEvents } from "./interfaces/socket.interface";
 
 type ClientToServerEvents = {
     [k: string]: (...args: unknown[]) => void;

@@ -2,9 +2,9 @@ import { ConnectedSocket, OnGatewayInit, SubscribeMessage, WebSocketGateway, Web
 import { WsJwtGuard } from "./guards/ws-jwt.guard";
 import { UseGuards } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
-import { ServerToClientEvents } from "@shared/socket-types";
 import { SocketService } from "./socket.service";
 import { AuthService } from "../auth/auth.service";
+import { ServerToClientEvents } from "./interfaces/socket.interface";
 
 @WebSocketGateway({ cors: { origin: process.env.FRONTEND_ORIGIN || true, credentials: true } })
 @UseGuards(WsJwtGuard)

@@ -14,7 +14,7 @@ export class UserController {
 
     @Public()
     @Post()
-    @HttpCode(HttpStatus.CREATED)
+    @HttpCode(HttpStatus.OK)
     @ApiOkResponse({ type: CreateUserDto })
     async create(@Body() createUserDto: CreateUserDto): Promise<void> {
         return this.userService.createByController(createUserDto);
@@ -28,7 +28,7 @@ export class UserController {
     }
 
     @Delete()
-    @HttpCode(HttpStatus.NO_CONTENT)
+    @HttpCode(HttpStatus.OK)
     @ApiOkResponse({ type: void 0 })
     async delete(@GetUser() user: LoggedUserInterface): Promise<void> {
         return this.userService.deleteByController(user.id);

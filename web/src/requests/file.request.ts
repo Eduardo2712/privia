@@ -1,8 +1,8 @@
 import { AxiosPromise } from "axios";
 import axios from "./axios.config";
-import { operations } from "../types/api-types";
+import { operations, components } from "../types/api-types";
 
-type ReadFileResponse = operations["FileController_readFile"]["responses"]["200"];
+type ReadFileResponse = components["schemas"]["FileResponseDto"];
 type ReadFileRequest = operations["FileController_readFile"]["requestBody"]["content"]["multipart/form-data"];
 
 type SearchFileRequest = operations["FileController_searchFile"]["requestBody"]["content"]["application/json"];
@@ -12,6 +12,9 @@ type ListFileResponse = operations["FileController_list"]["responses"]["200"]["c
 
 type RemoveFileRequest = operations["FileController_deleteFile"]["parameters"]["path"];
 type RemoveFileResponse = operations["FileController_deleteFile"]["responses"]["200"];
+
+type GetFileRequest = operations["FileController_get"]["parameters"]["path"];
+type GetFileResponse = operations["FileController_get"]["responses"]["200"]["content"]["application/json"];
 
 export const searchFileStream = async (
     data: SearchFileRequest,
@@ -100,6 +103,10 @@ export const list = async (data: ListFileRequest): AxiosPromise<ListFileResponse
     return axios.get("/file/list", { params: data });
 };
 
-export const remove = async (id: RemoveFileRequest["fileId"]): AxiosPromise<RemoveFileResponse> => {
+export const remove = async (id: RemoveFileRequest["id"]): AxiosPromise<RemoveFileResponse> => {
     return axios.delete(`/file/${id}`);
+};
+
+export const get = async (id: GetFileRequest["id"]): AxiosPromise<GetFileResponse> => {
+    return axios.get(`/file/${id}`);
 };

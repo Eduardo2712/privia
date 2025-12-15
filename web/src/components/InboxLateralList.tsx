@@ -1,12 +1,12 @@
 import { FileText, Plus, Loader2 } from "lucide-react";
 import { components } from "../types/api-types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRequest } from "../hooks/use-request.hook";
 import { AxiosRequestConfig } from "axios";
-import { readFile } from "../requests/file.request";
+import { get, readFile } from "../requests/file.request";
 import toast from "react-hot-toast";
 import useSocket from "../hooks/use-socket.hook";
-import { ServerToClientEvents } from "@shared/socket-types";
+import { ServerToClientEvents } from "../interfaces/socket.interface";
 
 interface Props {
     readonly listFiles: components["schemas"]["ListFileResponseDto"]["items"];
@@ -16,11 +16,25 @@ interface Props {
 }
 
 export default function InboxLateralList({ listFiles, setListFiles, setFileSelected, fileSelected }: Props) {
-    const [file, setFile] = useState<File | null>(null);
-
     const refInputFile = useRef<HTMLInputElement>(null);
 
     const { socket } = useSocket();
+
+    const { execute, loading } = useRequest({
+        request: (config?: AxiosRequestConfig) => readFile(config?.data),
+        onSuccess: (data) => {
+            setListFiles((prevFiles) => [data, ...prevFiles]);
+
+            toast.success("Arquivo enviado com sucesso!");
+        },
+        onError: () => toast.error("Erro ao enviar arquivo."),
+    });
+
+    const { execute: executeGet } = useRequest({
+        request: (config?: AxiosRequestConfig) => get(config?.data),
+        onSuccess: (data) => setListFiles((prevFiles) => prevFiles.map((f) => (f.id === data.id ? data : f))),
+        onError: () => toast.error("Erro ao obter arquivo."),
+    });
 
     useEffect(() => {
         if (!socket) {
@@ -28,7 +42,7 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
         }
 
         const handleFileProcessed = (data: Parameters<ServerToClientEvents["file:processed"]>[0]) => {
-            console.log(data);
+            executeGet({ data: data.id });
         };
 
         socket.on("file:processed", handleFileProcessed);
@@ -36,21 +50,12 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
         return () => {
             socket.off("file:processed", handleFileProcessed);
         };
-    }, [socket]);
-
-    const { execute, loading } = useRequest({
-        request: (config?: AxiosRequestConfig) => readFile(config?.data),
-        onSuccess: () => toast.success("Arquivo enviado com sucesso!"),
-        onError: () => toast.error("Erro ao enviar arquivo."),
-        onFinally: () => setFile(null),
-    });
+    }, [socket, executeGet]);
 
     const handleUpload = async (file: File | null) => {
         if (!file) {
             return;
         }
-
-        setFile(file);
 
         const formData = new FormData();
 

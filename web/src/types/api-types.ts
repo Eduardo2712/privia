@@ -179,6 +179,32 @@ export interface components {
             /** @example user@email.com */
             email: string;
         };
+        ReadFileResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example file-name.pdf */
+            name: string;
+            /** @example https://example.com/file-name.pdf */
+            url: string;
+            /** @example 1024 */
+            size: number;
+            /** @example application/pdf */
+            mimeType: string;
+            /** @example This is a summary of the file. */
+            summary: string;
+            /** @example true */
+            isProcessed: boolean;
+            /**
+             * Format: date-time
+             * @example 2024-01-01T12:00:00Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2024-01-02T12:00:00Z
+             */
+            updatedAt: string;
+        };
         UploadFileRequestDto: {
             /** Format: binary */
             file: string;
@@ -252,6 +278,32 @@ export interface components {
              *     ]
              */
             items: components["schemas"]["FileResponseDto"][];
+        };
+        GetFileResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example file-name.pdf */
+            name: string;
+            /** @example https://example.com/file-name.pdf */
+            url: string;
+            /** @example 1024 */
+            size: number;
+            /** @example application/pdf */
+            mimeType: string;
+            /** @example This is a summary of the file. */
+            summary: string;
+            /** @example true */
+            isProcessed: boolean;
+            /**
+             * Format: date-time
+             * @example 2024-01-01T12:00:00Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2024-01-02T12:00:00Z
+             */
+            updatedAt: string;
         };
     };
     responses: never;
@@ -403,7 +455,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ReadFileResponseDto"];
+                };
             };
         };
     };
@@ -467,7 +521,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GetFileResponseDto"];
+                };
             };
         };
     };

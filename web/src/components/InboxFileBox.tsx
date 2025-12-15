@@ -172,7 +172,15 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                             </button>
                                         </div>
 
-                                        <p className="text-gray-400 text-sm">{fileSelected.summary}</p>
+                                        {fileSelected.isProcessed && <p className="text-gray-400 text-sm">{fileSelected.summary}</p>}
+
+                                        {!fileSelected.isProcessed && (
+                                            <div className="mt-4 p-4 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-r-lg">
+                                                <p className="text-yellow-400 text-sm">
+                                                    O arquivo ainda está sendo processado. Aguarde a conclusão do processamento.
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )

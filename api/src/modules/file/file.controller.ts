@@ -4,7 +4,7 @@ import { FileService } from "./file.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { FileSizeValidationPipe } from "../../common/pipe/file-validation-size.pipe";
 import { FileTypeValidationPipe } from "../../common/pipe/file-validation-type.pipe";
-import { ApiBody, ApiConsumes, ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBody, ApiConsumes, ApiCookieAuth, ApiOkResponse, ApiTags, ApiExtraModels } from "@nestjs/swagger";
 import { UploadFileRequestDto } from "./dto/upload-file-request.dto";
 import { SearchFileRequestDto } from "./dto/search-file-request.dto";
 import { SearchFileResponseDto } from "./dto/search-file-response.dto";
@@ -16,6 +16,7 @@ import { GetFileResponseDto } from "./dto/get-file.response.dto";
 import { ReadFileResponseDto } from "./dto/read-file.response.dto";
 
 @ApiTags("file")
+@ApiExtraModels(ReadFileResponseDto)
 @Controller("file")
 export class FileController {
     constructor(private readonly fileService: FileService) {}
@@ -25,7 +26,7 @@ export class FileController {
     @UseInterceptors(FileInterceptor("file"))
     @ApiConsumes("multipart/form-data")
     @ApiBody({ type: UploadFileRequestDto })
-    @ApiOkResponse({ type: void 0 })
+    @ApiOkResponse({ type: ReadFileResponseDto })
     @ApiCookieAuth()
     async readFile(
         @GetUser() user: LoggedUserInterface,
@@ -77,6 +78,7 @@ export class FileController {
 
     @Delete("/:id")
     @HttpCode(HttpStatus.OK)
+    @ApiOkResponse({ type: void 0 })
     @ApiCookieAuth()
     async deleteFile(@GetUser() user: LoggedUserInterface, @Param("id") id: number): Promise<void> {
         return await this.fileService.deleteFile(user, id);
@@ -84,6 +86,7 @@ export class FileController {
 
     @Get("/:id")
     @HttpCode(HttpStatus.OK)
+    @ApiOkResponse({ type: GetFileResponseDto })
     @ApiCookieAuth()
     async get(@GetUser() user: LoggedUserInterface, @Param("id") id: number): Promise<GetFileResponseDto> {
         return await this.fileService.get(user, id);
