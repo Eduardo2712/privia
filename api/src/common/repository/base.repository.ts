@@ -57,6 +57,12 @@ export abstract class BaseRepository<T extends ObjectLiteral & { id: number }> {
         return await repository.findOne(options);
     }
 
+    async findOneOrFail(options: FindOneOptions<T>): Promise<T | null> {
+        const repository = this.getRepository();
+
+        return await repository.findOneOrFail(options);
+    }
+
     async findMany(options?: FindManyOptions<T>): Promise<T[]> {
         const repository = this.getRepository();
 

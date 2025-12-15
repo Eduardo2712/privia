@@ -34,6 +34,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
     onModuleDestroy() {
         if (this.encoding) {
             this.encoding.free();
+
             this.encoding = null;
         }
     }
@@ -86,9 +87,12 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
             const summary = await this.aiService.generateSummary(job.data.text);
 
-            await this.fileRepository.update(fileEntity.id, { summary: summary ?? "" });
+            await this.fileRepository.update(fileEntity.id, {
+                summary: summary ?? "",
+                isProcessed: true
+            });
 
-            this.socketService.emitToUser(user.id, "file:processed", { id: fileEntity.id, summary });
+            this.socketService.emitToUser(user.id, "file:processed", [{ id: fileEntity.id }]);
         } catch (err) {
             this.qdrantService.deleteByFilter(job.data.user.id, job.data.fileEntity.id);
 

@@ -27,6 +27,10 @@ export class FileResponseDto {
     summary: string;
 
     @Expose()
+    @ApiProperty({ example: true, type: Boolean })
+    isProcessed: boolean;
+
+    @Expose()
     @ApiProperty({ example: "2024-01-01T12:00:00Z", type: String, format: "date-time" })
     createdAt: Date;
 

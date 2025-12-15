@@ -22,6 +22,7 @@ export default function useSocket() {
 
         const onConnect = () => {
             setConnected(true);
+
             socket.emit("join");
         };
 
@@ -33,6 +34,7 @@ export default function useSocket() {
         return () => {
             socket.off("connect", onConnect);
             socket.off("disconnect", onDisconnect);
+
             socket.disconnect();
         };
     }, []);

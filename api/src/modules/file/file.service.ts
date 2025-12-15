@@ -14,6 +14,8 @@ import { FileRepository } from "./entities/file.repository";
 import { ListFileResponseDto } from "./dto/list-file-response.dto";
 import { plainToInstance } from "class-transformer";
 import { FileResponseDto } from "./dto/file-response.dto";
+import { GetFileResponseDto } from "./dto/get-file.response.dto";
+import { ReadFileResponseDto } from "./dto/read-file.response.dto";
 
 @Injectable()
 export class FileService {
@@ -26,7 +28,7 @@ export class FileService {
         @InjectQueue("process-file") private readonly processFileQueue: Queue<ProcessFileJob>
     ) {}
 
-    public async readFile(user: LoggedUserInterface, file: Express.Multer.File): Promise<void> {
+    public async readFile(user: LoggedUserInterface, file: Express.Multer.File): Promise<ReadFileResponseDto> {
         if (!file?.buffer) {
             throw new Error("O buffer de arquivos enviados está vazio.");
         }
@@ -53,6 +55,17 @@ export class FileService {
             attempts: 1,
             backoff: { type: "exponential", delay: 5000 }
         });
+
+        const fileDto = plainToInstance(
+            ReadFileResponseDto,
+            {
+                ...newFile,
+                url: await this.minioFileService.getUrl(newFile.path)
+            },
+            { excludeExtraneousValues: true }
+        );
+
+        return fileDto;
     }
 
     public async searchFileStream(user: LoggedUserInterface, searchFileDto: SearchFileRequestDto): Promise<SearchFileStreamResponseInterface> {
@@ -138,15 +151,15 @@ export class FileService {
         };
     }
 
-    public async deleteFile(user: LoggedUserInterface, fileId: number): Promise<void> {
+    public async deleteFile(user: LoggedUserInterface, id: number): Promise<void> {
         try {
-            const file = await this.fileRepository.findOne({ where: { id: fileId, userId: user.id } });
+            const file = await this.fileRepository.findOne({ where: { id, userId: user.id } });
 
             if (!file) {
                 throw new Error("Arquivo não encontrado.");
             }
 
-            await this.fileRepository.delete(fileId, { where: { userId: user.id } });
+            await this.fileRepository.delete(id, { where: { userId: user.id } });
 
             await this.minioFileService.delete(file.path);
 
@@ -154,6 +167,27 @@ export class FileService {
         } catch (error) {
             throw new Error(`Erro ao deletar o arquivo: ${error?.message || "Erro desconhecido"}`);
         }
+    }
+
+    public async get(user: LoggedUserInterface, id: number): Promise<GetFileResponseDto> {
+        const file = await this.fileRepository.findOne({ where: { id, userId: user.id } });
+
+        if (!file) {
+            throw new Error("Arquivo não encontrado.");
+        }
+
+        const url = await this.minioFileService.getUrl(file.path);
+
+        const fileDto = plainToInstance(
+            GetFileResponseDto,
+            {
+                ...file,
+                url
+            },
+            { excludeExtraneousValues: true }
+        );
+
+        return fileDto;
     }
 }
 

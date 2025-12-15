@@ -1,12 +1,16 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { ServerToClientEventsInterface } from "./interfaces/socket.interface";
+import { ServerToClientEvents } from "@shared/socket-types";
 import { Server } from "socket.io";
+
+type ClientToServerEvents = {
+    [k: string]: (...args: unknown[]) => void;
+};
 
 @Injectable()
 export class SocketService {
-    private server: Server;
+    private server?: Server<ClientToServerEvents, ServerToClientEvents>;
 
-    public setServer(server: Server): void {
+    public setServer(server: Server<ClientToServerEvents, ServerToClientEvents>): void {
         this.server = server;
     }
 
@@ -23,22 +27,24 @@ export class SocketService {
         }
 
         if (!token) {
-            const rawToken = (auth && (typeof auth === "object" ? (auth.token ?? auth) : auth)) || headerAuth;
-
-            if (rawToken && typeof rawToken === "string") {
-                token = rawToken.startsWith("Bearer ") ? rawToken.slice(7) : rawToken;
-            }
+            throw new UnauthorizedException("Token não encontrado");
         }
 
-        if (!token) {
-            throw new UnauthorizedException("Token não encontrado");
+        const rawToken = (auth && (typeof auth === "object" ? (auth.token ?? auth) : auth)) || headerAuth;
+
+        if (rawToken && typeof rawToken === "string") {
+            token = rawToken.startsWith("Bearer ") ? rawToken.slice(7) : rawToken;
         }
 
         return token;
     }
 
-    public emitToUser<E extends keyof ServerToClientEventsInterface>(userId: number, event: E, payload: ServerToClientEventsInterface[E]): void {
-        this.server.to(`user-${userId}`).emit(event, payload);
+    public emitToUser<E extends keyof ServerToClientEvents>(userId: number, event: E, payload: Parameters<ServerToClientEvents[E]>): void {
+        if (!this.server) {
+            return;
+        }
+
+        this.server.to(`user-${userId}`).emit(event, ...payload);
     }
 }
 

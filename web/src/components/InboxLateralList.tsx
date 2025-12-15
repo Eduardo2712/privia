@@ -1,24 +1,42 @@
 import { FileText, Plus, Loader2 } from "lucide-react";
 import { components } from "../types/api-types";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRequest } from "../hooks/use-request.hook";
 import { AxiosRequestConfig } from "axios";
 import { readFile } from "../requests/file.request";
 import toast from "react-hot-toast";
 import useSocket from "../hooks/use-socket.hook";
+import { ServerToClientEvents } from "@shared/socket-types";
 
 interface Props {
     readonly listFiles: components["schemas"]["ListFileResponseDto"]["items"];
+    readonly setListFiles: React.Dispatch<React.SetStateAction<components["schemas"]["ListFileResponseDto"]["items"]>>;
     readonly setFileSelected: (file: components["schemas"]["FileResponseDto"]) => void;
     readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
 }
 
-export default function InboxLateralList({ listFiles, setFileSelected, fileSelected }: Props) {
+export default function InboxLateralList({ listFiles, setListFiles, setFileSelected, fileSelected }: Props) {
     const [file, setFile] = useState<File | null>(null);
 
     const refInputFile = useRef<HTMLInputElement>(null);
 
     const { socket } = useSocket();
+
+    useEffect(() => {
+        if (!socket) {
+            return;
+        }
+
+        const handleFileProcessed = (data: Parameters<ServerToClientEvents["file:processed"]>[0]) => {
+            console.log(data);
+        };
+
+        socket.on("file:processed", handleFileProcessed);
+
+        return () => {
+            socket.off("file:processed", handleFileProcessed);
+        };
+    }, [socket]);
 
     const { execute, loading } = useRequest({
         request: (config?: AxiosRequestConfig) => readFile(config?.data),

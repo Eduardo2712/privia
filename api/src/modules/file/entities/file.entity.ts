@@ -24,6 +24,9 @@ export class FileEntity {
     @Column({ nullable: true, type: "text", name: "summary" })
     summary: string;
 
+    @Column({ nullable: false, type: "boolean", name: "is_processed", default: false })
+    isProcessed: boolean;
+
     @CreateDateColumn({ name: "created_at" })
     createdAt?: Date;
 

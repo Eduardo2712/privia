@@ -20,6 +20,7 @@ export class ListFileResponseDto {
                 size: 1024,
                 mimeType: "application/pdf",
                 summary: "This is a summary of the file.",
+                isProcessed: true,
                 createdAt: new Date("2024-01-01T12:00:00Z"),
                 updatedAt: new Date("2024-01-02T12:00:00Z")
             }

@@ -12,6 +12,8 @@ import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 import { GetUser } from "../../common/decorators/get-user.decorator";
 import { ListFileRequestDto } from "./dto/list-file-request.dto";
 import { ListFileResponseDto } from "./dto/list-file-response.dto";
+import { GetFileResponseDto } from "./dto/get-file.response.dto";
+import { ReadFileResponseDto } from "./dto/read-file.response.dto";
 
 @ApiTags("file")
 @Controller("file")
@@ -28,7 +30,7 @@ export class FileController {
     async readFile(
         @GetUser() user: LoggedUserInterface,
         @UploadedFile(new FileSizeValidationPipe(), new FileTypeValidationPipe()) file: Express.Multer.File
-    ): Promise<void> {
+    ): Promise<ReadFileResponseDto> {
         return await this.fileService.readFile(user, file);
     }
 
@@ -73,11 +75,18 @@ export class FileController {
         return await this.fileService.list(user, listFileRequestDto);
     }
 
-    @Delete("/:fileId")
+    @Delete("/:id")
     @HttpCode(HttpStatus.OK)
     @ApiCookieAuth()
-    async deleteFile(@GetUser() user: LoggedUserInterface, @Param("fileId") fileId: number): Promise<void> {
-        return await this.fileService.deleteFile(user, fileId);
+    async deleteFile(@GetUser() user: LoggedUserInterface, @Param("id") id: number): Promise<void> {
+        return await this.fileService.deleteFile(user, id);
+    }
+
+    @Get("/:id")
+    @HttpCode(HttpStatus.OK)
+    @ApiCookieAuth()
+    async get(@GetUser() user: LoggedUserInterface, @Param("id") id: number): Promise<GetFileResponseDto> {
+        return await this.fileService.get(user, id);
     }
 }
 

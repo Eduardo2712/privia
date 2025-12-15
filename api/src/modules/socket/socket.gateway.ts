@@ -2,6 +2,7 @@ import { ConnectedSocket, OnGatewayInit, SubscribeMessage, WebSocketGateway, Web
 import { WsJwtGuard } from "./guards/ws-jwt.guard";
 import { UseGuards } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
+import { ServerToClientEvents } from "@shared/socket-types";
 import { SocketService } from "./socket.service";
 import { AuthService } from "../auth/auth.service";
 
@@ -14,13 +15,13 @@ export class SocketGateway implements OnGatewayInit {
     ) {}
 
     @WebSocketServer()
-    server: Server;
+    server: Server<Record<string, never>, ServerToClientEvents>;
 
     async afterInit(server: Server): Promise<void> {
         this.server = server;
         this.socketService.setServer(server);
 
-        server.use(async (socket: Socket, next) => {
+        server.use(async (socket: Socket, next: (err?: any) => void) => {
             try {
                 const token = this.socketService.authenticateSocket(
                     socket.handshake.headers?.cookie || "",
@@ -41,7 +42,7 @@ export class SocketGateway implements OnGatewayInit {
 
     @SubscribeMessage("join")
     async handleJoin(@ConnectedSocket() client: Socket): Promise<void> {
-        client.join(client.data.user.id);
+        client.join(`user-${client.data.user.sub}`);
     }
 }
 

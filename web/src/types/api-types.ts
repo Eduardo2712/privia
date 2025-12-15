@@ -116,14 +116,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/file/{fileId}": {
+    "/api/file/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["FileController_get"];
         put?: never;
         post?: never;
         delete: operations["FileController_deleteFile"];
@@ -210,8 +210,24 @@ export interface components {
             name: string;
             /** @example https://example.com/file-name.pdf */
             url: string;
+            /** @example 1024 */
+            size: number;
+            /** @example application/pdf */
+            mimeType: string;
             /** @example This is a summary of the file. */
             summary: string;
+            /** @example true */
+            isProcessed: boolean;
+            /**
+             * Format: date-time
+             * @example 2024-01-01T12:00:00Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2024-01-02T12:00:00Z
+             */
+            updatedAt: string;
         };
         ListFileResponseDto: {
             /** @example 1 */
@@ -225,7 +241,13 @@ export interface components {
              *       {
              *         "id": 1,
              *         "name": "file-name.pdf",
-             *         "url": "https://example.com/file-name.pdf"
+             *         "url": "https://example.com/file-name.pdf",
+             *         "size": 1024,
+             *         "mimeType": "application/pdf",
+             *         "summary": "This is a summary of the file.",
+             *         "isProcessed": true,
+             *         "createdAt": "2024-01-01T12:00:00.000Z",
+             *         "updatedAt": "2024-01-02T12:00:00.000Z"
              *       }
              *     ]
              */
@@ -430,12 +452,31 @@ export interface operations {
             };
         };
     };
+    FileController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     FileController_deleteFile: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                fileId: number;
+                id: number;
             };
             cookie?: never;
         };
