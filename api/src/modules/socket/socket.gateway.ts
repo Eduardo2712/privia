@@ -4,7 +4,7 @@ import { UseGuards } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
 import { SocketService } from "./socket.service";
 import { AuthService } from "../auth/auth.service";
-import { ServerToClientEvents } from "./interfaces/socket.interface";
+import { ClientToServerEvents, ServerToClientEvents } from "./interfaces/socket.interface";
 
 @WebSocketGateway({ cors: { origin: process.env.FRONTEND_ORIGIN || true, credentials: true } })
 @UseGuards(WsJwtGuard)
@@ -15,7 +15,7 @@ export class SocketGateway implements OnGatewayInit {
     ) {}
 
     @WebSocketServer()
-    server: Server<Record<string, never>, ServerToClientEvents>;
+    server: Server<ClientToServerEvents, ServerToClientEvents>;
 
     async afterInit(server: Server): Promise<void> {
         this.server = server;

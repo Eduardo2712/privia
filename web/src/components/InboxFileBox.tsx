@@ -173,14 +173,6 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                         </div>
 
                                         {fileSelected.isProcessed && <p className="text-gray-400 text-sm">{fileSelected.summary}</p>}
-
-                                        {!fileSelected.isProcessed && (
-                                            <div className="mt-4 p-4 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-r-lg">
-                                                <p className="text-yellow-400 text-sm">
-                                                    O arquivo ainda está sendo processado. Aguarde a conclusão do processamento.
-                                                </p>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             )
@@ -190,27 +182,37 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                     <div className="border-t border-white/5 bg-[#1a1a1a]/80 backdrop-blur-xl">
                         <div className="max-w-4xl mx-auto px-6 py-6">
                             <div className="relative">
-                                <textarea
-                                    className="w-full bg-[#242424] border border-white/10 rounded-2xl px-5 py-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent resize-none transition-all duration-200 min-h-14 max-h-[200px]"
-                                    placeholder="Faça uma pergunta sobre o documento..."
-                                    value={searchText}
-                                    onChange={(e) => setSearchText(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    rows={1}
-                                    disabled={streaming}
-                                />
+                                {fileSelected?.isProcessed ? (
+                                    <>
+                                        <textarea
+                                            className="w-full bg-[#242424] border border-white/10 rounded-2xl px-5 py-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent resize-none transition-all duration-200 min-h-14 max-h-[200px]"
+                                            placeholder="Faça uma pergunta sobre o documento..."
+                                            value={searchText}
+                                            onChange={(e) => setSearchText(e.target.value)}
+                                            onKeyDown={handleKeyDown}
+                                            rows={2}
+                                            disabled={streaming}
+                                        />
 
-                                <button
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-blue-500/25 flex items-center justify-center"
-                                    onClick={handleSearch}
-                                    disabled={streaming || !searchText.trim()}
-                                >
-                                    {streaming ? (
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                        <Send size={20} />
-                                    )}
-                                </button>
+                                        <button
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-blue-500/25 flex items-center justify-center"
+                                            onClick={handleSearch}
+                                            disabled={streaming || !searchText.trim()}
+                                        >
+                                            {streaming ? (
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <Send size={20} />
+                                            )}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="p-4 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-r-lg">
+                                        <p className="text-yellow-400 text-sm m-0">
+                                            O arquivo ainda está sendo processado. Aguarde a conclusão do processamento para fazer perguntas.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <p className="text-xs text-gray-500 mt-3 text-center">Pressione Enter para enviar, Shift + Enter para nova linha</p>

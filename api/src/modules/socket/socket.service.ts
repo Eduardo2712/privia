@@ -1,10 +1,6 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { Server } from "socket.io";
-import { ServerToClientEvents } from "./interfaces/socket.interface";
-
-type ClientToServerEvents = {
-    [k: string]: (...args: unknown[]) => void;
-};
+import { ClientToServerEvents, ServerToClientEvents } from "./interfaces/socket.interface";
 
 @Injectable()
 export class SocketService {
@@ -39,12 +35,12 @@ export class SocketService {
         return token;
     }
 
-    public emitToUser<E extends keyof ServerToClientEvents>(userId: number, event: E, payload: Parameters<ServerToClientEvents[E]>): void {
+    public emitToUser<E extends keyof ServerToClientEvents>(userId: number, event: E, ...args: Parameters<ServerToClientEvents[E]>): void {
         if (!this.server) {
             return;
         }
 
-        this.server.to(`user-${userId}`).emit(event, ...payload);
+        this.server.to(`user-${userId}`).emit(event, ...args);
     }
 }
 

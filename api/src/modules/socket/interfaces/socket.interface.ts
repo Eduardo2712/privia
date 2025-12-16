@@ -1,12 +1,11 @@
 export interface ServerToClientEventsInterface {
-    "file:processed": {
-        id: number;
-        summary: string;
-    };
+    "file:processed": { id: number };
+    "file:progress": { id: number; progress: number };
 }
 
 export interface ServerToClientEvents {
-    "file:processed": (data: { id: number }) => void;
+    "file:processed": (data: ServerToClientEventsInterface["file:processed"]) => void;
+    "file:progress": (data: ServerToClientEventsInterface["file:progress"]) => void;
 }
 
 export interface ClientToServerEvents {

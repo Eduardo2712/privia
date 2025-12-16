@@ -194,6 +194,8 @@ export interface components {
             summary: string;
             /** @example true */
             isProcessed: boolean;
+            /** @example 0.6 */
+            progress: number;
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
@@ -244,6 +246,8 @@ export interface components {
             summary: string;
             /** @example true */
             isProcessed: boolean;
+            /** @example 0.6 */
+            progress: number;
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
@@ -294,6 +298,8 @@ export interface components {
             summary: string;
             /** @example true */
             isProcessed: boolean;
+            /** @example 0.6 */
+            progress: number;
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z

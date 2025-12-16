@@ -76,11 +76,25 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
             const allPoints: PointInterface[] = [makePoint(firstEmbedding, 0)];
 
+            this.socketService.emitToUser(user.id, "file:progress", {
+                id: fileEntity.id,
+                progress: Math.round((1 / chunks.length) * 100)
+            });
+
             for (let i = 1; i < chunks.length; i += CONCURRENCY) {
                 const batch = chunks.slice(i, i + CONCURRENCY);
                 const batchEmbeddings = await Promise.all(batch.map((chunk) => this.aiService.getEmbedding(chunk)));
                 const points = batchEmbeddings.map((embedding, offset) => makePoint(embedding, i + offset));
+
                 allPoints.push(...points);
+
+                const processedCount = Math.min(i + CONCURRENCY, chunks.length);
+                const progress = Math.round((processedCount / chunks.length) * 100);
+
+                this.socketService.emitToUser(user.id, "file:progress", {
+                    id: fileEntity.id,
+                    progress
+                });
             }
 
             await this.qdrantService.saveVectors(allPoints);
@@ -92,7 +106,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 isProcessed: true
             });
 
-            this.socketService.emitToUser(user.id, "file:processed", [{ id: fileEntity.id }]);
+            this.socketService.emitToUser(user.id, "file:processed", { id: fileEntity.id });
         } catch (err) {
             this.qdrantService.deleteByFilter(job.data.user.id, job.data.fileEntity.id);
 

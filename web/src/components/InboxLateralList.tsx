@@ -6,7 +6,7 @@ import { AxiosRequestConfig } from "axios";
 import { get, readFile } from "../requests/file.request";
 import toast from "react-hot-toast";
 import useSocket from "../hooks/use-socket.hook";
-import { ServerToClientEvents } from "../interfaces/socket.interface";
+import { ServerToClientEventsInterface } from "../interfaces/socket.interface";
 
 interface Props {
     readonly listFiles: components["schemas"]["ListFileResponseDto"]["items"];
@@ -32,7 +32,13 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
 
     const { execute: executeGet } = useRequest({
         request: (config?: AxiosRequestConfig) => get(config?.data),
-        onSuccess: (data) => setListFiles((prevFiles) => prevFiles.map((f) => (f.id === data.id ? data : f))),
+        onSuccess: (data) => {
+            setListFiles((prevFiles) => prevFiles.map((f) => (f.id === data.id ? data : f)));
+
+            if (fileSelected?.id === data.id) {
+                setFileSelected(data);
+            }
+        },
         onError: () => toast.error("Erro ao obter arquivo."),
     });
 
@@ -41,16 +47,22 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
             return;
         }
 
-        const handleFileProcessed = (data: Parameters<ServerToClientEvents["file:processed"]>[0]) => {
+        const handleFileProcessed = (data: ServerToClientEventsInterface["file:processed"]) => {
             executeGet({ data: data.id });
         };
 
+        const handleFileProgress = (data: ServerToClientEventsInterface["file:progress"]) => {
+            setListFiles((prevFiles) => prevFiles.map((f) => (f.id === data.id ? { ...f, progress: data.progress } : f)));
+        };
+
         socket.on("file:processed", handleFileProcessed);
+        socket.on("file:progress", handleFileProgress);
 
         return () => {
             socket.off("file:processed", handleFileProcessed);
+            socket.off("file:progress", handleFileProgress);
         };
-    }, [socket, executeGet]);
+    }, [socket, executeGet, setListFiles]);
 
     const handleUpload = async (file: File | null) => {
         if (!file) {
@@ -112,6 +124,15 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
                                             >
                                                 {file.name}
                                             </p>
+
+                                            {file.progress < 100 && (
+                                                <div className="w-full bg-white/10 rounded-full h-2.5 mt-2">
+                                                    <div
+                                                        className="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
+                                                        style={{ width: `${file.progress}%` }}
+                                                    ></div>
+                                                </div>
+                                            )}
                                         </div>
                                     </button>
                                 </li>
