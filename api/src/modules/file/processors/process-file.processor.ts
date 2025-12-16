@@ -47,6 +47,11 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 return;
             }
 
+            this.socketService.emitToUser(user.id, "file:progress", {
+                id: fileEntity.id,
+                progress: 0
+            });
+
             const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 12);
 
             const firstEmbedding = await this.aiService.getEmbedding(chunks[0]);
@@ -76,9 +81,11 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
             const allPoints: PointInterface[] = [makePoint(firstEmbedding, 0)];
 
+            const embeddingProgress = Math.round((1 / chunks.length) * 50);
+
             this.socketService.emitToUser(user.id, "file:progress", {
                 id: fileEntity.id,
-                progress: Math.round((1 / chunks.length) * 100)
+                progress: embeddingProgress
             });
 
             for (let i = 1; i < chunks.length; i += CONCURRENCY) {
@@ -89,7 +96,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 allPoints.push(...points);
 
                 const processedCount = Math.min(i + CONCURRENCY, chunks.length);
-                const progress = Math.round((processedCount / chunks.length) * 100);
+                const progress = Math.round((processedCount / chunks.length) * 50);
 
                 this.socketService.emitToUser(user.id, "file:progress", {
                     id: fileEntity.id,
@@ -97,13 +104,28 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 });
             }
 
+            this.socketService.emitToUser(user.id, "file:progress", {
+                id: fileEntity.id,
+                progress: 50
+            });
+
             await this.qdrantService.saveVectors(allPoints);
+
+            this.socketService.emitToUser(user.id, "file:progress", {
+                id: fileEntity.id,
+                progress: 70
+            });
 
             const summary = await this.aiService.generateSummary(job.data.text);
 
             await this.fileRepository.update(fileEntity.id, {
                 summary: summary ?? "",
                 isProcessed: true
+            });
+
+            this.socketService.emitToUser(user.id, "file:progress", {
+                id: fileEntity.id,
+                progress: 100
             });
 
             this.socketService.emitToUser(user.id, "file:processed", { id: fileEntity.id });
