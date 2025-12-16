@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { AiService } from "../ai/ai.service";
-import { QdrantService } from "../../infrastructure/qdrant/qdrant.service";
+import { QdrantService } from "../qdrant/qdrant.service";
 import { SearchFileRequestDto } from "./dto/search-file-request.dto";
 import { ChunkerFileService } from "./chunker-file.service";
 import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";

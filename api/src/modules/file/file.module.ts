@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { FileService } from "./file.service";
 import { FileController } from "./file.controller";
 import { AiModule } from "../ai/ai.module";
-import { QdrantModule } from "../../infrastructure/qdrant/qdrant.module";
+import { QdrantModule } from "../qdrant/qdrant.module";
 import { BullModule } from "@nestjs/bullmq";
 import { ProcessFileProcessor } from "./processors/process-file.processor";
 import { CommonModule } from "../../common/common.module";

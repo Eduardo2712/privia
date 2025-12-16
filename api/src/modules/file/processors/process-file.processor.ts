@@ -1,12 +1,12 @@
 import { Processor } from "@nestjs/bullmq";
 import { BaseProcessor } from "../../../infrastructure/processor/base-processor.processor";
 import { Logger, OnModuleDestroy } from "@nestjs/common";
-import { QdrantService } from "../../../infrastructure/qdrant/qdrant.service";
+import { QdrantService } from "../../qdrant/qdrant.service";
 import { AiService } from "../../ai/ai.service";
 import { Job } from "bullmq";
 import { ProcessFileJob } from "../jobs/process-file.job";
 import { randomUUID } from "node:crypto";
-import { PointInterface } from "../../../infrastructure/qdrant/interfaces/qdrant.interface";
+import { PointInterface } from "../../qdrant/interfaces/qdrant.interface";
 import { get_encoding, Tiktoken } from "tiktoken";
 import { FileRepository } from "../entities/file.repository";
 import { SocketService } from "../../socket/socket.service";
