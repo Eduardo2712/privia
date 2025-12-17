@@ -1,7 +1,8 @@
 import { Exclude } from "class-transformer";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { ForgotPasswordEntity } from "../../auth/entities/forgot-password.entity";
-import { FileEntity } from "../../file/entities/file.entity";
+import { ForgotPasswordEntity } from "../../auth/repositories/forgot-password.entity";
+import { FileEntity } from "../../file/repositories/file.entity";
+import { MessageEntity } from "../../conversation/repositories/message.entity";
 
 @Entity("users")
 export class UserEntity {
@@ -35,6 +36,9 @@ export class UserEntity {
 
     @OneToMany(() => FileEntity, (file) => file.user)
     files?: FileEntity[];
+
+    @OneToMany(() => MessageEntity, (message) => message.user)
+    messages?: MessageEntity[];
 
     constructor(partial: Partial<UserEntity>) {
         Object.assign(this, partial);

@@ -10,7 +10,7 @@ import { Queue } from "bullmq";
 import { SearchFileStreamResponseInterface } from "./interfaces/file.interface";
 import { MinioFileService } from "./minio-file.service";
 import { ListFileRequestDto } from "./dto/list-file-request.dto";
-import { FileRepository } from "./entities/file.repository";
+import { FileRepository } from "./repositories/file.repository";
 import { ListFileResponseDto } from "./dto/list-file-response.dto";
 import { plainToInstance } from "class-transformer";
 import { FileResponseDto } from "./dto/file-response.dto";

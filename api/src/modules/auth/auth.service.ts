@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { UnitOfWorkService } from "../../common/unity-of-work.service";
 import { UserService } from "../user/user.service";
-import { ForgotPasswordRepository } from "./entities/forgot-password.repository";
+import { ForgotPasswordRepository } from "./repositories/forgot-password.repository";
 import { ForgotPasswordRequestDto } from "./dto/forgot-password-request.dto";
 import { generateValidationCode } from "../../common/utils/functions.util";
 import { LoginRequestDto } from "./dto/login-request.dto";

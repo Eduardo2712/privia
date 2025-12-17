@@ -5,9 +5,9 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { UserModule } from "../user/user.module";
-import { ForgotPasswordEntity } from "./entities/forgot-password.entity";
+import { ForgotPasswordEntity } from "./repositories/forgot-password.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ForgotPasswordRepository } from "./entities/forgot-password.repository";
+import { ForgotPasswordRepository } from "./repositories/forgot-password.repository";
 import { UnitOfWorkService } from "../../common/unity-of-work.service";
 import { jwtExpiresInSeconds } from "../../common/utils/config.util";
 

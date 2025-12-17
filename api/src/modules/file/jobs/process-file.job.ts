@@ -1,5 +1,5 @@
 import { LoggedUserInterface } from "../../../common/interfaces/jwt.interface";
-import { FileEntity } from "../entities/file.entity";
+import { FileEntity } from "../repositories/file.entity";
 
 export class ProcessFileJob {
     constructor(

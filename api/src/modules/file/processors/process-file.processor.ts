@@ -8,7 +8,7 @@ import { ProcessFileJob } from "../jobs/process-file.job";
 import { randomUUID } from "node:crypto";
 import { PointInterface } from "../../qdrant/interfaces/qdrant.interface";
 import { get_encoding, Tiktoken } from "tiktoken";
-import { FileRepository } from "../entities/file.repository";
+import { FileRepository } from "../repositories/file.repository";
 import { SocketService } from "../../socket/socket.service";
 
 @Processor("process-file")

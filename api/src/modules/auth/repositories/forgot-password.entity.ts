@@ -1,4 +1,4 @@
-import { UserEntity } from "../../user/entities/user.entity";
+import { UserEntity } from "../../user/repositories/user.entity";
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from "typeorm";
 
 @Entity({ name: "forgot_passwords" })

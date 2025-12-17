@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from "@nestjs/common";
-import { UserRepository } from "./entities/user.repository";
-import { UserEntity } from "./entities/user.entity";
+import { UserRepository } from "./repositories/user.repository";
+import { UserEntity } from "./repositories/user.entity";
 import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 import { compareSyncValue, hashSyncValue } from "../../common/utils/functions.util";
 import { CreateUserDto } from "./dto/create-user.dto";

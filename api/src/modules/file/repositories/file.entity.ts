@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { UserEntity } from "../../user/entities/user.entity";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { UserEntity } from "../../user/repositories/user.entity";
+import { MessageEntity } from "../../conversation/repositories/message.entity";
 
 @Entity("files")
 export class FileEntity {
@@ -38,6 +39,9 @@ export class FileEntity {
 
     @ManyToOne(() => UserEntity, (user) => user.files, { onDelete: "CASCADE" })
     user?: UserEntity;
+
+    @OneToMany(() => MessageEntity, (message) => message.file)
+    messages?: MessageEntity[];
 
     constructor(partial: Partial<FileEntity>) {
         Object.assign(this, partial);

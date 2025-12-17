@@ -15,6 +15,7 @@ import { AiModule } from "./modules/ai/ai.module";
 import { FileModule } from "./modules/file/file.module";
 import { QdrantModule } from "./modules/qdrant/qdrant.module";
 import { SocketModule } from "./modules/socket/socket.module";
+import { ConversationModule } from './modules/conversation/conversation.module';
 
 @Module({
     imports: [
@@ -51,7 +52,8 @@ import { SocketModule } from "./modules/socket/socket.module";
         AiModule,
         FileModule,
         QdrantModule,
-        SocketModule
+        SocketModule,
+        ConversationModule
     ],
     controllers: [],
     providers: [
