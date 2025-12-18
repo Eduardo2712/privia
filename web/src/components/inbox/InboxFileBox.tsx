@@ -1,10 +1,11 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { remove, searchFileStream } from "../requests/file.request";
+import { remove, searchFileStream } from "../../requests/file.request";
 import { Sparkles, Send, FileText, Clock, BookOpen, Trash2, Loader2 } from "lucide-react";
-import { formatTime } from "../utils/functions";
-import { components } from "../types/api-types";
-import { useRequest } from "../hooks/use-request.hook";
+import { formatTime } from "../../utils/functions";
+import { components } from "../../types/api-types";
+import { useRequest } from "../../hooks/use-request.hook";
+import InboxSuggestedQuestions from "./InboxSuggestedQuestions";
 
 interface Props {
     readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
@@ -153,28 +154,40 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                             </div>
                         ) : (
                             fileSelected && (
-                                <div className="max-w-4xl mx-auto">
-                                    <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <FileText size={20} className="text-blue-400" />
+                                <>
+                                    <div className="max-w-4xl mx-auto">
+                                        <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <FileText size={20} className="text-blue-400" />
 
-                                                <h3 className="text-lg font-semibold text-white">{fileSelected.name}</h3>
+                                                    <h3 className="text-lg font-semibold text-white">{fileSelected.name}</h3>
+                                                </div>
+
+                                                {fileSelected?.isProcessed && (
+                                                    <button
+                                                        type="button"
+                                                        className="p-2 border-2 rounded-md border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 transition-colors duration-200 cursor-pointer"
+                                                        onClick={handleDeleteFile}
+                                                        disabled={loading || submitting}
+                                                    >
+                                                        {loading || submitting ? (
+                                                            <Loader2 size={20} className="animate-spin" />
+                                                        ) : (
+                                                            <Trash2 size={20} />
+                                                        )}
+                                                    </button>
+                                                )}
                                             </div>
 
-                                            <button
-                                                type="button"
-                                                className="p-2 border-2 rounded-md border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 transition-colors duration-200 cursor-pointer"
-                                                onClick={handleDeleteFile}
-                                                disabled={loading || submitting}
-                                            >
-                                                {loading || submitting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
-                                            </button>
+                                            {fileSelected.isProcessed && <p className="text-gray-400 text-sm mt-4">{fileSelected.summary}</p>}
                                         </div>
-
-                                        {fileSelected.isProcessed && <p className="text-gray-400 text-sm">{fileSelected.summary}</p>}
                                     </div>
-                                </div>
+
+                                    {fileSelected?.isProcessed && (
+                                        <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
+                                    )}
+                                </>
                             )
                         )}
                     </div>

@@ -39,6 +39,17 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
         }
     }
 
+    private socketEmitProgress(userId: number, fileId: number, progress: number) {
+        this.socketService.emitToUser(userId, "file:progress", {
+            id: fileId,
+            progress
+        });
+    }
+
+    private socketEmitProcessed(userId: number, fileId: number) {
+        this.socketService.emitToUser(userId, "file:processed", { id: fileId });
+    }
+
     async process(job: Job<ProcessFileJob>): Promise<void> {
         try {
             const { chunks, file, user, fileEntity } = job.data;
@@ -47,10 +58,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 return;
             }
 
-            this.socketService.emitToUser(user.id, "file:progress", {
-                id: fileEntity.id,
-                progress: 0
-            });
+            this.socketEmitProgress(user.id, fileEntity.id, 0);
 
             const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 12);
 
@@ -81,12 +89,9 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
             const allPoints: PointInterface[] = [makePoint(firstEmbedding, 0)];
 
-            const embeddingProgress = Math.round((1 / chunks.length) * 50);
+            const embeddingProgress = Math.round((1 / chunks.length) * 40);
 
-            this.socketService.emitToUser(user.id, "file:progress", {
-                id: fileEntity.id,
-                progress: embeddingProgress
-            });
+            this.socketEmitProgress(user.id, fileEntity.id, embeddingProgress);
 
             for (let i = 1; i < chunks.length; i += CONCURRENCY) {
                 const batch = chunks.slice(i, i + CONCURRENCY);
@@ -96,40 +101,28 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 allPoints.push(...points);
 
                 const processedCount = Math.min(i + CONCURRENCY, chunks.length);
-                const progress = Math.round((processedCount / chunks.length) * 50);
+                const progress = Math.round((processedCount / chunks.length) * 40);
 
-                this.socketService.emitToUser(user.id, "file:progress", {
-                    id: fileEntity.id,
-                    progress
-                });
+                this.socketEmitProgress(user.id, fileEntity.id, progress);
             }
 
-            this.socketService.emitToUser(user.id, "file:progress", {
-                id: fileEntity.id,
-                progress: 50
-            });
+            this.socketEmitProgress(user.id, fileEntity.id, 40);
 
             await this.qdrantService.saveVectors(allPoints);
 
-            this.socketService.emitToUser(user.id, "file:progress", {
-                id: fileEntity.id,
-                progress: 70
-            });
+            this.socketEmitProgress(user.id, fileEntity.id, 60);
 
             const response = await this.aiService.generateSummaryAndSuggestions(job.data.text);
-            console.log("Generated summary:", response);
 
             await this.fileRepository.update(fileEntity.id, {
                 summary: response.resumo ?? "",
+                suggestedQuestions: response.perguntas ?? [],
                 isProcessed: true
             });
 
-            this.socketService.emitToUser(user.id, "file:progress", {
-                id: fileEntity.id,
-                progress: 100
-            });
+            this.socketEmitProgress(user.id, fileEntity.id, 100);
 
-            this.socketService.emitToUser(user.id, "file:processed", { id: fileEntity.id });
+            this.socketEmitProcessed(user.id, fileEntity.id);
         } catch (err) {
             this.qdrantService.deleteByFilter(job.data.user.id, job.data.fileEntity.id);
 

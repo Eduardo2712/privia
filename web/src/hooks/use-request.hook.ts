@@ -41,6 +41,7 @@ export function useRequest<TData = unknown, TError = unknown>(options: UseReques
                 return undefined;
             } finally {
                 options.onFinally?.();
+
                 setLoading(false);
             }
         },

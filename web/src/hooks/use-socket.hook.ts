@@ -37,7 +37,7 @@ export default function useSocket() {
 
             socket.disconnect();
         };
-    }, []);
+    }, [socketRef]);
 
     return { socket: socketRef.current, connected };
 }

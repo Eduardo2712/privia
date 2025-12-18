@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useRequest } from "../../hooks/use-request.hook";
 import { list } from "../../requests/file.request";
 import toast from "react-hot-toast";
-import InboxHeader from "../../components/InboxHeader";
-import InboxLateralList from "../../components/InboxLateralList";
+import InboxHeader from "../../components/inbox/InboxHeader";
+import InboxLateralList from "../../components/inbox/InboxLateralList";
 import { components } from "../../types/api-types";
-import InboxFileBox from "../../components/InboxFileBox";
+import InboxFileBox from "../../components/inbox/InboxFileBox";
 
 export default function HomePage() {
     const [listFiles, setListFiles] = useState<components["schemas"]["ListFileResponseDto"]["items"]>([]);

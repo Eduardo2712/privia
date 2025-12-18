@@ -9,6 +9,6 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-    [event: string]: never;
+    join: () => void;
 }
 

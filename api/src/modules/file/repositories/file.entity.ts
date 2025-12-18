@@ -28,6 +28,9 @@ export class FileEntity {
     @Column({ nullable: false, type: "boolean", name: "is_processed", default: false })
     isProcessed: boolean;
 
+    @Column({ nullable: true, type: "jsonb", name: "suggested_questions" })
+    suggestedQuestions?: string[];
+
     @CreateDateColumn({ name: "created_at" })
     createdAt?: Date;
 

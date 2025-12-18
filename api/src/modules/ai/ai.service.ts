@@ -27,51 +27,45 @@ export class AiService extends BaseAiService {
         const auto = this.autoDecide(chunks);
         const kVal = typeof opts?.k === "number" && opts.k > 0 ? opts.k : auto.k;
 
-        const useChunks = typeof kVal === "number" && kVal > 0 ? chunks.slice(0, Math.min(kVal, chunks.length)) : chunks;
+        const filtered = chunks.filter((c) => c.score >= 0.65);
+        const candidates = filtered.length > 0 ? filtered : chunks;
+        const useChunks = typeof kVal === "number" && kVal > 0 ? candidates.slice(0, Math.min(kVal, candidates.length)) : candidates;
 
         const fullChunks = useChunks
             .map((c, i) => {
-                const maxLen = 1100;
-                let text = c.text;
+                const maxLen = 800;
+                let text = c.text.replaceAll(/\s+/g, " ").trim();
 
                 if (text.length > maxLen) {
                     const trimmed = text.substring(0, maxLen);
                     const lastPeriod = trimmed.lastIndexOf(".");
-
-                    text = lastPeriod > maxLen * 0.8 ? trimmed.substring(0, lastPeriod + 1) : trimmed;
+                    text = lastPeriod > maxLen * 0.7 ? trimmed.substring(0, lastPeriod + 1) : trimmed;
                 }
 
                 return `[Trecho ${i + 1}]\n${text}\n`;
             })
             .join("\n---\n\n");
 
-        const prompt = `Você é um assistente de análise textual baseado em evidências.
+        const prompt = `Você responde apenas com base nos trechos.
 
-                REGRAS:
-                - Use exclusivamente os trechos fornecidos.
-                - Inferências são permitidas APENAS quando sustentadas por múltiplos trechos.
-                - Não utilize conhecimento externo sobre a obra ou o autor.
-                - Diferencie claramente fatos do texto e interpretações.
+        Foque em:
+        - Citar trechos como [N].
+        - Não usar conhecimento externo.
+        - Separar Fatos e Inferências.
 
-                FORMATO DE SAÍDA:
+        Saída:
+        Fatos:
+        - ...
+        Inferências (sempre citar [N][M]):
+        - ...
+        Observações narrativas (se houver):
+        - ...
+        Trechos:
+        ${fullChunks}
 
-                Fatos explícitos:
-                - Liste objetivamente o que os trechos afirmam, com citações [N].
+        Pergunta: ${search}
 
-                Inferências sustentadas:
-                - Apresente conclusões que derivem diretamente da combinação dos fatos acima.
-                - Cada inferência deve citar pelo menos dois trechos [N][M].
-                
-                Observações narrativas (se aplicável):
-                - Elementos recorrentes de comportamento, tom ou relação, desde que evidentes no texto.
-
-                RECHOS:
-                ${fullChunks}
-
-                PERGUNTA: ${search}
-
-                RESPOSTA:
-                `;
+        Resposta:`;
 
         return this.sendPromptStream(prompt);
     }
@@ -96,7 +90,7 @@ export class AiService extends BaseAiService {
 
         REGRAS:
         - Use somente o conteúdo do texto; não invente fatos.
-        - Resumo com até 4 frases curtas e objetivas.
+        - Resumo com até 5 frases curtas e objetivas.
         - Perguntas distintas entre si, claras e que estimulem aprofundamento.
         - Responda APENAS no formato abaixo.
 
@@ -116,8 +110,8 @@ export class AiService extends BaseAiService {
             prompt,
             options: {
                 temperature: 0,
-                top_p: 0.8,
-                repeat_penalty: 1.15,
+                top_p: 0.4,
+                repeat_penalty: 1.1,
                 max_tokens: 120
             },
             format: {

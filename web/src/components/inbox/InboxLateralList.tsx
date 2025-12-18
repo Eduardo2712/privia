@@ -1,12 +1,13 @@
 import { FileText, Plus, Loader2 } from "lucide-react";
-import { components } from "../types/api-types";
+import { components } from "../../types/api-types";
 import { useEffect, useRef } from "react";
-import { useRequest } from "../hooks/use-request.hook";
+import { useRequest } from "../../hooks/use-request.hook";
 import { AxiosRequestConfig } from "axios";
-import { get, readFile } from "../requests/file.request";
+import { get, readFile } from "../../requests/file.request";
 import toast from "react-hot-toast";
-import useSocket from "../hooks/use-socket.hook";
-import { ServerToClientEventsInterface } from "../interfaces/socket.interface";
+import useSocket from "../../hooks/use-socket.hook";
+import { ServerToClientEventsInterface } from "../../interfaces/socket.interface";
+import Loading from "../Loading";
 
 interface Props {
     readonly listFiles: components["schemas"]["ListFileResponseDto"]["items"];
@@ -88,7 +89,7 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-3 py-2 custom-scrollbar">
-                    {listFiles.length === 0 ? (
+                    {listFiles.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
                             <FileText size={48} className="text-gray-600 mb-3" />
 
@@ -96,7 +97,9 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
 
                             <p className="text-xs text-gray-600 mt-1">Envie seu primeiro arquivo</p>
                         </div>
-                    ) : (
+                    )}
+
+                    {listFiles.length > 0 && (
                         <ul className="space-y-1.5">
                             {listFiles.map((file) => (
                                 <li key={file.id}>
@@ -139,6 +142,8 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
                             ))}
                         </ul>
                     )}
+
+                    {loading && <Loading isLoading={loading} />}
                 </div>
 
                 <div className="px-3 py-4 border-t border-white/5">

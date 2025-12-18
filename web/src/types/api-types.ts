@@ -194,7 +194,15 @@ export interface components {
             summary: string;
             /** @example true */
             isProcessed: boolean;
-            /** @example 0.6 */
+            /**
+             * @example [
+             *       "What is the summary?",
+             *       "What are the key points?",
+             *       "How to use this document?"
+             *     ]
+             */
+            suggestedQuestions: string[];
+            /** @example 60 */
             progress: number;
             /**
              * Format: date-time
@@ -246,7 +254,15 @@ export interface components {
             summary: string;
             /** @example true */
             isProcessed: boolean;
-            /** @example 0.6 */
+            /**
+             * @example [
+             *       "What is the summary?",
+             *       "What are the key points?",
+             *       "How to use this document?"
+             *     ]
+             */
+            suggestedQuestions: string[];
+            /** @example 60 */
             progress: number;
             /**
              * Format: date-time
@@ -275,6 +291,11 @@ export interface components {
              *         "size": 1024,
              *         "mimeType": "application/pdf",
              *         "summary": "This is a summary of the file.",
+             *         "suggestedQuestions": [
+             *           "What is the summary?",
+             *           "What are the key points?",
+             *           "How to use this document?"
+             *         ],
              *         "isProcessed": true,
              *         "createdAt": "2024-01-01T12:00:00.000Z",
              *         "updatedAt": "2024-01-02T12:00:00.000Z"
@@ -298,7 +319,15 @@ export interface components {
             summary: string;
             /** @example true */
             isProcessed: boolean;
-            /** @example 0.6 */
+            /**
+             * @example [
+             *       "What is the summary?",
+             *       "What are the key points?",
+             *       "How to use this document?"
+             *     ]
+             */
+            suggestedQuestions: string[];
+            /** @example 60 */
             progress: number;
             /**
              * Format: date-time

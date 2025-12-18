@@ -31,6 +31,10 @@ export class FileResponseDto {
     isProcessed: boolean;
 
     @Expose()
+    @ApiProperty({ example: ["What is the summary?", "What are the key points?", "How to use this document?"], type: [String] })
+    suggestedQuestions?: string[];
+
+    @Expose()
     @ApiProperty({ example: 60, type: Number })
     progress: number = 100;
 
