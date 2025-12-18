@@ -15,8 +15,8 @@ export interface AIGenerateResponseInterface {
 }
 
 export interface AIGenerateFormInterface {
-    model: string;
     prompt: string;
+    model?: string;
     stream?: boolean;
     format?: {
         type: string;
@@ -44,5 +44,10 @@ export interface AIStreamResponseChunkInterface {
     data: string;
     finished: boolean;
     finishReason?: string;
+}
+
+export interface AIGenerateSummaryAndSuggestions {
+    resumo: string;
+    perguntas: string[];
 }
 

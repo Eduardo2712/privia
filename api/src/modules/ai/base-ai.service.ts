@@ -143,21 +143,16 @@ export class BaseAiService {
         return asyncIterator;
     }
 
-    public async sendPrompt(prompt: string, maxTokens: number | null = null): Promise<string> {
+    public async sendPrompt<T>(props: AIGenerateFormInterface): Promise<T> {
         const url = `${this.getUrlBase()}/generate`;
 
         const model = this.configService.get<string>("AI_MODEL") as string;
 
         const payload: AIGenerateFormInterface = {
-            model,
-            prompt,
-            stream: false,
-            options: {
-                temperature: 0,
-                top_p: 0.8,
-                repeat_penalty: 1.15,
-                ...(maxTokens ? { max_tokens: maxTokens } : {})
-            }
+            ...props,
+            model: props.model || model,
+            prompt: props.prompt,
+            stream: false
         };
 
         try {
@@ -175,7 +170,7 @@ export class BaseAiService {
                 throw new Error("Resposta não encontrada");
             }
 
-            return answer;
+            return JSON.parse(answer) as T;
         } catch (error) {
             throw new Error(`Erro ao gerar resposta da IA: ${error.message}`);
         }

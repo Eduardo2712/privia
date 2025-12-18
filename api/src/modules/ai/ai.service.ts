@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { BaseAiService } from "./base-ai.service";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
+import { AIGenerateSummaryAndSuggestions } from "./interfaces/ai.interface";
 
 @Injectable()
 export class AiService extends BaseAiService {
@@ -36,6 +37,7 @@ export class AiService extends BaseAiService {
                 if (text.length > maxLen) {
                     const trimmed = text.substring(0, maxLen);
                     const lastPeriod = trimmed.lastIndexOf(".");
+
                     text = lastPeriod > maxLen * 0.8 ? trimmed.substring(0, lastPeriod + 1) : trimmed;
                 }
 
@@ -81,16 +83,57 @@ export class AiService extends BaseAiService {
         return { promptMode, k };
     }
 
-    public async generateSummary(text: string): Promise<string> {
+    public async generateSummaryAndSuggestions(text: string): Promise<AIGenerateSummaryAndSuggestions> {
         const limit = 3000;
         const clean = text.replaceAll(/\s+/g, " ").trim();
         const chunk = clean.length > limit ? clean.slice(0, limit) : clean;
 
-        const prompt = `Resuma em 2-3 frases:
+        const prompt = `Você é um assistente que resume textos e cria perguntas abertas.
 
+        TAREFA:
+        - Resuma o texto fornecido em português.
+        - Gere exatamente 3 perguntas abertas e relevantes sobre o texto.
+
+        REGRAS:
+        - Use somente o conteúdo do texto; não invente fatos.
+        - Resumo com até 4 frases curtas e objetivas.
+        - Perguntas distintas entre si, claras e que estimulem aprofundamento.
+        - Responda APENAS no formato abaixo.
+
+        FORMATO DE SAÍDA:
+        Resumo:
+        - ...
+
+        Perguntas:
+        1. ...
+        2. ...
+        3. ...
+
+        TEXTO:
         ${chunk}`;
 
-        return this.sendPrompt(prompt, 120);
+        const result = this.sendPrompt<AIGenerateSummaryAndSuggestions>({
+            prompt,
+            options: {
+                temperature: 0,
+                top_p: 0.8,
+                repeat_penalty: 1.15,
+                max_tokens: 120
+            },
+            format: {
+                type: "object",
+                properties: {
+                    resumo: { type: "string" },
+                    perguntas: {
+                        type: "array",
+                        items: { type: "string" }
+                    }
+                },
+                required: ["resumo", "perguntas"]
+            }
+        });
+
+        return result;
     }
 }
 

@@ -116,10 +116,11 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 progress: 70
             });
 
-            const summary = await this.aiService.generateSummary(job.data.text);
+            const response = await this.aiService.generateSummaryAndSuggestions(job.data.text);
+            console.log("Generated summary:", response);
 
             await this.fileRepository.update(fileEntity.id, {
-                summary: summary ?? "",
+                summary: response.resumo ?? "",
                 isProcessed: true
             });
 
@@ -131,6 +132,8 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
             this.socketService.emitToUser(user.id, "file:processed", { id: fileEntity.id });
         } catch (err) {
             this.qdrantService.deleteByFilter(job.data.user.id, job.data.fileEntity.id);
+
+            this.logger.error(`Erro ao processar arquivo ID ${job.data.fileEntity.id}: ${err.message}`, err.stack);
 
             throw err;
         }
