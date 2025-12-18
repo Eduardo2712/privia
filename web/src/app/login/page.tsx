@@ -5,16 +5,18 @@ import { Formik, Form } from "formik";
 import { validationLogin } from "../../utils/validations";
 import { Mail, MessageSquare, Lock, Zap, Smile, Star, Globe, Unlock, Loader2, FastForward, Brain } from "lucide-react";
 import { login } from "../../requests/auth.request";
-import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { CustomInput } from "../../components/CustomInput";
 import { useState } from "react";
 import { formatErrorMessage } from "../../utils/functions";
 import { LoginResponse } from "../../interfaces/auth.interface";
+import { useAlert } from "../../hooks/use-alert.hook";
 
 export default function Page() {
     const [showPassword, setShowPassword] = useState(false);
+
+    const alert = useAlert();
 
     const router = useRouter();
 
@@ -28,21 +30,21 @@ export default function Page() {
             const response = await login(values);
 
             if (response.status !== 200) {
-                return toast.error("Falha ao autenticar. Tente novamente.");
+                return alert.error("Falha ao autenticar. Tente novamente.");
             }
 
             const loginResponse = response.data as unknown as LoginResponse;
 
             localStorage.setItem("user", JSON.stringify(loginResponse.user));
 
-            toast.success("Login realizado com sucesso!");
+            alert.success("Login realizado com sucesso!");
 
             router.push("/inbox");
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                toast.error(formatErrorMessage(error.response?.data?.message));
+                alert.error(formatErrorMessage(error.response?.data?.message));
             } else {
-                toast.error("Ocorreu um erro inesperado");
+                alert.error("Ocorreu um erro inesperado");
             }
         }
     };

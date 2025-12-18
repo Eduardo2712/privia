@@ -3,23 +3,25 @@
 import { useEffect, useState } from "react";
 import { useRequest } from "../../hooks/use-request.hook";
 import { list } from "../../requests/file.request";
-import toast from "react-hot-toast";
 import InboxHeader from "../../components/inbox/InboxHeader";
 import InboxLateralList from "../../components/inbox/InboxLateralList";
 import { components } from "../../types/api-types";
 import InboxFileBox from "../../components/inbox/InboxFileBox";
+import { useAlert } from "../../hooks/use-alert.hook";
 
 export default function HomePage() {
     const [listFiles, setListFiles] = useState<components["schemas"]["ListFileResponseDto"]["items"]>([]);
     const [fileSelected, setFileSelected] = useState<components["schemas"]["FileResponseDto"] | null>(null);
     const [listPage, setListPage] = useState<number>(1);
 
+    const alert = useAlert();
+
     const { execute: executeList } = useRequest<components["schemas"]["ListFileResponseDto"]>({
         request: () => list({ page: listPage }),
         onSuccess: (data) => {
             setListFiles(data.items);
         },
-        onError: () => toast.error("Erro ao listar arquivos."),
+        onError: () => alert.error("Erro ao listar arquivos."),
     });
 
     const fetchList = async (page: number) => {

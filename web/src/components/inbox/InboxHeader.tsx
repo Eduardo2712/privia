@@ -1,18 +1,34 @@
 import { Settings, LogOut, Sparkles } from "lucide-react";
 import { useRequest } from "../../hooks/use-request.hook";
 import { logout } from "../../requests/auth.request";
-import toast from "react-hot-toast";
+import { useAlert } from "../../hooks/use-alert.hook";
 
 export default function InboxHeader() {
+    const alert = useAlert();
+
     const { execute } = useRequest({
         request: () => logout(),
-        onSuccess: (data) => {
+        onSuccess: () => {
             globalThis.window.location.href = "/";
 
-            toast.success("Logout realizado com sucesso!");
+            alert.success("Logout realizado com sucesso!");
         },
-        onError: () => toast.error("Erro ao sair."),
+        onError: () => alert.error("Erro ao sair."),
     });
+
+    const handleLogout = async () => {
+        const confirmed = await alert.confirm("Deseja realmente sair?", {
+            title: "Deseja realmente sair?",
+            confirmButtonText: "Sim",
+            cancelButtonText: "Não",
+        });
+
+        if (confirmed) {
+            execute();
+
+            alert.success("Logout realizado com sucesso!");
+        }
+    };
 
     return (
         <header className="flex items-center justify-between px-8 py-5 bg-[#1e1e1e]/80 backdrop-blur-xl border-b border-white/5 w-full">
@@ -32,7 +48,7 @@ export default function InboxHeader() {
                 </button>
 
                 <button
-                    onClick={() => execute()}
+                    onClick={() => handleLogout()}
                     className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-gray-300 text-sm font-medium hover:bg-red-500/10 hover:text-red-400 transition-all duration-200 border border-white/5 hover:border-red-500/30"
                 >
                     <LogOut size={18} className="group-hover:translate-x-0.5 transition-transform duration-200" />

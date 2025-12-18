@@ -1,11 +1,11 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { remove, searchFileStream } from "../../requests/file.request";
 import { Sparkles, Send, FileText, Clock, BookOpen, Trash2, Loader2 } from "lucide-react";
 import { formatTime } from "../../utils/functions";
 import { components } from "../../types/api-types";
 import { useRequest } from "../../hooks/use-request.hook";
 import InboxSuggestedQuestions from "./InboxSuggestedQuestions";
+import { useAlert } from "../../hooks/use-alert.hook";
 
 interface Props {
     readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
@@ -21,6 +21,8 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
     const [searchText, setSearchText] = useState<string>("");
     const [submitting, setSubmitting] = useState<boolean>(false);
 
+    const alert = useAlert();
+
     const { execute, loading } = useRequest({
         request: () => remove(fileSelected!.id),
         onSuccess: () => {
@@ -31,19 +33,19 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
             setSearchText("");
             setFileSelected(null);
 
-            toast.success("Arquivo deletado com sucesso!");
+            alert.success("Arquivo deletado com sucesso!");
         },
-        onError: () => toast.error("Erro ao deletar arquivo."),
+        onError: () => alert.error("Erro ao deletar arquivo."),
         onFinally: () => setSubmitting(false),
     });
 
     const handleSearch = async () => {
         if (searchText.trim() === "") {
-            return toast.error("Por favor, insira um texto para buscar.");
+            return alert.error("Por favor, insira um texto para buscar.");
         }
 
         if (!fileSelected) {
-            return toast.error("Nenhum arquivo selecionado para busca.");
+            return alert.error("Nenhum arquivo selecionado para busca.");
         }
 
         setStreaming(true);
@@ -58,11 +60,11 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
             (time) => setTimeInMs(time),
             () => {
                 setStreaming(false);
-                toast.success("Busca realizada com sucesso!");
+                alert.success("Busca realizada com sucesso!");
             },
             (error) => {
                 setStreaming(false);
-                toast.error(`Erro ao realizar busca: ${error instanceof Error ? error.message : "Desconhecido"}`);
+                alert.error(`Erro ao realizar busca: ${error instanceof Error ? error.message : "Desconhecido"}`);
             }
         );
     };

@@ -8,12 +8,14 @@ import { useState } from "react";
 import { formatErrorMessage, formatPhone } from "../../utils/functions";
 import { useRouter } from "next/navigation";
 import { create } from "../../requests/user.request";
-import toast from "react-hot-toast";
 import axios from "axios";
 import Link from "next/link";
+import { useAlert } from "../../hooks/use-alert.hook";
 
 export default function Page() {
     const [showPassword, setShowPassword] = useState(false);
+
+    const alert = useAlert();
 
     const router = useRouter();
 
@@ -30,17 +32,17 @@ export default function Page() {
             const response = await create(values);
 
             if (response.status !== 201) {
-                return toast.error("Falha ao criar conta. Tente novamente.");
+                return alert.error("Falha ao criar conta. Tente novamente.");
             }
 
-            toast.success("Conta criada com sucesso!");
+            alert.success("Conta criada com sucesso!");
 
             router.push("/login");
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                toast.error(formatErrorMessage(error.response?.data?.message));
+                alert.error(formatErrorMessage(error.response?.data?.message));
             } else {
-                toast.error("Ocorreu um erro inesperado");
+                alert.error("Ocorreu um erro inesperado");
             }
         }
     };
@@ -206,7 +208,7 @@ export default function Page() {
                                             <button
                                                 type="button"
                                                 className="text-[#22d3ee] underline decoration-white/30 underline-offset-2 hover:text-white text-left"
-                                                onClick={() => toast("Termos de uso em breve.")}
+                                                onClick={() => alert.info("Termos de uso em breve.")}
                                             >
                                                 Termos e Política de Privacidade
                                             </button>

@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 import { useRequest } from "../../hooks/use-request.hook";
 import { AxiosRequestConfig } from "axios";
 import { get, readFile } from "../../requests/file.request";
-import toast from "react-hot-toast";
 import useSocket from "../../hooks/use-socket.hook";
 import { ServerToClientEventsInterface } from "../../interfaces/socket.interface";
 import Loading from "../Loading";
+import { useAlert } from "../../hooks/use-alert.hook";
 
 interface Props {
     readonly listFiles: components["schemas"]["ListFileResponseDto"]["items"];
@@ -19,6 +19,8 @@ interface Props {
 export default function InboxLateralList({ listFiles, setListFiles, setFileSelected, fileSelected }: Props) {
     const refInputFile = useRef<HTMLInputElement>(null);
 
+    const alert = useAlert();
+
     const { socket } = useSocket();
 
     const { execute, loading } = useRequest({
@@ -26,9 +28,9 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
         onSuccess: (data) => {
             setListFiles((prevFiles) => [data, ...prevFiles]);
 
-            toast.success("Arquivo enviado com sucesso!");
+            alert.success("Arquivo enviado com sucesso!");
         },
-        onError: () => toast.error("Erro ao enviar arquivo."),
+        onError: () => alert.error("Erro ao enviar arquivo."),
     });
 
     const { execute: executeGet } = useRequest({
@@ -40,7 +42,7 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
                 setFileSelected(data);
             }
         },
-        onError: () => toast.error("Erro ao obter arquivo."),
+        onError: () => alert.error("Erro ao obter arquivo."),
     });
 
     useEffect(() => {

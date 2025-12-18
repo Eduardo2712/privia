@@ -5,7 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { store } from "../store/store";
-import { Toaster } from "react-hot-toast";
+import { AlertProvider } from "../contexts/AlertContext";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -26,16 +26,7 @@ export default function RootLayout({
         <html lang="pt-BR">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 <Provider store={store}>
-                    <Toaster
-                        toastOptions={{
-                            style: {
-                                background: "#012",
-                                color: "#fff",
-                            },
-                        }}
-                    />
-
-                    {children}
+                    <AlertProvider>{children}</AlertProvider>
                 </Provider>
             </body>
         </html>
