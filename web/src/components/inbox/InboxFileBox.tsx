@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { remove, searchFileStream } from "../../requests/file.request";
 import { Sparkles, Send, FileText, Clock, BookOpen, Trash2, Loader2 } from "lucide-react";
-import { formatTime } from "../../utils/functions";
+import { formatErrorMessage, formatTime } from "../../utils/functions";
 import { components } from "../../types/api-types";
 import { useRequest } from "../../hooks/use-request.hook";
 import InboxSuggestedQuestions from "./InboxSuggestedQuestions";
@@ -19,7 +19,6 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
     const [timeInMs, setTimeInMs] = useState<number>(0);
     const [streaming, setStreaming] = useState<boolean>(false);
     const [searchText, setSearchText] = useState<string>("");
-    const [submitting, setSubmitting] = useState<boolean>(false);
 
     const alert = useAlert();
 
@@ -35,8 +34,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
 
             alert.success("Arquivo deletado com sucesso!");
         },
-        onError: () => alert.error("Erro ao deletar arquivo."),
-        onFinally: () => setSubmitting(false),
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 
     const handleSearch = async () => {
@@ -82,9 +80,16 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
             return;
         }
 
-        setSubmitting(true);
+        const confirmed = await alert.confirm("Deseja realmente remover esse arquivo?", {
+            confirmButtonText: "Sim",
+            cancelButtonText: "Não",
+        });
 
-        await execute();
+        if (confirmed) {
+            await execute();
+
+            alert.success("Arquivo removido com sucesso!");
+        }
     };
 
     return (
@@ -171,13 +176,9 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                                         type="button"
                                                         className="p-2 border-2 rounded-md border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 transition-colors duration-200 cursor-pointer"
                                                         onClick={handleDeleteFile}
-                                                        disabled={loading || submitting}
+                                                        disabled={loading}
                                                     >
-                                                        {loading || submitting ? (
-                                                            <Loader2 size={20} className="animate-spin" />
-                                                        ) : (
-                                                            <Trash2 size={20} />
-                                                        )}
+                                                        {loading ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
                                                     </button>
                                                 )}
                                             </div>

@@ -8,6 +8,7 @@ import InboxLateralList from "../../components/inbox/InboxLateralList";
 import { components } from "../../types/api-types";
 import InboxFileBox from "../../components/inbox/InboxFileBox";
 import { useAlert } from "../../hooks/use-alert.hook";
+import { formatErrorMessage } from "../../utils/functions";
 
 export default function HomePage() {
     const [listFiles, setListFiles] = useState<components["schemas"]["ListFileResponseDto"]["items"]>([]);
@@ -21,7 +22,7 @@ export default function HomePage() {
         onSuccess: (data) => {
             setListFiles(data.items);
         },
-        onError: () => alert.error("Erro ao listar arquivos."),
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 
     const fetchList = async (page: number) => {

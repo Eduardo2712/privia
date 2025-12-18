@@ -8,9 +8,10 @@ import { useState } from "react";
 import { formatErrorMessage, formatPhone } from "../../utils/functions";
 import { useRouter } from "next/navigation";
 import { create } from "../../requests/user.request";
-import axios from "axios";
+import { AxiosRequestConfig } from "axios";
 import Link from "next/link";
 import { useAlert } from "../../hooks/use-alert.hook";
+import { useRequest } from "../../hooks/use-request.hook";
 
 export default function Page() {
     const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +19,16 @@ export default function Page() {
     const alert = useAlert();
 
     const router = useRouter();
+
+    const { execute } = useRequest({
+        request: (config?: AxiosRequestConfig) => create(config?.data as typeof initialValues),
+        onSuccess: () => {
+            alert.success("Conta criada com sucesso!");
+
+            router.push("/login");
+        },
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
+    });
 
     const initialValues = {
         name: "",
@@ -28,23 +39,7 @@ export default function Page() {
     };
 
     const onSubmit = async (values: typeof initialValues) => {
-        try {
-            const response = await create(values);
-
-            if (response.status !== 201) {
-                return alert.error("Falha ao criar conta. Tente novamente.");
-            }
-
-            alert.success("Conta criada com sucesso!");
-
-            router.push("/login");
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                alert.error(formatErrorMessage(error.response?.data?.message));
-            } else {
-                alert.error("Ocorreu um erro inesperado");
-            }
-        }
+        await execute({ data: values });
     };
 
     return (

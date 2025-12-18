@@ -2,6 +2,7 @@ import { Settings, LogOut, Sparkles } from "lucide-react";
 import { useRequest } from "../../hooks/use-request.hook";
 import { logout } from "../../requests/auth.request";
 import { useAlert } from "../../hooks/use-alert.hook";
+import { formatErrorMessage } from "../../utils/functions";
 
 export default function InboxHeader() {
     const alert = useAlert();
@@ -13,18 +14,17 @@ export default function InboxHeader() {
 
             alert.success("Logout realizado com sucesso!");
         },
-        onError: () => alert.error("Erro ao sair."),
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 
     const handleLogout = async () => {
         const confirmed = await alert.confirm("Deseja realmente sair?", {
-            title: "Deseja realmente sair?",
             confirmButtonText: "Sim",
             cancelButtonText: "Não",
         });
 
         if (confirmed) {
-            execute();
+            await execute();
 
             alert.success("Logout realizado com sucesso!");
         }

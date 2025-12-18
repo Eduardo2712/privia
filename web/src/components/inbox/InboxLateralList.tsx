@@ -8,6 +8,7 @@ import useSocket from "../../hooks/use-socket.hook";
 import { ServerToClientEventsInterface } from "../../interfaces/socket.interface";
 import Loading from "../Loading";
 import { useAlert } from "../../hooks/use-alert.hook";
+import { formatErrorMessage } from "../../utils/functions";
 
 interface Props {
     readonly listFiles: components["schemas"]["ListFileResponseDto"]["items"];
@@ -30,7 +31,7 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
 
             alert.success("Arquivo enviado com sucesso!");
         },
-        onError: () => alert.error("Erro ao enviar arquivo."),
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 
     const { execute: executeGet } = useRequest({
@@ -42,7 +43,7 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
                 setFileSelected(data);
             }
         },
-        onError: () => alert.error("Erro ao obter arquivo."),
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 
     useEffect(() => {
@@ -50,8 +51,8 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
             return;
         }
 
-        const handleFileProcessed = (data: ServerToClientEventsInterface["file:processed"]) => {
-            executeGet({ data: data.id });
+        const handleFileProcessed = async (data: ServerToClientEventsInterface["file:processed"]) => {
+            await executeGet({ data: data.id });
         };
 
         const handleFileProgress = (data: ServerToClientEventsInterface["file:progress"]) => {

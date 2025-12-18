@@ -6,12 +6,12 @@ import { validationLogin } from "../../utils/validations";
 import { Mail, MessageSquare, Lock, Zap, Smile, Star, Globe, Unlock, Loader2, FastForward, Brain } from "lucide-react";
 import { login } from "../../requests/auth.request";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import { AxiosRequestConfig } from "axios";
 import { CustomInput } from "../../components/CustomInput";
 import { useState } from "react";
-import { formatErrorMessage } from "../../utils/functions";
-import { LoginResponse } from "../../interfaces/auth.interface";
 import { useAlert } from "../../hooks/use-alert.hook";
+import { useRequest } from "../../hooks/use-request.hook";
+import { formatErrorMessage } from "../../utils/functions";
 
 export default function Page() {
     const [showPassword, setShowPassword] = useState(false);
@@ -20,33 +20,25 @@ export default function Page() {
 
     const router = useRouter();
 
+    const { execute } = useRequest({
+        request: (config?: AxiosRequestConfig) => login(config?.data as typeof initialValues),
+        onSuccess: (data) => {
+            localStorage.setItem("user", JSON.stringify(data));
+
+            alert.success("Login realizado com sucesso!");
+
+            router.push("/inbox");
+        },
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
+    });
+
     const initialValues = {
         email: "",
         password: "",
     };
 
     const onSubmit = async (values: typeof initialValues) => {
-        try {
-            const response = await login(values);
-
-            if (response.status !== 200) {
-                return alert.error("Falha ao autenticar. Tente novamente.");
-            }
-
-            const loginResponse = response.data as unknown as LoginResponse;
-
-            localStorage.setItem("user", JSON.stringify(loginResponse.user));
-
-            alert.success("Login realizado com sucesso!");
-
-            router.push("/inbox");
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                alert.error(formatErrorMessage(error.response?.data?.message));
-            } else {
-                alert.error("Ocorreu um erro inesperado");
-            }
-        }
+        await execute({ data: values });
     };
 
     return (
