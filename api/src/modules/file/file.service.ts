@@ -77,11 +77,6 @@ export class FileService {
         const startTime = Date.now();
 
         const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
-
-        if (!Array.isArray(queryEmbedding) || queryEmbedding.length === 0) {
-            throw new Error("Erro ao gerar embedding para a busca.");
-        }
-
         const documentId = searchFileDto.documentId;
         const searchResults = await this.qdrantService.search(user, documentId, queryEmbedding, 25, 0.25);
 
@@ -92,6 +87,16 @@ export class FileService {
                 }
             };
 
+            await this.unitOfWork.withTransaction(
+                async () =>
+                    await this.messageService.createWithSources({
+                        content: searchFileDto.search,
+                        userId: user.id,
+                        fileId: documentId,
+                        type: MessageTypeEnum.USER
+                    })
+            );
+
             return {
                 stream: emptyIterator,
                 references: [],
@@ -101,33 +106,55 @@ export class FileService {
 
         const rerankedChunks = this.chunkerFileService.rerankHybrid(searchResults, searchFileDto.search);
         const topChunks = this.chunkerFileService.topChunks(rerankedChunks);
-
         const stream = await this.aiService.generateResponseStream(topChunks, searchFileDto.search, { k: 5, promptMode: "STRICT_QUOTE" });
-
         const references = topChunks.map((r, i) => ({ text: r.text, index: i + 1 }));
 
-        await this.unitOfWork.startTransaction();
+        const userMessage = await this.unitOfWork.withTransaction(
+            async () =>
+                await this.messageService.createWithSources({
+                    content: searchFileDto.search,
+                    userId: user.id,
+                    fileId: documentId,
+                    type: MessageTypeEnum.USER
+                })
+        );
 
-        try {
-            this.messageService.create({
-                content: searchFileDto.search,
-                userId: user.id,
-                fileId: documentId,
-                type: MessageTypeEnum.USER
+        const wrappedStream = this.createStreamWithAutoSave(stream, user, documentId, userMessage.id, references);
+
+        return {
+            stream: wrappedStream,
+            references,
+            timeInMs: Date.now() - startTime
+        };
+    }
+
+    private async *createStreamWithAutoSave(
+        sourceStream: AsyncIterable<string>,
+        user: LoggedUserInterface,
+        fileId: number,
+        userMessageId: number,
+        references: Array<{ text: string; index: number }>
+    ): AsyncIterable<string> {
+        let accumulatedResponse = "";
+
+        for await (const chunk of sourceStream) {
+            accumulatedResponse += chunk;
+
+            yield chunk;
+        }
+
+        if (accumulatedResponse.trim()) {
+            await this.messageService.saveAiResponse(user, {
+                fileId,
+                userMessageId,
+                content: accumulatedResponse,
+                sources: references
             });
-
-            await this.unitOfWork.commitTransaction();
-
-            return { stream, references, timeInMs: Date.now() - startTime };
-        } catch (error) {
-            await this.unitOfWork.rollbackTransaction();
-
-            throw error;
         }
     }
 
     public async list(user: LoggedUserInterface, listFileRequestDto: ListFileRequestDto): Promise<ListFileResponseDto> {
-        const result = await this.fileRepository.listFiles(user, listFileRequestDto);
+        const result = await this.fileRepository.listFilesByUser(user.id, listFileRequestDto);
 
         const mapped = await Promise.all(
             result.items.map(async (f) => ({
@@ -147,21 +174,17 @@ export class FileService {
     }
 
     public async deleteFile(user: LoggedUserInterface, id: number): Promise<void> {
-        try {
-            const file = await this.fileRepository.findOne({ where: { id, userId: user.id } });
+        const file = await this.fileRepository.findOne({ where: { id, userId: user.id } });
 
-            if (!file) {
-                throw new Error("Arquivo não encontrado.");
-            }
-
-            await this.fileRepository.delete(id, { where: { userId: user.id } });
-
-            await this.minioFileService.delete(file.path);
-
-            await this.qdrantService.deleteByFilter(user.id, file.id);
-        } catch (error) {
-            throw new Error(`Erro ao deletar o arquivo: ${error?.message || "Erro desconhecido"}`);
+        if (!file) {
+            throw new Error("Arquivo não encontrado.");
         }
+
+        await this.fileRepository.delete(id, { where: { userId: user.id } });
+
+        await this.minioFileService.delete(file.path);
+
+        await this.qdrantService.deleteByFilter(user.id, file.id);
     }
 
     public async get(user: LoggedUserInterface, id: number): Promise<GetFileResponseDto> {

@@ -27,13 +27,14 @@ export class AiService extends BaseAiService {
         const auto = this.autoDecide(chunks);
         const kVal = typeof opts?.k === "number" && opts.k > 0 ? opts.k : auto.k;
 
-        const filtered = chunks.filter((c) => c.score >= 0.65);
-        const candidates = filtered.length > 0 ? filtered : chunks;
+        const sorted = [...chunks].sort((a, b) => b.score - a.score);
+        const strong = sorted.filter((c) => c.score >= 0.75);
+        const candidates = strong.length > 0 ? strong : sorted;
         const useChunks = typeof kVal === "number" && kVal > 0 ? candidates.slice(0, Math.min(kVal, candidates.length)) : candidates;
 
         const fullChunks = useChunks
             .map((c, i) => {
-                const maxLen = 800;
+                const maxLen = 500;
                 let text = c.text.replaceAll(/\s+/g, " ").trim();
 
                 if (text.length > maxLen) {
@@ -46,20 +47,14 @@ export class AiService extends BaseAiService {
             })
             .join("\n---\n\n");
 
-        const prompt = `Você responde apenas com base nos trechos.
+        const prompt = `Responda somente com base nos trechos abaixo.
 
-        Foque em:
-        - Citar trechos como [N].
-        - Não usar conhecimento externo.
-        - Separar Fatos e Inferências.
+        Regras:
+        - Seja extremamente conciso (3-6 linhas no total).
+        - Sempre cite os trechos como [N] quando afirmar algo.
+        - Não use conhecimento externo nem suponha fatos não presentes.
+        - Se a informação não estiver nos trechos, responda: "Não encontrado nos trechos.".
 
-        Saída:
-        Fatos:
-        - ...
-        Inferências (sempre citar [N][M]):
-        - ...
-        Observações narrativas (se houver):
-        - ...
         Trechos:
         ${fullChunks}
 
@@ -72,26 +67,25 @@ export class AiService extends BaseAiService {
 
     private autoDecide(chunks: Array<{ score: number; text: string }>): { promptMode: "STRICT_QUOTE" | "INFERENCE_SYNTHESIS"; k: number } {
         const promptMode = "STRICT_QUOTE" as const;
-        const k = Math.min(5, chunks.length);
+        const k = Math.min(3, chunks.length);
 
         return { promptMode, k };
     }
 
     public async generateSummaryAndSuggestions(text: string): Promise<AIGenerateSummaryAndSuggestions> {
-        const limit = 3000;
+        const limit = 2000;
         const clean = text.replaceAll(/\s+/g, " ").trim();
         const chunk = clean.length > limit ? clean.slice(0, limit) : clean;
 
         const prompt = `Você é um assistente que resume textos e cria perguntas abertas.
 
         TAREFA:
-        - Resuma o texto fornecido em português.
-        - Gere exatamente 3 perguntas abertas e relevantes sobre o texto.
+        - Resuma o texto fornecido em português em no máximo 3 frases curtas.
+        - Gere exatamente 3 perguntas abertas, claras e distintas sobre o texto.
 
         REGRAS:
         - Use somente o conteúdo do texto; não invente fatos.
-        - Resumo com até 5 frases curtas e objetivas.
-        - Perguntas distintas entre si, claras e que estimulem aprofundamento.
+        - Seja objetivo e preciso.
         - Responda APENAS no formato abaixo.
 
         FORMATO DE SAÍDA:
@@ -110,9 +104,9 @@ export class AiService extends BaseAiService {
             prompt,
             options: {
                 temperature: 0,
-                top_p: 0.4,
-                repeat_penalty: 1.1,
-                max_tokens: 120
+                top_p: 0.2,
+                repeat_penalty: 1.05,
+                max_tokens: 100
             },
             format: {
                 type: "object",

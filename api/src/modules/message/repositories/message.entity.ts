@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MessageTypeEnum } from "../enums/message.enum";
 import { FileEntity } from "../../file/repositories/file.entity";
 import { UserEntity } from "../../user/repositories/user.entity";
+import { MessageSourceEntity } from "./message-source.entity";
 
 @Entity("messages")
 export class MessageEntity {
@@ -34,6 +35,9 @@ export class MessageEntity {
 
     @ManyToOne(() => UserEntity, (user) => user.messages, { onDelete: "CASCADE" })
     user?: UserEntity;
+
+    @OneToMany(() => MessageSourceEntity, (source) => source.message)
+    sources?: MessageSourceEntity[];
 
     constructor(partial: Partial<MessageEntity>) {
         Object.assign(this, partial);

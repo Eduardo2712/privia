@@ -27,6 +27,14 @@ export abstract class BaseRepository<T extends ObjectLiteral & { id: number }> {
         return await repository.save(entity);
     }
 
+    async createMany(data: DeepPartial<T>[]): Promise<T[]> {
+        const repository = this.getRepository();
+
+        const entities = repository.create(data);
+
+        return await repository.save(entities);
+    }
+
     async update(id: number, data: DeepPartial<T>): Promise<T> {
         const repository = this.getRepository();
 

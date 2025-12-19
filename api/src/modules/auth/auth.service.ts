@@ -21,19 +21,21 @@ export class AuthService {
     ) {}
 
     public async forgotPassword(forgotPasswordRequestDto: ForgotPasswordRequestDto): Promise<void> {
-        await this.unitOfWork.withTransaction(async () => {
-            const user = await this.userService.findOneByEmail(forgotPasswordRequestDto.email);
+        const user = await this.userService.findOneByEmail(forgotPasswordRequestDto.email);
 
-            if (!user) {
-                throw new NotFoundException("Usuário não encontrado");
-            }
+        if (!user) {
+            throw new NotFoundException("Usuário não encontrado");
+        }
 
-            const existing = await this.forgotPasswordRepository.findRecentForgotPasswordByUser(user.id);
+        const existing = await this.forgotPasswordRepository.findRecentForgotPasswordByUser(user.id);
 
-            if (existing) {
-                throw new HttpException("Aguarde antes de solicitar um novo código", HttpStatus.TOO_MANY_REQUESTS);
-            }
+        if (existing) {
+            throw new HttpException("Aguarde antes de solicitar um novo código", HttpStatus.TOO_MANY_REQUESTS);
+        }
 
+        await this.unitOfWork.startTransaction();
+
+        try {
             await this.forgotPasswordRepository.deleteByUser(user.id);
 
             const verificationCode = generateValidationCode();
@@ -43,7 +45,13 @@ export class AuthService {
                 code: verificationCode,
                 user: user
             });
-        });
+
+            await this.unitOfWork.commitTransaction();
+        } catch (error) {
+            await this.unitOfWork.rollbackTransaction();
+
+            throw error;
+        }
     }
 
     public async login(loginRequestDto: LoginRequestDto): Promise<AuthInterface> {
@@ -66,9 +74,7 @@ export class AuthService {
     }
 
     public async validateToken(token: string): Promise<JWTUserInterface> {
-        return this.jwtService.verifyAsync<JWTUserInterface>(token, {
-            secret: this.configService.get<string>("JWT_SECRET")
-        });
+        return this.jwtService.verifyAsync<JWTUserInterface>(token, { secret: this.configService.get<string>("JWT_SECRET") });
     }
 }
 
