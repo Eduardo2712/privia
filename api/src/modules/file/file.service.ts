@@ -16,6 +16,9 @@ import { plainToInstance } from "class-transformer";
 import { FileResponseDto } from "./dto/file-response.dto";
 import { GetFileResponseDto } from "./dto/get-file.response.dto";
 import { ReadFileResponseDto } from "./dto/read-file.response.dto";
+import { MessageService } from "../message/message.service";
+import { MessageTypeEnum } from "../message/enums/message.enum";
+import { UnitOfWorkService } from "../../common/unity-of-work.service";
 
 @Injectable()
 export class FileService {
@@ -25,6 +28,8 @@ export class FileService {
         private readonly minioFileService: MinioFileService,
         private readonly chunkerFileService: ChunkerFileService,
         private readonly fileRepository: FileRepository,
+        private readonly messageService: MessageService,
+        private readonly unitOfWork: UnitOfWorkService,
         @InjectQueue("process-file") private readonly processFileQueue: Queue<ProcessFileJob>
     ) {}
 
@@ -95,40 +100,30 @@ export class FileService {
         }
 
         const rerankedChunks = this.chunkerFileService.rerankHybrid(searchResults, searchFileDto.search);
-        const seen = new Set<string>();
-
-        const compact = rerankedChunks
-            .map((c) => {
-                const maxLen = 950;
-                let t = c.text.trim();
-
-                if (t.length > maxLen) {
-                    const trimmed = t.substring(0, maxLen);
-                    const lastPeriod = trimmed.lastIndexOf(".");
-
-                    t = lastPeriod > maxLen * 0.7 ? trimmed.substring(0, lastPeriod + 1) : trimmed;
-                }
-                return { score: c.score, text: t };
-            })
-            .filter((c) => {
-                const sig = c.text.substring(0, 120).toLowerCase().replaceAll(/\s+/g, " ");
-
-                if (seen.has(sig)) {
-                    return false;
-                }
-
-                seen.add(sig);
-
-                return true;
-            });
-
-        const topChunks = compact.slice(0, 5);
+        const topChunks = this.chunkerFileService.topChunks(rerankedChunks);
 
         const stream = await this.aiService.generateResponseStream(topChunks, searchFileDto.search, { k: 5, promptMode: "STRICT_QUOTE" });
 
         const references = topChunks.map((r, i) => ({ text: r.text, index: i + 1 }));
 
-        return { stream, references, timeInMs: Date.now() - startTime };
+        await this.unitOfWork.startTransaction();
+
+        try {
+            this.messageService.create({
+                content: searchFileDto.search,
+                userId: user.id,
+                fileId: documentId,
+                type: MessageTypeEnum.USER
+            });
+
+            await this.unitOfWork.commitTransaction();
+
+            return { stream, references, timeInMs: Date.now() - startTime };
+        } catch (error) {
+            await this.unitOfWork.rollbackTransaction();
+
+            throw error;
+        }
     }
 
     public async list(user: LoggedUserInterface, listFileRequestDto: ListFileRequestDto): Promise<ListFileResponseDto> {

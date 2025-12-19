@@ -25,12 +25,40 @@ export class UnitOfWorkService implements IUnitOfWorkInterface {
         });
     }
 
-    getManager(): EntityManager | null {
-        return this.currentManager;
+    async startTransaction(): Promise<void> {
+        if (this.currentManager) {
+            throw new Error("Transação já está em andamento");
+        }
+
+        this.currentManager = this.dataSource.createEntityManager();
+
+        await this.currentManager.queryRunner?.startTransaction();
     }
 
-    isInTransaction(): boolean {
-        return this.currentManager !== null;
+    async commitTransaction(): Promise<void> {
+        if (!this.currentManager) {
+            throw new Error("Nenhuma transação ativa para confirmar");
+        }
+
+        await this.currentManager.queryRunner?.commitTransaction();
+        await this.currentManager.queryRunner?.release();
+
+        this.currentManager = null;
+    }
+
+    async rollbackTransaction(): Promise<void> {
+        if (!this.currentManager) {
+            throw new Error("Nenhuma transação ativa para reverter");
+        }
+
+        await this.currentManager.queryRunner?.rollbackTransaction();
+        await this.currentManager.queryRunner?.release();
+
+        this.currentManager = null;
+    }
+
+    getManager(): EntityManager | null {
+        return this.currentManager;
     }
 }
 

@@ -2,7 +2,7 @@ import { Exclude } from "class-transformer";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ForgotPasswordEntity } from "../../auth/repositories/forgot-password.entity";
 import { FileEntity } from "../../file/repositories/file.entity";
-import { MessageEntity } from "../../conversation/repositories/message.entity";
+import { MessageEntity } from "../../message/repositories/message.entity";
 
 @Entity("users")
 export class UserEntity {

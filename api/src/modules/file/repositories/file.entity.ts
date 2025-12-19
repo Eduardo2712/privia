@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { UserEntity } from "../../user/repositories/user.entity";
-import { MessageEntity } from "../../conversation/repositories/message.entity";
+import { MessageEntity } from "../../message/repositories/message.entity";
 
 @Entity("files")
 export class FileEntity {

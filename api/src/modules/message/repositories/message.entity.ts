@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { MessageTypeEnum } from "../enums/conversation.enum";
+import { MessageTypeEnum } from "../enums/message.enum";
 import { FileEntity } from "../../file/repositories/file.entity";
 import { UserEntity } from "../../user/repositories/user.entity";
 

@@ -245,5 +245,37 @@ export class ChunkerFileService {
     private escapeRegex(s: string): string {
         return s.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     }
+
+    public topChunks(chunks: Array<{ score: number; text: string }>): Array<{ score: number; text: string }> {
+        const seen = new Set<string>();
+
+        const compact = chunks
+            .map((c) => {
+                const maxLen = 950;
+                let t = c.text.trim();
+
+                if (t.length > maxLen) {
+                    const trimmed = t.substring(0, maxLen);
+                    const lastPeriod = trimmed.lastIndexOf(".");
+
+                    t = lastPeriod > maxLen * 0.7 ? trimmed.substring(0, lastPeriod + 1) : trimmed;
+                }
+
+                return { score: c.score, text: t };
+            })
+            .filter((c) => {
+                const sig = c.text.substring(0, 120).toLowerCase().replaceAll(/\s+/g, " ");
+
+                if (seen.has(sig)) {
+                    return false;
+                }
+
+                seen.add(sig);
+
+                return true;
+            });
+
+        return compact.slice(0, 5);
+    }
 }
 

@@ -38,12 +38,12 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
     });
 
     const handleSearch = async () => {
-        if (searchText.trim() === "") {
-            return alert.error("Por favor, insira um texto para buscar.");
-        }
-
         if (!fileSelected) {
             return alert.error("Nenhum arquivo selecionado para busca.");
+        }
+
+        if (searchText.trim() === "") {
+            return alert.error("Por favor, insira um texto para buscar.");
         }
 
         setStreaming(true);
@@ -56,10 +56,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
             (chunk) => setStreamingText((prev) => prev + chunk),
             (refs) => setReferences(refs),
             (time) => setTimeInMs(time),
-            () => {
-                setStreaming(false);
-                alert.success("Busca realizada com sucesso!");
-            },
+            () => setStreaming(false),
             (error) => {
                 setStreaming(false);
                 alert.error(`Erro ao realizar busca: ${error instanceof Error ? error.message : "Desconhecido"}`);
