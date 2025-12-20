@@ -1,16 +1,18 @@
-# Use Node.js LTS version
-FROM node:20-alpine
-
+FROM node:20-alpine AS builder
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-
-RUN npm ci
+RUN npm install
 
 COPY . .
+RUN npm run build
 
-RUN npm run build:docker
+FROM node:20-alpine
+WORKDIR /usr/src/app
+
+ENV NODE_ENV=production
+
+COPY --from=builder /usr/src/app ./
 
 EXPOSE 3000
-
 CMD ["npm", "start"]
