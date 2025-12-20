@@ -94,7 +94,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./api/.env.prod
+      - ./api/.env
     environment:
       AI_URL: http://ollama:11434/api/generate
     depends_on:
