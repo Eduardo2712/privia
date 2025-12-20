@@ -6,7 +6,7 @@ services:
     container_name: privia-postgres
     restart: always
     ports:
-      - "5433:5432"
+      - "55432:5432"
     environment:
       POSTGRES_DB: privia
       POSTGRES_USER: ${POSTGRES_USER}
