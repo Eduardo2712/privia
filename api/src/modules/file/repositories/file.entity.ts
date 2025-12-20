@@ -1,4 +1,14 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from "typeorm";
 import { UserEntity } from "../../user/repositories/user.entity";
 import { MessageEntity } from "../../message/repositories/message.entity";
 
@@ -41,6 +51,7 @@ export class FileEntity {
     deletedAt?: Date;
 
     @ManyToOne(() => UserEntity, (user) => user.files, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "user_id" })
     user?: UserEntity;
 
     @OneToMany(() => MessageEntity, (message) => message.file)

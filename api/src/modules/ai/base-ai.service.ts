@@ -76,9 +76,9 @@ export class BaseAiService {
             stream: true,
             options: {
                 temperature: 0,
-                top_p: 0.8,
-                top_k: 40,
-                repeat_penalty: 1.15
+                top_p: 0.9,
+                top_k: 20,
+                repeat_penalty: 1.1
             }
         };
 

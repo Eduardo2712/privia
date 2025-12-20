@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MessageEntity } from "./message.entity";
 
 @Entity("message_sources")
@@ -25,6 +25,7 @@ export class MessageSourceEntity {
     deletedAt?: Date;
 
     @ManyToOne(() => MessageEntity, (message) => message.sources, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "message_id" })
     message: MessageEntity;
 
     constructor(partial: Partial<MessageSourceEntity>) {

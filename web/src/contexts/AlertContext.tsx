@@ -302,7 +302,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ alert, onConfirm, onCancel, onC
                     <button
                         type="button"
                         aria-label="Close overlay"
-                        className="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-80 transition-opacity"
+                        className="fixed inset-0 bg-linear-to-br from-slate-900/40 via-slate-900/55 to-slate-900/70 backdrop-blur-sm opacity-60"
                         onClick={onClose}
                         onKeyDown={(e) => {
                             if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
@@ -312,39 +312,39 @@ const AlertModal: React.FC<AlertModalProps> = ({ alert, onConfirm, onCancel, onC
                         }}
                     />
                 ) : (
-                    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-80 transition-opacity" />
+                    <div className="fixed inset-0 bg-linear-to-br from-slate-900/40 via-slate-900/55 to-slate-900/70 backdrop-blur-sm opacity-60" />
                 )}
 
-                <div className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                    <div>
-                        {alert.closable && (
-                            <button
-                                onClick={onClose}
-                                className="absolute right-4 top-4 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-                            >
-                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        )}
+                <div className="relative transform overflow-hidden rounded-2xl border border-white/40 bg-white/90 px-6 pb-6 pt-6 text-left shadow-2xl ring-1 ring-black/5 backdrop-blur-xl transition-all dark:border-gray-700/60 dark:bg-gray-900/75 sm:my-10 sm:w-full sm:max-w-lg sm:p-8">
+                    <span className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r from-indigo-500 via-sky-400 to-emerald-400" />
 
+                    {alert.closable && (
+                        <button
+                            onClick={onClose}
+                            className="absolute right-4 top-4 rounded-full bg-white/70 p-1 text-gray-500 shadow-sm ring-1 ring-gray-200 transition hover:scale-105 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:bg-gray-800/70 dark:text-gray-400 dark:ring-gray-700 dark:hover:text-gray-200"
+                        >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    )}
+
+                    <div className="flex flex-col items-center gap-4">
                         {getIcon()}
 
-                        <div className="mt-3 text-center sm:mt-5">
-                            {alert.title && <h3 className="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">{alert.title}</h3>}
-                            <div className="mt-2">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{alert.message}</p>
-                            </div>
+                        <div className="text-center">
+                            {alert.title && <h3 className="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-50">{alert.title}</h3>}
+                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{alert.message}</p>
                         </div>
                     </div>
 
-                    <div className={`mt-5 sm:mt-6 ${alert.showCancelButton ? "sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3" : ""}`}>
+                    <div className={`mt-6 flex flex-col gap-3 ${alert.showCancelButton ? "sm:flex-row sm:justify-end" : ""}`}>
                         {alert.buttons ? (
                             alert.buttons.map((button) => (
                                 <button
                                     key={`${button.variant ?? "v"}-${button.className ?? ""}-${button.text}`}
                                     type="button"
-                                    className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                                    className={`inline-flex w-full justify-center rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 ${
                                         button.className || getButtonVariantClasses(button.variant)
                                     }`}
                                     onClick={() => {
@@ -357,24 +357,22 @@ const AlertModal: React.FC<AlertModalProps> = ({ alert, onConfirm, onCancel, onC
                             ))
                         ) : (
                             <>
-                                {alert.showConfirmButton && (
-                                    <button
-                                        type="button"
-                                        className={`inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 ${
-                                            alert.showCancelButton ? "sm:col-start-2" : ""
-                                        }`}
-                                        onClick={onConfirm}
-                                    >
-                                        {alert.confirmButtonText || "OK"}
-                                    </button>
-                                )}
                                 {alert.showCancelButton && (
                                     <button
                                         type="button"
-                                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 sm:col-start-1 sm:mt-0"
+                                        className="inline-flex w-full justify-center rounded-xl bg-white/70 px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-200 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:bg-gray-800/70 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-800"
                                         onClick={onCancel}
                                     >
                                         {alert.cancelButtonText || "Cancelar"}
+                                    </button>
+                                )}
+                                {alert.showConfirmButton && (
+                                    <button
+                                        type="button"
+                                        className="inline-flex w-full justify-center rounded-xl bg-linear-to-r from-indigo-600 via-indigo-500 to-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 dark:from-indigo-500 dark:via-indigo-400 dark:to-sky-400"
+                                        onClick={onConfirm}
+                                    >
+                                        {alert.confirmButtonText || "OK"}
                                     </button>
                                 )}
                             </>

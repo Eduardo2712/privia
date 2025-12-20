@@ -78,7 +78,7 @@ export class FileService {
 
         const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
         const documentId = searchFileDto.documentId;
-        const searchResults = await this.qdrantService.search(user, documentId, queryEmbedding, 25, 0.25);
+        const searchResults = await this.qdrantService.search(user, documentId, queryEmbedding);
 
         if (searchResults.length === 0) {
             const emptyIterator: AsyncIterable<string> = {
@@ -106,7 +106,7 @@ export class FileService {
 
         const rerankedChunks = this.chunkerFileService.rerankHybrid(searchResults, searchFileDto.search);
         const topChunks = this.chunkerFileService.topChunks(rerankedChunks);
-        const stream = await this.aiService.generateResponseStream(topChunks, searchFileDto.search, { k: 5, promptMode: "STRICT_QUOTE" });
+        const stream = await this.aiService.generateResponseStream(topChunks, searchFileDto.search);
         const references = topChunks.map((r, i) => ({ text: r.text, index: i + 1 }));
 
         const userMessage = await this.unitOfWork.withTransaction(

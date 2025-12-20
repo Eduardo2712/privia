@@ -174,17 +174,6 @@ export default function Page() {
                                         />
 
                                         <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 xs:gap-3 text-xs sm:text-sm">
-                                            <label htmlFor="remember-me" className="flex items-center gap-2 text-white/80 whitespace-nowrap">
-                                                <input
-                                                    id="remember-me"
-                                                    name="remember-me"
-                                                    type="checkbox"
-                                                    className="h-4 w-4 rounded border-white/20 bg-white/10 text-[#22d3ee] focus:ring-[#22d3ee]"
-                                                />
-
-                                                <span>Lembrar de mim</span>
-                                            </label>
-
                                             <Link
                                                 href="/forgot-password"
                                                 className="text-[#22d3ee] hover:text-white transition-colors text-center xs:text-right"

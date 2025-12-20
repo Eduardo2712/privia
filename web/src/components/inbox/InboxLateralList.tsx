@@ -26,11 +26,7 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
 
     const { execute, loading } = useRequest({
         request: (config?: AxiosRequestConfig) => readFile(config?.data),
-        onSuccess: (data) => {
-            setListFiles((prevFiles) => [data, ...prevFiles]);
-
-            alert.success("Arquivo enviado com sucesso!");
-        },
+        onSuccess: (data) => setListFiles((prevFiles) => [data, ...prevFiles]),
         onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 

@@ -1,4 +1,14 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from "typeorm";
 import { MessageTypeEnum } from "../enums/message.enum";
 import { FileEntity } from "../../file/repositories/file.entity";
 import { UserEntity } from "../../user/repositories/user.entity";
@@ -31,9 +41,11 @@ export class MessageEntity {
     deletedAt?: Date;
 
     @ManyToOne(() => FileEntity, (file) => file.messages, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "file_id" })
     file?: FileEntity;
 
     @ManyToOne(() => UserEntity, (user) => user.messages, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "user_id" })
     user?: UserEntity;
 
     @OneToMany(() => MessageSourceEntity, (source) => source.message)

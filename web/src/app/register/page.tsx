@@ -23,7 +23,7 @@ export default function Page() {
     const { execute } = useRequest({
         request: (config?: AxiosRequestConfig) => create(config?.data as typeof initialValues),
         onSuccess: () => {
-            alert.success("Conta criada com sucesso!");
+            alert.success("Conta criada com sucesso! Realize o login para continuar.");
 
             router.push("/login");
         },

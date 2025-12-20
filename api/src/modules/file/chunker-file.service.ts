@@ -5,105 +5,47 @@ import { ChunkOptionsInterface } from "./interfaces/file.interface";
 @Injectable()
 export class ChunkerFileService {
     public async chunkText(text: string, options: ChunkOptionsInterface = {}): Promise<string[]> {
-        const {
-            chunkSizeTokens = 180,
-            chunkOverlapTokens = 30,
-            separators = ["\n\n", "\n", ".", " ", ""],
-            semantic = true,
-            strategy = "fine"
-        } = options;
+        const chunkSize = 256;
+        const chunkOverlap = 32;
 
         const cleaned = this.normalizeWhitespace(text);
 
-        const initialSegments = semantic ? this.semanticPreSplit(cleaned) : [cleaned];
+        const splitter = new RecursiveCharacterTextSplitter({
+            chunkSize: chunkSize * 4,
+            chunkOverlap: chunkOverlap * 4,
+            separators: ["\n\n", "\n", ".", "!", "?", ";", ",", " ", ""]
+        });
 
-        const targetSize = strategy === "coarse" ? Math.max(1600, chunkSizeTokens) : chunkSizeTokens;
-        const targetOverlap = strategy === "coarse" ? Math.max(160, chunkOverlapTokens) : chunkOverlapTokens;
-        const tokenSplitter = new TokenTextSplitter({ chunkSize: targetSize, chunkOverlap: targetOverlap });
+        const roughChunks = await splitter.splitText(cleaned);
+
+        const tokenSplitter = new TokenTextSplitter({
+            chunkSize,
+            chunkOverlap
+        });
+
         const finalChunks: string[] = [];
-
-        for (const segment of initialSegments) {
-            const parts = await this.splitSegmentIntoChunks(segment, {
-                chunkSizeTokens,
-                chunkOverlapTokens,
-                separators,
-                strategy,
-                targetSize,
-                targetOverlap,
-                tokenSplitter
-            });
-
-            for (const p of parts) {
-                finalChunks.push(p);
+        for (const chunk of roughChunks) {
+            const tokenized = await tokenSplitter.splitText(chunk);
+            for (const part of tokenized) {
+                const trimmed = part.trim();
+                if (trimmed.length > 20) {
+                    finalChunks.push(trimmed);
+                }
             }
         }
 
         return this.dedupe(finalChunks);
     }
 
-    private async splitSegmentIntoChunks(
-        segment: string,
-        opts: {
-            chunkSizeTokens: number;
-            chunkOverlapTokens: number;
-            separators: string[];
-            strategy: string;
-            targetSize: number;
-            targetOverlap: number;
-            tokenSplitter: TokenTextSplitter;
-        }
-    ): Promise<string[]> {
-        const { chunkSizeTokens, chunkOverlapTokens, separators, strategy, targetSize, targetOverlap, tokenSplitter } = opts;
-
-        const out: string[] = [];
-
-        if (segment.split(/\s+/).length <= chunkSizeTokens + chunkOverlapTokens) {
-            const t = segment.trim();
-
-            if (t) {
-                out.push(t);
-            }
-
-            return out;
-        }
-
-        const recursive = new RecursiveCharacterTextSplitter({
-            chunkSize: (strategy === "coarse" ? targetSize : chunkSizeTokens) * 4,
-            chunkOverlap: (strategy === "coarse" ? targetOverlap : chunkOverlapTokens) * 4,
-            separators
-        });
-
-        const rough = await recursive.splitText(segment);
-
-        for (const piece of rough) {
-            const tokenized = strategy === "chapter" && piece.split(/\s+/).length <= 4500 ? [piece] : await tokenSplitter.splitText(piece);
-
-            for (const tk of tokenized) {
-                const trimmed = tk.trim();
-                if (trimmed) out.push(trimmed);
-            }
-        }
-
-        return out;
-    }
-
     private normalizeWhitespace(text: string): string {
         return text
-            .replaceAll("\r", "")
-            .replaceAll(/\t+/g, " ")
-            .replaceAll(/ +/g, " ")
+            .replaceAll(/\r\n?/g, "\n")
+            .replaceAll(/[\t\u00A0\u2000-\u200B\u202F\u205F\u3000\uFEFF]/g, " ")
+            .replaceAll(/ {2,}/g, " ")
             .replaceAll(/\n{3,}/g, "\n\n")
+            .replaceAll("\n ", "\n")
+            .replaceAll(" \n", "\n")
             .trim();
-    }
-
-    private semanticPreSplit(text: string): string[] {
-        const sections = text
-            .split(/\n(?=#+\s)|\n{2,}(?=\S)/g)
-            .flatMap((s) => s.split(/(?<=\.)\n\n+/g))
-            .map((s) => s.trim())
-            .filter((s) => s.length > 0);
-
-        return sections.length ? sections : [text];
     }
 
     private dedupe(chunks: string[]): string[] {
@@ -111,11 +53,9 @@ export class ChunkerFileService {
         const out: string[] = [];
 
         for (const c of chunks) {
-            const sig = c.substring(0, 160).toLowerCase().replaceAll(/\s+/g, " ");
-
+            const sig = c.substring(0, 100).toLowerCase().replaceAll(/\s+/g, "");
             if (!seen.has(sig)) {
                 seen.add(sig);
-
                 out.push(c);
             }
         }
@@ -123,30 +63,20 @@ export class ChunkerFileService {
     }
 
     public expandQuery(query: string): string[] {
-        const base = this.normalizeQuery(query);
+        const normalized = this.normalizeQuery(query);
+        const terms = normalized.split(/\s+/).filter(Boolean);
         const variants = new Set<string>();
 
-        for (const term of base.split(/\s+/)) {
-            if (!term) {
-                continue;
-            }
-
+        for (const term of terms) {
             variants.add(term);
-            variants.add(term.normalize("NFD").replaceAll(/\p{Diacritic}/gu, ""));
-
-            if (term.endsWith("s")) {
-                variants.add(term.slice(0, -1));
-            }
-
-            if (term.length > 4) {
-                variants.add(term.slice(0, 4));
+            const withoutAccents = term.normalize("NFD").replaceAll(/\p{Diacritic}/gu, "");
+            if (withoutAccents !== term) {
+                variants.add(withoutAccents);
             }
         }
 
-        const parts = base.split(/\s+/).filter(Boolean);
-
-        for (let i = 0; i < parts.length - 1; i++) {
-            variants.add(parts[i] + " " + parts[i + 1]);
+        for (let i = 0; i < terms.length - 1; i++) {
+            variants.add(`${terms[i]} ${terms[i + 1]}`);
         }
 
         return Array.from(variants).filter((v) => v.length >= 2);
@@ -162,84 +92,42 @@ export class ChunkerFileService {
 
     public rerankHybrid(chunks: Array<{ score: number; text: string }>, query: string): Array<{ score: number; text: string }> {
         const expanded = this.expandQuery(query);
+        if (!expanded.length) return chunks;
 
-        if (!expanded.length) {
-            return chunks;
-        }
-
-        const docCount = chunks.length;
-        const avgLen = chunks.reduce((s, c) => s + c.text.length, 0) / Math.max(1, docCount);
+        const k1 = 1.2;
+        const b = 0.75;
+        const avgLen = chunks.reduce((s, c) => s + c.text.length, 0) / Math.max(1, chunks.length);
 
         const idf = new Map<string, number>();
-
         for (const term of expanded) {
-            const df = chunks.reduce((acc, c) => (c.text.toLowerCase().includes(term) ? acc + 1 : acc), 0);
-
-            idf.set(term, Math.log(1 + (docCount - df + 0.5) / (df + 0.5)));
+            const df = chunks.filter((c) => c.text.toLowerCase().includes(term)).length;
+            idf.set(term, Math.log((chunks.length - df + 0.5) / (df + 0.5) + 1));
         }
 
-        const k1 = 1.4;
-        const b = 0.72;
-
-        const scored = chunks.map((chunk, idx) => {
+        const scored = chunks.map((chunk) => {
             const lower = chunk.text.toLowerCase();
             const docLen = chunk.text.length;
             let bm25 = 0;
-            let termMatches = 0;
 
             for (const term of expanded) {
-                const regex = new RegExp(String.raw`\b${this.escapeRegex(term)}\b`, "g");
-                const occurrences: string[] = [];
-                let match: RegExpExecArray | null = null;
-
-                while ((match = regex.exec(lower)) !== null) {
-                    occurrences.push(match[0]);
+                if (!lower.includes(term)) continue;
+                const regex = new RegExp(this.escapeRegex(term), "g");
+                let tf = 0;
+                while (regex.exec(lower) !== null) {
+                    tf++;
                 }
-
-                if (!occurrences.length) {
-                    continue;
-                }
-
-                termMatches++;
-                const tf = occurrences.length;
                 const idfScore = idf.get(term) || 0;
-                bm25 += idfScore * ((tf * (k1 + 1)) / (tf + k1 * (1 - b + (b * docLen) / avgLen)));
+                bm25 += (idfScore * tf * (k1 + 1)) / (tf + k1 * (1 - b + (b * docLen) / avgLen));
             }
 
-            let proximityBonus = 0;
-            const maxProximityChecks = Math.min(3, expanded.length - 1);
-
-            for (let i = 0; i < maxProximityChecks; i++) {
-                const bigram = `${expanded[i]} ${expanded[i + 1]}`;
-
-                if (lower.includes(bigram)) {
-                    proximityBonus += 0.15;
-                }
-            }
-            const coverage = termMatches / Math.max(1, expanded.length);
-            const coverageBonus = coverage * 0.35;
-            const combined = chunk.score * 0.4 + bm25 * 0.45 + (proximityBonus + coverageBonus) * 0.15;
-
-            return { ...chunk, score: combined, originalIndex: idx };
+            return { ...chunk, score: chunk.score * 0.5 + bm25 * 0.5 };
         });
 
-        scored.sort((a, b) => b.score - a.score);
-
-        return scored;
+        return scored.sort((a, b) => b.score - a.score);
     }
 
     public async rerank(query: string, chunks: Array<{ score: number; text: string }>): Promise<Array<{ score: number; text: string }>> {
-        const provider = process.env.RERANK_PROVIDER?.toLowerCase();
-
-        if (!provider) {
-            return this.rerankHybrid(chunks, query);
-        }
-
-        try {
-            return this.rerankHybrid(chunks, query);
-        } catch {
-            return this.rerankHybrid(chunks, query);
-        }
+        return this.rerankHybrid(chunks, query);
     }
 
     private escapeRegex(s: string): string {
@@ -248,34 +136,26 @@ export class ChunkerFileService {
 
     public topChunks(chunks: Array<{ score: number; text: string }>): Array<{ score: number; text: string }> {
         const seen = new Set<string>();
+        const maxLen = 600;
 
         const compact = chunks
             .map((c) => {
-                const maxLen = 950;
                 let t = c.text.trim();
-
                 if (t.length > maxLen) {
                     const trimmed = t.substring(0, maxLen);
                     const lastPeriod = trimmed.lastIndexOf(".");
-
-                    t = lastPeriod > maxLen * 0.7 ? trimmed.substring(0, lastPeriod + 1) : trimmed;
+                    t = lastPeriod > maxLen * 0.75 ? trimmed.substring(0, lastPeriod + 1) : trimmed + "...";
                 }
-
                 return { score: c.score, text: t };
             })
             .filter((c) => {
-                const sig = c.text.substring(0, 120).toLowerCase().replaceAll(/\s+/g, " ");
-
-                if (seen.has(sig)) {
-                    return false;
-                }
-
+                const sig = c.text.substring(0, 80).toLowerCase().replaceAll(/\s+/g, "");
+                if (seen.has(sig)) return false;
                 seen.add(sig);
-
                 return true;
             });
 
-        return compact.slice(0, 5);
+        return compact.slice(0, 4);
     }
 }
 

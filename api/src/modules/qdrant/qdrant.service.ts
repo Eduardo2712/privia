@@ -28,8 +28,11 @@ export class QdrantService {
                     },
                     hnsw_config: {
                         m: 16,
-                        ef_construct: 128,
+                        ef_construct: 100,
                         on_disk: false
+                    },
+                    optimizers_config: {
+                        indexing_threshold: 10000
                     }
                 });
             }
@@ -41,8 +44,11 @@ export class QdrantService {
                 },
                 hnsw_config: {
                     m: 16,
-                    ef_construct: 128,
+                    ef_construct: 100,
                     on_disk: false
+                },
+                optimizers_config: {
+                    indexing_threshold: 10000
                 }
             });
         }
@@ -57,7 +63,7 @@ export class QdrantService {
             try {
                 await this.client.upsert(this.collectionName, { points: batch });
             } catch (err) {
-                throw err;
+                throw new Error(`Erro ao salvar vetores: ${err}`);
             }
         }
     }
@@ -66,8 +72,8 @@ export class QdrantService {
         user: LoggedUserInterface,
         documentId: number,
         vector: number[],
-        limit = 25,
-        scoreThreshold = 0.25
+        limit = 15,
+        scoreThreshold = 0.3
     ): Promise<Array<{ score: number; text: string }>> {
         const result = await this.client.search(this.collectionName, {
             vector,
@@ -76,7 +82,7 @@ export class QdrantService {
             with_payload: true,
             with_vector: false,
             params: {
-                hnsw_ef: 64,
+                hnsw_ef: 32,
                 exact: false
             },
             filter: {

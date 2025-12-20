@@ -59,6 +59,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
             () => setStreaming(false),
             (error) => {
                 setStreaming(false);
+
                 alert.error(`Erro ao realizar busca: ${error instanceof Error ? error.message : "Desconhecido"}`);
             }
         );
@@ -162,7 +163,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                     <div className="max-w-4xl mx-auto">
                                         <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10">
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3 mb-3">
+                                                <div className="flex items-center gap-3">
                                                     <FileText size={20} className="text-blue-400" />
 
                                                     <h3 className="text-lg font-semibold text-white">{fileSelected.name}</h3>
@@ -180,7 +181,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                                 )}
                                             </div>
 
-                                            {fileSelected.isProcessed && <p className="text-gray-400 text-sm mt-4">{fileSelected.summary}</p>}
+                                            {fileSelected.isProcessed && <p className="text-gray-400 text-sm mt-6">{fileSelected.summary}</p>}
                                         </div>
                                     </div>
 
@@ -222,7 +223,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                 ) : (
                                     <div className="p-4 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-r-lg">
                                         <p className="text-yellow-400 text-sm m-0">
-                                            O arquivo ainda está sendo processado. Aguarde a conclusão do processamento para fazer perguntas.
+                                            O arquivo ainda está sendo processado. Por favor, aguarde alguns instantes antes de fazer perguntas.
                                         </p>
                                     </div>
                                 )}
