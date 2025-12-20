@@ -104,6 +104,26 @@ services:
     networks:
       - privia-network
 
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: privia-web
+    restart: unless-stopped
+    working_dir: /usr/src/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./web:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/.next
+    networks:
+      - privia-network
+    mem_limit: 1g
+    cpus: 1.0
+
 volumes:
   postgres_data:
   redisinsight_data:

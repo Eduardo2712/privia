@@ -107,6 +107,26 @@ services:
     mem_limit: 2g
     cpus: 2.0
 
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: privia-web
+    restart: always
+    working_dir: /usr/src/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./web:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/.next
+    networks:
+      - privia-network
+    mem_limit: 1g
+    cpus: 1.0
+
 volumes:
   postgres_data:
   ollama_data:
