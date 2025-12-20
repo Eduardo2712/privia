@@ -90,13 +90,13 @@ ${chunk}`;
             format: {
                 type: "object",
                 properties: {
-                    resumo: { type: "string" },
-                    perguntas: {
+                    summary: { type: "string" },
+                    questions: {
                         type: "array",
                         items: { type: "string" }
                     }
                 },
-                required: ["resumo", "perguntas"]
+                required: ["summary", "questions"]
             }
         });
 

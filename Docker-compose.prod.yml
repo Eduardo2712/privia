@@ -11,40 +11,18 @@ services:
       POSTGRES_DB: privia
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      TZ: America/Sao_Paulo 
+      TZ: America/Sao_Paulo
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - privia-network
     mem_limit: 1g
     cpus: 1.0
-
-  api:
-    build:
-      context: ./api
-      dockerfile: Dockerfile
-    container_name: privia-api
-    restart: always
-    working_dir: /usr/src/app
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-      - redis
-      - ollama
-    env_file:
-      - ./api/.env
-    volumes:
-      - ./api:/usr/src/app
-      - /usr/src/app/node_modules
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - privia-network
-    environment:
-      - AI_URL=http://ollama:11434/api/generate
-    mem_limit: 2g
-    cpus: 2.0
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
@@ -52,18 +30,6 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    networks:
-      - privia-network
-    mem_limit: 512m
-    cpus: 0.5
-
-  redisinsight:
-    image: redis/redisinsight:latest
-    container_name: privia-redisinsight
-    ports:
-      - "5540:5540"
-    volumes:
-      - redisinsight_data:/data
     networks:
       - privia-network
     mem_limit: 512m
@@ -78,42 +44,71 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     environment:
-      - OLLAMA_NUM_CTX=2048
-      - OLLAMA_KEEP_ALIVE=-1
-      - OLLAMA_NUM_PARALLEL=2
-      - OLLAMA_KV_CACHE=on
+      OLLAMA_NUM_CTX: 2048
+      OLLAMA_KEEP_ALIVE: -1
+      OLLAMA_NUM_PARALLEL: 2
+      OLLAMA_KV_CACHE: on
+    networks:
+      - privia-network
+    mem_limit: 6g
+    cpus: 4.0
     ulimits:
       memlock: -1
       stack: 67108864
-    networks:
-      - privia-network
-      
+
   qdrant:
     image: qdrant/qdrant
-    container_name: qdrant
+    container_name: privia-qdrant
     restart: always
     ports:
       - "6333:6333"
     volumes:
       - qdrant_data:/qdrant/storage
+    networks:
+      - privia-network
+    mem_limit: 1g
+    cpus: 1.0
 
   minio:
     image: minio/minio
-    container_name: minio
+    container_name: privia-minio
     restart: always
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"  
-      - "9001:9001"  
+      - "9000:9000"
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: admin123
     volumes:
       - minio_data:/data
+    networks:
+      - privia-network
+    mem_limit: 1g
+    cpus: 1.0
+
+  api:
+    image: privia-api:latest
+    container_name: privia-api
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./api/.env.prod
+    environment:
+      AI_URL: http://ollama:11434/api/generate
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - privia-network
+    mem_limit: 2g
+    cpus: 2.0
 
 volumes:
   postgres_data:
-  redisinsight_data:
   ollama_data:
   qdrant_data:
   minio_data:

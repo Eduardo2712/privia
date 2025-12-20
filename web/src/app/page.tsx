@@ -14,7 +14,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_20%_20%,rgba(124,58,237,0.15),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(34,211,238,0.12),transparent_30%)]" />
             </div>
 
-            <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-3 py-8 sm:px-6 text-center">
+            <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-3 py-8 sm:px-6 text-center">
                 <div className="space-y-6 sm:space-y-8">
                     <div className="flex items-center justify-center">
                         <div className="rounded-2xl bg-linear-to-r from-[#7c3aed] to-[#22d3ee] p-3 sm:p-4 shadow-lg shadow-[#22d3ee]/30">

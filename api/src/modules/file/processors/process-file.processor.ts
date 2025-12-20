@@ -115,8 +115,8 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
             const response = await this.aiService.generateSummaryAndSuggestions(job.data.text);
 
             await this.fileRepository.update(fileEntity.id, {
-                summary: response.resumo ?? "",
-                suggestedQuestions: response.perguntas ?? [],
+                summary: response.summary ?? "",
+                suggestedQuestions: response.questions ?? [],
                 isProcessed: true
             });
 

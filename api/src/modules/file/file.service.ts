@@ -50,6 +50,7 @@ export class FileService {
 
         const newFile = await this.fileRepository.create({
             path: objectName,
+            content: text,
             name: file.originalname,
             size: file.size,
             mimeType: file.mimetype,

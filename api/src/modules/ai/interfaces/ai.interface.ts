@@ -47,7 +47,7 @@ export interface AIStreamResponseChunkInterface {
 }
 
 export interface AIGenerateSummaryAndSuggestions {
-    resumo: string;
-    perguntas: string[];
+    summary: string;
+    questions: string[];
 }
 

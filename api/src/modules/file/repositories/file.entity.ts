@@ -35,6 +35,9 @@ export class FileEntity {
     @Column({ nullable: true, type: "text", name: "summary" })
     summary: string;
 
+    @Column({ nullable: true, type: "text", name: "content" })
+    content: string;
+
     @Column({ nullable: false, type: "boolean", name: "is_processed", default: false })
     isProcessed: boolean;
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { remove, searchFileStream } from "../../requests/file.request";
-import { Sparkles, Send, FileText, Clock, BookOpen, Trash2, Loader2 } from "lucide-react";
+import { Sparkles, Send, FileText, Clock, BookOpen, Trash2, Loader2, File } from "lucide-react";
 import { formatErrorMessage, formatTime } from "../../utils/functions";
 import { components } from "../../types/api-types";
 import { useRequest } from "../../hooks/use-request.hook";
@@ -36,6 +36,8 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
         },
         onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
+
+    const formatReferences = () => {};
 
     const handleSearch = async () => {
         if (!fileSelected) {
@@ -108,7 +110,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                 <div className="flex flex-col h-full">
                     <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
                         {streamingText ? (
-                            <div className="max-w-4xl mx-auto space-y-6">
+                            <div className="max-w-7xl mx-auto space-y-6">
                                 <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10 shadow-xl">
                                     <div className="flex items-start gap-4">
                                         <div className="bg-linear-to-br from-blue-500 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20 shrink-0">
@@ -116,11 +118,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                         </div>
 
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                                {streamingText}
-
-                                                {streaming && <span className="inline-block w-2 h-4 ml-1 bg-blue-500 animate-pulse" />}
-                                            </div>
+                                            <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">{streamingText}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -160,7 +158,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                         ) : (
                             fileSelected && (
                                 <>
-                                    <div className="max-w-4xl mx-auto">
+                                    <div className="max-w-7xl mx-auto">
                                         <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
@@ -170,18 +168,37 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                                 </div>
 
                                                 {fileSelected?.isProcessed && (
-                                                    <button
-                                                        type="button"
-                                                        className="p-2 border-2 rounded-md border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 transition-colors duration-200 cursor-pointer"
-                                                        onClick={handleDeleteFile}
-                                                        disabled={loading}
-                                                    >
-                                                        {loading ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
-                                                    </button>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            className="p-2 border-2 rounded-md border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+                                                            title="Ver arquivo original"
+                                                            disabled={loading}
+                                                            onClick={() => window.open(fileSelected.url, "_blank")}
+                                                        >
+                                                            {loading ? <Loader2 size={20} className="animate-spin" /> : <File size={20} />}
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            className="p-2 border-2 rounded-md border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 transition-colors duration-200 cursor-pointer"
+                                                            onClick={handleDeleteFile}
+                                                            title="Remover arquivo"
+                                                            disabled={loading}
+                                                        >
+                                                            {loading ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
 
-                                            {fileSelected.isProcessed && <p className="text-gray-400 text-sm mt-6">{fileSelected.summary}</p>}
+                                            {fileSelected.isProcessed && (
+                                                <>
+                                                    <p className="text-gray-500 text-xs font-semibold mt-3">Resumo</p>
+
+                                                    <p className="text-gray-400 text-sm mt-2">{fileSelected.summary}</p>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
 
@@ -194,7 +211,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                     </div>
 
                     <div className="border-t border-white/5 bg-[#1a1a1a]/80 backdrop-blur-xl">
-                        <div className="max-w-4xl mx-auto px-6 py-6">
+                        <div className="max-w-7xl mx-auto px-6 py-6">
                             <div className="relative">
                                 {fileSelected?.isProcessed ? (
                                     <>
