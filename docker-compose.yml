@@ -90,7 +90,7 @@ services:
   api:
     build:
       context: ./api
-      dockerfile: Dockerfile.prod
+      dockerfile: dockerfile
     image: privia-api:latest
     container_name: privia-api
     restart: always
@@ -100,11 +100,11 @@ services:
       - ./api/.env
     networks:
       - privia-network
-      
+
   web:
     build:
       context: ./web
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     container_name: privia-web
     restart: always
     ports:
