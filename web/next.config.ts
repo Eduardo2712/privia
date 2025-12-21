@@ -1,8 +1,5 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-    // Optimize Docker runtime by emitting a standalone server
-    output: "standalone",
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

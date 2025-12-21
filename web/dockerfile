@@ -19,10 +19,13 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-# Copy only the minimal Next.js standalone server and static assets
-COPY --from=builder /usr/src/app/.next/standalone ./
-COPY --from=builder /usr/src/app/.next/static ./.next/static
+# Copy built artifacts and source files
+COPY --from=builder /usr/src/app/.next ./.next
 COPY --from=builder /usr/src/app/public ./public
+COPY --from=builder /usr/src/app/package*.json ./
+
+# Install only production dependencies
+RUN npm ci --omit=dev
 
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
