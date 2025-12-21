@@ -37,7 +37,7 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    command: ["serve"]
+    command: ["ollama serve"]
     networks:
       - privia-network
 
