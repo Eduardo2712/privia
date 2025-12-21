@@ -28,4 +28,4 @@ COPY --from=builder /usr/src/app/package*.json ./
 RUN npm ci --omit=dev
 
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["next", "start", "-H", "0.0.0.0", "-p", "3000"]
