@@ -86,7 +86,7 @@ async function bootstrap() {
 
     SwaggerModule.setup("api/docs", app, document);
 
-    await app.listen(process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 8080);
+    await app.listen(process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 8080, "0.0.0.0");
 }
 
 bootstrap().catch((err) => console.error(err));
