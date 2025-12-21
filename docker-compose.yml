@@ -91,8 +91,7 @@ services:
     image: privia-web
     container_name: privia-web
     restart: always
-    ports:
-      - "3000:3000"
+    network_mode: "host"
     environment:
       NEXT_PUBLIC_URL_API: "http://192.168.18.100:8080"
       NEXT_PUBLIC_URL_SOCKET: "http://192.168.18.100:8080"
@@ -100,8 +99,6 @@ services:
       INTERNAL_URL_API_SOCKET: "http://api:8080"
     depends_on:
       - api
-    networks:
-      - privia-network
 
 volumes:
   postgres_data:
