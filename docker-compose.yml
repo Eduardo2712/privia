@@ -17,6 +17,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - privia-network
 
   redis:
     image: redis:7
@@ -24,6 +26,8 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    networks:
+      - privia-network
 
   ollama:
     image: ollama/ollama
@@ -41,6 +45,8 @@ services:
       ollama pull bge-m3 &&
       wait
       "
+    networks:
+      - privia-network
 
   qdrant:
     image: qdrant/qdrant
@@ -50,6 +56,8 @@ services:
       - "6333:6333"
     volumes:
       - qdrant_data:/qdrant/storage
+    networks:
+      - privia-network
 
   minio:
     image: minio/minio
@@ -64,6 +72,8 @@ services:
       MINIO_ROOT_PASSWORD: admin123
     volumes:
       - minio_data:/data
+    networks:
+      - privia-network
 
   api:
     build:
@@ -83,7 +93,7 @@ services:
         condition: service_started
     networks:
       - privia-network
-      
+
   web:
     build: ./web
     image: privia-web
@@ -93,9 +103,15 @@ services:
       - "3000:3000"
     depends_on:
       - api
+    networks:
+      - privia-network
 
 volumes:
   postgres_data:
   ollama_data:
   qdrant_data:
   minio_data:
+
+networks:
+  privia-network:
+    driver: bridge
