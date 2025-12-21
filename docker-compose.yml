@@ -66,8 +66,10 @@ services:
       - minio_data:/data
 
   api:
-    build: ./api
-    image: privia-api
+    build:
+      context: ./api
+      dockerfile: dockerfile
+    image: privia-api:latest
     container_name: privia-api
     restart: always
     ports:
@@ -77,11 +79,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      AI_URL: http://ollama:11434
-      REDIS_HOST: redis
-      DB_HOST: postgres
-
+      redis:
+        condition: service_started
+    networks:
+      - privia-network
+      
   web:
     build: ./web
     image: privia-web
