@@ -93,6 +93,13 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    environment:
+      # Browser URLs
+      NEXT_PUBLIC_URL_API: "http://localhost:8080"
+      NEXT_PUBLIC_URL_SOCKET: "http://localhost:8080"
+      # SSR (inside container) URLs
+      INTERNAL_URL_API: "http://api:8080"
+      INTERNAL_URL_API_SOCKET: "http://api:8080"
     depends_on:
       - api
     networks:

@@ -1,5 +1,6 @@
-# ===== BUILD =====
+# ---------- BUILD ----------
 FROM node:20-alpine AS builder
+
 WORKDIR /usr/src/app
 
 COPY package*.json ./
@@ -8,17 +9,18 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# ===== RUN =====
+# ---------- RUNTIME ----------
 FROM node:20-alpine
-WORKDIR /usr/src/app
 
+WORKDIR /app
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-COPY --from=builder /usr/src/app/.next ./.next
+# Copy only the minimal Next.js standalone server and static assets
+COPY --from=builder /usr/src/app/.next/standalone ./
+COPY --from=builder /usr/src/app/.next/static ./.next/static
 COPY --from=builder /usr/src/app/public ./public
-COPY --from=builder /usr/src/app/package*.json ./
-
-RUN npm ci --omit=dev
 
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+CMD ["node", "server.js"]
