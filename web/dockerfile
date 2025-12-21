@@ -1,9 +1,12 @@
 # ---------- BUILD ----------
 FROM node:20-alpine AS builder
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+# Install all deps for build (dev deps may be required)
 RUN npm ci
 
 COPY . .
