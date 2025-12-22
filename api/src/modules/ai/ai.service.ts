@@ -19,11 +19,7 @@ export class AiService extends BaseAiService {
         return embedding;
     }
 
-    public async generateResponseStream(
-        chunks: Array<{ score: number; text: string }>,
-        search: string,
-        opts?: { promptMode?: "STRICT_QUOTE" | "INFERENCE_SYNTHESIS"; k?: number }
-    ): Promise<AsyncIterable<string>> {
+    public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
         const topK = Math.min(3, chunks.length);
         const useChunks = chunks.slice(0, topK);
 
@@ -31,9 +27,12 @@ export class AiService extends BaseAiService {
             .map((c, i) => {
                 const maxLen = 400;
                 let text = c.text.replaceAll(/\s+/g, " ").trim();
+
                 if (text.length > maxLen) {
                     text = text.substring(0, maxLen).trim();
+
                     const lastPeriod = text.lastIndexOf(".");
+
                     if (lastPeriod > maxLen * 0.8) {
                         text = text.substring(0, lastPeriod + 1);
                     }
@@ -44,18 +43,17 @@ export class AiService extends BaseAiService {
 
         const prompt = `Responda baseado nos trechos abaixo.
 
-REGRAS:
-- Use SOMENTE informações dos trechos
-- Cite [número] ao usar um trecho
-- Se não encontrar, responda: "Informação não encontrada"
-- Máximo 3 linhas
+        REGRAS:
+        - Use SOMENTE informações dos trechos
+        - Cite [número] ao usar um trecho
+        - Se não encontrar, responda: "Informação não encontrada"
+        - Máximo 3 linhas
+        TRECHOS:
+        ${context}
 
-TRECHOS:
-${context}
+        PERGUNTA: ${search}
 
-PERGUNTA: ${search}
-
-RESPOSTA:`;
+        RESPOSTA:`;
 
         return this.sendPromptStream(prompt);
     }
@@ -67,17 +65,17 @@ RESPOSTA:`;
 
         const prompt = `Resuma em 2 frases e crie 3 perguntas relevantes.
 
-FORMATO:
-Resumo:
-[2 frases]
+        FORMATO:
+        Resumo:
+        [2 frases]
 
-Perguntas:
-1. [pergunta]
-2. [pergunta]
-3. [pergunta]
+        Perguntas:
+        1. [pergunta]
+        2. [pergunta]
+        3. [pergunta]
 
-TEXTO:
-${chunk}`;
+        TEXTO:
+        ${chunk}`;
 
         const result = this.sendPrompt<AIGenerateSummaryAndSuggestions>({
             prompt,

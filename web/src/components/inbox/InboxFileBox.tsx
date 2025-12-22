@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { remove, searchFileStream } from "../../requests/file.request";
-import { Sparkles, Send, FileText, Clock, BookOpen, Trash2, Loader2, File } from "lucide-react";
-import { formatErrorMessage, formatTime } from "../../utils/functions";
+import { Sparkles, Send, FileText, BookOpen, Trash2, Loader2, File } from "lucide-react";
+import { formatErrorMessage } from "../../utils/functions";
 import { components } from "../../types/api-types";
 import { useRequest } from "../../hooks/use-request.hook";
 import InboxSuggestedQuestions from "./InboxSuggestedQuestions";
 import { useAlert } from "../../hooks/use-alert.hook";
+import InboxReferences from "./InboxReferences";
 
 interface Props {
     readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
@@ -100,10 +101,10 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                         <BookOpen size={64} className="text-blue-400 mx-auto" />
                     </div>
 
-                    <h2 className="text-2xl font-bold text-white mt-6 mb-2">Bem-vindo ao Privia</h2>
+                    <h2 className="text-2xl font-bold text-white mt-6 mb-2">Olá</h2>
 
                     <p className="text-gray-400 text-center max-w-md">
-                        Selecione um documento na barra lateral ou envie um novo arquivo para começar a fazer perguntas
+                        Selecione um documento na barra lateral ou envie um novo documento para começar a fazer perguntas
                     </p>
                 </div>
             ) : (
@@ -123,37 +124,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                     </div>
                                 </div>
 
-                                {references.length > 0 && (
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-2 text-sm text-gray-400">
-                                            <FileText size={16} />
-
-                                            <span className="font-semibold">Fontes</span>
-                                        </div>
-
-                                        <div className="grid gap-3">
-                                            {references.map((r) => (
-                                                <div
-                                                    key={r.index}
-                                                    className="bg-[#242424]/50 border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors duration-200"
-                                                >
-                                                    <div className="flex items-start gap-3">
-                                                        <span className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 text-xs font-bold">
-                                                            {r.index}
-                                                        </span>
-                                                        <p className="text-sm text-gray-300 leading-relaxed">{r.text}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-4">
-                                            <Clock size={14} />
-
-                                            <span>Tempo de busca: {formatTime(timeInMs)}</span>
-                                        </div>
-                                    </div>
-                                )}
+                                {references.length > 0 && <InboxReferences references={references} timeInMs={timeInMs} />}
                             </div>
                         ) : (
                             fileSelected && (

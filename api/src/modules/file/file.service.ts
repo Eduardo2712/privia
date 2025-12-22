@@ -189,7 +189,7 @@ export class FileService {
     }
 
     public async get(user: LoggedUserInterface, id: number): Promise<GetFileResponseDto> {
-        const file = await this.fileRepository.findOne({ where: { id, userId: user.id } });
+        const file = await this.fileRepository.findWithMessages(id, user.id);
 
         if (!file) {
             throw new Error("Arquivo não encontrado.");

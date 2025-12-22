@@ -9,7 +9,7 @@ export default function InboxSuggestedQuestions({ fileSelected, setSearchText }:
     return (
         <div className="max-w-7xl mx-auto mt-4">
             <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10">
-                <p className="text-white font-medium mb-4">Perguntas Sugeridas</p>
+                <p className="text-white font-medium mb-4">Perguntas iniciais sugeridas</p>
 
                 {fileSelected?.suggestedQuestions && fileSelected.suggestedQuestions.length > 0 ? (
                     <div className="space-y-2">

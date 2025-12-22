@@ -30,5 +30,21 @@ export class FileRepository extends BaseRepository<FileEntity> {
 
         return { items, total };
     }
+
+    async findWithMessages(fileId: number, userId: number): Promise<FileEntity | null> {
+        const repository = this.getRepository();
+
+        return await repository.findOne({
+            where: {
+                id: fileId,
+                userId: userId
+            },
+            relations: {
+                messages: {
+                    sources: true
+                }
+            }
+        });
+    }
 }
 
