@@ -37,13 +37,12 @@ import { MessageModule } from "./modules/message/message.module";
                 maxRetriesPerRequest: null,
                 retryStrategy: (times) => {
                     const delay = Math.min(times * 50, 2000);
-
                     return delay;
                 },
-                connectTimeout: 30000,
+                connectTimeout: 60000,
+                commandTimeout: 60000,
                 enableReadyCheck: false,
-                enableOfflineQueue: false,
-                lazyConnect: false
+                enableOfflineQueue: false
             }
         }),
         ScheduleModule.forRoot(),
