@@ -39,10 +39,11 @@ import { MessageModule } from "./modules/message/message.module";
                     const delay = Math.min(times * 50, 2000);
                     return delay;
                 },
-                connectTimeout: 60000,
-                commandTimeout: 60000,
+                connectTimeout: 10000,
+                commandTimeout: 10000,
                 enableReadyCheck: false,
-                enableOfflineQueue: false
+                enableOfflineQueue: false,
+                lazyConnect: true
             }
         }),
         ScheduleModule.forRoot(),
