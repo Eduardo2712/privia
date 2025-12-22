@@ -19,10 +19,6 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY --from=builder /usr/src/app/dist ./dist
-COPY wait-for-redis.sh ./
-
-RUN apk add --no-cache netcat-openbsd && \
-    chmod +x wait-for-redis.sh
 
 EXPOSE 8080
-CMD ["./wait-for-redis.sh", "${REDIS_HOST:-redis}", "${REDIS_PORT:-6379}", "node", "dist/main.js"]
+CMD ["node", "dist/main.js"]
