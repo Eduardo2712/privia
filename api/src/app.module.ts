@@ -41,7 +41,9 @@ import { MessageModule } from "./modules/message/message.module";
                     return delay;
                 },
                 connectTimeout: 30000,
-                enableReadyCheck: true
+                enableReadyCheck: false,
+                enableOfflineQueue: false,
+                lazyConnect: false
             }
         }),
         ScheduleModule.forRoot(),
