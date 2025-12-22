@@ -33,7 +33,15 @@ import { MessageModule } from "./modules/message/message.module";
         BullModule.forRoot({
             connection: {
                 host: process.env.REDIS_HOST,
-                port: Number(process.env.REDIS_PORT)
+                port: Number(process.env.REDIS_PORT),
+                maxRetriesPerRequest: null,
+                retryStrategy: (times) => {
+                    const delay = Math.min(times * 50, 2000);
+
+                    return delay;
+                },
+                connectTimeout: 30000,
+                enableReadyCheck: true
             }
         }),
         ScheduleModule.forRoot(),
