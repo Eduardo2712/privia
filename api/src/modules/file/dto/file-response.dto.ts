@@ -39,10 +39,6 @@ export class FileResponseDto {
     suggestedQuestions?: string[];
 
     @Expose()
-    @ApiProperty({ example: 60, type: Number })
-    progress: number = 100;
-
-    @Expose()
     @ApiProperty({ example: "2024-01-01T12:00:00Z", type: String, format: "date-time" })
     createdAt: Date;
 

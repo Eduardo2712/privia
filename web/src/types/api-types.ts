@@ -132,6 +132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/message/ai-response": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MessageController_saveAiResponse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -192,6 +208,8 @@ export interface components {
             mimeType: string;
             /** @example This is a summary of the file. */
             summary: string;
+            /** @example This is the content of the file. */
+            content: string;
             /** @example true */
             isProcessed: boolean;
             /**
@@ -202,8 +220,6 @@ export interface components {
              *     ]
              */
             suggestedQuestions: string[];
-            /** @example 60 */
-            progress: number;
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
@@ -252,6 +268,8 @@ export interface components {
             mimeType: string;
             /** @example This is a summary of the file. */
             summary: string;
+            /** @example This is the content of the file. */
+            content: string;
             /** @example true */
             isProcessed: boolean;
             /**
@@ -262,8 +280,6 @@ export interface components {
              *     ]
              */
             suggestedQuestions: string[];
-            /** @example 60 */
-            progress: number;
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
@@ -291,6 +307,7 @@ export interface components {
              *         "size": 1024,
              *         "mimeType": "application/pdf",
              *         "summary": "This is a summary of the file.",
+             *         "content": "This is the content of the file.",
              *         "suggestedQuestions": [
              *           "What is the summary?",
              *           "What are the key points?",
@@ -317,6 +334,8 @@ export interface components {
             mimeType: string;
             /** @example This is a summary of the file. */
             summary: string;
+            /** @example This is the content of the file. */
+            content: string;
             /** @example true */
             isProcessed: boolean;
             /**
@@ -327,8 +346,6 @@ export interface components {
              *     ]
              */
             suggestedQuestions: string[];
-            /** @example 60 */
-            progress: number;
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
@@ -339,6 +356,47 @@ export interface components {
              * @example 2024-01-02T12:00:00Z
              */
             updatedAt: string;
+        };
+        MessageSourceItemDto: {
+            /** @example Texto do trecho utilizado */
+            text: string;
+            /** @example 1 */
+            index: number;
+        };
+        SaveAiResponseRequestDto: {
+            /** @example 10 */
+            fileId: number;
+            /** @example 25 */
+            userMessageId: number;
+            /** @example Resposta gerada pela IA */
+            content: string;
+            /** @default [] */
+            sources: components["schemas"]["MessageSourceItemDto"][];
+        };
+        MessageSourceResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example Texto do trecho utilizado */
+            text: string;
+            /** @example 1 */
+            sourceIndex: number;
+        };
+        MessageResponseDto: {
+            /** @example 42 */
+            id: number;
+            /**
+             * @example AI
+             * @enum {string}
+             */
+            type: "USER" | "AI" | "SYSTEM";
+            /** @example Resposta gerada pela IA */
+            content: string;
+            sources: components["schemas"]["MessageSourceResponseDto"][];
+            /**
+             * Format: date-time
+             * @example 2025-12-24T00:20:10.163Z
+             */
+            createdAt: string;
         };
     };
     responses: never;
@@ -578,6 +636,29 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    MessageController_saveAiResponse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveAiResponseRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponseDto"];
+                };
             };
         };
     };

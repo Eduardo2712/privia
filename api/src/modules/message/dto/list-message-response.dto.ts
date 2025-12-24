@@ -1,0 +1,28 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { MessageResponseDto } from "./message-response.dto";
+import { MessageTypeEnum } from "../enums/message.enum";
+
+export class ListMessageResponseDto {
+    @ApiProperty({ example: 1, type: Number })
+    page: number;
+
+    @ApiProperty({ example: 10, type: Number })
+    totalPages: number;
+
+    @ApiProperty({ example: 100, type: Number })
+    totalItems: number;
+
+    @ApiProperty({
+        example: <MessageResponseDto[]>[
+            {
+                id: 1,
+                type: MessageTypeEnum.AI,
+                content: "This is a message content",
+                createdAt: new Date("2024-01-01T12:00:00Z")
+            }
+        ],
+        type: [MessageResponseDto]
+    })
+    items: Array<MessageResponseDto>;
+}
+
