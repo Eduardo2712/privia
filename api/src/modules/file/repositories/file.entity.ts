@@ -44,6 +44,12 @@ export class FileEntity {
     @Column({ nullable: true, type: "jsonb", name: "suggested_questions" })
     suggestedQuestions?: string[];
 
+    @Column({ nullable: true, type: "timestamp", name: "processed_at", default: null })
+    processedAt?: Date;
+
+    @Column({ nullable: true, type: "timestamp", name: "last_interaction_at", default: null })
+    lastInteractionAt?: Date;
+
     @CreateDateColumn({ name: "created_at" })
     createdAt?: Date;
 

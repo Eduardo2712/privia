@@ -23,6 +23,12 @@ export class FileRepository extends BaseRepository<FileEntity> {
             where: {
                 userId: userId
             },
+            relationLoadStrategy: "query",
+            relations: {
+                messages: {
+                    sources: true
+                }
+            },
             skip: (listFileRequestDto.page - 1) * 10,
             take: 10,
             order: { createdAt: "DESC" }

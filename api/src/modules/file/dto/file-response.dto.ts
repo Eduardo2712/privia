@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose } from "class-transformer";
+import { Expose, Type } from "class-transformer";
+import { MessageResponseDto } from "../../message/dto/message-response.dto";
+import { ListMessageResponseDto } from "../../message/dto/list-message-response.dto";
 
 export class FileResponseDto {
     @Expose()
@@ -37,6 +39,34 @@ export class FileResponseDto {
     @Expose()
     @ApiProperty({ example: ["What is the summary?", "What are the key points?", "How to use this document?"], type: [String] })
     suggestedQuestions?: string[];
+
+    @Expose()
+    @Type(() => ListMessageResponseDto)
+    @ApiProperty({
+        example: [
+            {
+                page: 1,
+                totalPages: 1,
+                totalItems: 2,
+                items: [
+                    {
+                        id: 1,
+                        type: "AI",
+                        content: "This is a message content",
+                        createdAt: new Date("2024-01-01T12:00:00Z")
+                    },
+                    {
+                        id: 2,
+                        type: "USER",
+                        content: "This is another message content",
+                        createdAt: new Date("2024-01-01T12:05:00Z")
+                    }
+                ]
+            }
+        ],
+        type: [ListMessageResponseDto]
+    })
+    messages: ListMessageResponseDto[];
 
     @Expose()
     @ApiProperty({ example: "2024-01-01T12:00:00Z", type: String, format: "date-time" })

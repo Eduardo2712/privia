@@ -195,6 +195,50 @@ export interface components {
             /** @example user@email.com */
             email: string;
         };
+        MessageSourceResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example Texto do trecho utilizado */
+            text: string;
+            /** @example 1 */
+            sourceIndex: number;
+        };
+        MessageResponseDto: {
+            /** @example 42 */
+            id: number;
+            /**
+             * @example AI
+             * @enum {string}
+             */
+            type: "USER" | "AI" | "SYSTEM";
+            /** @example Resposta gerada pela IA */
+            content: string;
+            sources: components["schemas"]["MessageSourceResponseDto"][];
+            /**
+             * Format: date-time
+             * @example 2025-12-24T19:54:18.028Z
+             */
+            createdAt: string;
+        };
+        ListMessageResponseDto: {
+            /** @example 1 */
+            page: number;
+            /** @example 10 */
+            totalPages: number;
+            /** @example 100 */
+            totalItems: number;
+            /**
+             * @example [
+             *       {
+             *         "id": 1,
+             *         "type": "AI",
+             *         "content": "This is a message content",
+             *         "createdAt": "2024-01-01T12:00:00.000Z"
+             *       }
+             *     ]
+             */
+            items: components["schemas"]["MessageResponseDto"][];
+        };
         ReadFileResponseDto: {
             /** @example 1 */
             id: number;
@@ -220,6 +264,30 @@ export interface components {
              *     ]
              */
             suggestedQuestions: string[];
+            /**
+             * @example [
+             *       {
+             *         "page": 1,
+             *         "totalPages": 1,
+             *         "totalItems": 2,
+             *         "items": [
+             *           {
+             *             "id": 1,
+             *             "type": "AI",
+             *             "content": "This is a message content",
+             *             "createdAt": "2024-01-01T12:00:00.000Z"
+             *           },
+             *           {
+             *             "id": 2,
+             *             "type": "USER",
+             *             "content": "This is another message content",
+             *             "createdAt": "2024-01-01T12:05:00.000Z"
+             *           }
+             *         ]
+             *       }
+             *     ]
+             */
+            messages: components["schemas"]["ListMessageResponseDto"][];
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
@@ -280,6 +348,30 @@ export interface components {
              *     ]
              */
             suggestedQuestions: string[];
+            /**
+             * @example [
+             *       {
+             *         "page": 1,
+             *         "totalPages": 1,
+             *         "totalItems": 2,
+             *         "items": [
+             *           {
+             *             "id": 1,
+             *             "type": "AI",
+             *             "content": "This is a message content",
+             *             "createdAt": "2024-01-01T12:00:00.000Z"
+             *           },
+             *           {
+             *             "id": 2,
+             *             "type": "USER",
+             *             "content": "This is another message content",
+             *             "createdAt": "2024-01-01T12:05:00.000Z"
+             *           }
+             *         ]
+             *       }
+             *     ]
+             */
+            messages: components["schemas"]["ListMessageResponseDto"][];
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
@@ -347,6 +439,30 @@ export interface components {
              */
             suggestedQuestions: string[];
             /**
+             * @example [
+             *       {
+             *         "page": 1,
+             *         "totalPages": 1,
+             *         "totalItems": 2,
+             *         "items": [
+             *           {
+             *             "id": 1,
+             *             "type": "AI",
+             *             "content": "This is a message content",
+             *             "createdAt": "2024-01-01T12:00:00.000Z"
+             *           },
+             *           {
+             *             "id": 2,
+             *             "type": "USER",
+             *             "content": "This is another message content",
+             *             "createdAt": "2024-01-01T12:05:00.000Z"
+             *           }
+             *         ]
+             *       }
+             *     ]
+             */
+            messages: components["schemas"]["ListMessageResponseDto"][];
+            /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
              */
@@ -372,31 +488,6 @@ export interface components {
             content: string;
             /** @default [] */
             sources: components["schemas"]["MessageSourceItemDto"][];
-        };
-        MessageSourceResponseDto: {
-            /** @example 1 */
-            id: number;
-            /** @example Texto do trecho utilizado */
-            text: string;
-            /** @example 1 */
-            sourceIndex: number;
-        };
-        MessageResponseDto: {
-            /** @example 42 */
-            id: number;
-            /**
-             * @example AI
-             * @enum {string}
-             */
-            type: "USER" | "AI" | "SYSTEM";
-            /** @example Resposta gerada pela IA */
-            content: string;
-            sources: components["schemas"]["MessageSourceResponseDto"][];
-            /**
-             * Format: date-time
-             * @example 2025-12-24T00:20:10.163Z
-             */
-            createdAt: string;
         };
     };
     responses: never;
