@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { MessageResponseDto } from "./message-response.dto";
 import { MessageTypeEnum } from "../enums/message.enum";
+import { Type } from "class-transformer";
 
 export class ListMessageResponseDto {
     @ApiProperty({ example: 1, type: Number })
@@ -12,6 +13,7 @@ export class ListMessageResponseDto {
     @ApiProperty({ example: 100, type: Number })
     totalItems: number;
 
+    @Type(() => MessageResponseDto)
     @ApiProperty({
         example: <MessageResponseDto[]>[
             {

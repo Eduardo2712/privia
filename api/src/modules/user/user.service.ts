@@ -30,8 +30,8 @@ export class UserService {
         await this.userRepository.delete(id);
     }
 
-    public async delete(user: LoggedUserInterface): Promise<void> {
-        await this.userRepository.delete(user.id);
+    public async delete(userId: number): Promise<void> {
+        await this.userRepository.delete(userId);
     }
 
     public async findOneByEmail(email: string, ignoredId?: number): Promise<UserEntity | null> {

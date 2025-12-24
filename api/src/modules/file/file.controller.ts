@@ -32,7 +32,7 @@ export class FileController {
         @GetUser() user: LoggedUserInterface,
         @UploadedFile(new FileSizeValidationPipe(), new FileTypeValidationPipe()) file: Express.Multer.File
     ): Promise<ReadFileResponseDto> {
-        return await this.fileService.readFile(user, file);
+        return await this.fileService.readFile(user.id, file);
     }
 
     @Post("/search")
@@ -46,7 +46,7 @@ export class FileController {
             res.setHeader("Connection", "keep-alive");
             res.setHeader("X-Accel-Buffering", "no");
 
-            const { stream, references, timeInMs } = await this.fileService.searchFileStream(user, searchFileDto);
+            const { stream, references, timeInMs } = await this.fileService.searchFileStream(user.id, searchFileDto);
 
             for await (const chunk of stream) {
                 res.write(`data: ${JSON.stringify({ type: "chunk", content: chunk })}\n\n`);
@@ -73,7 +73,7 @@ export class FileController {
     @ApiOkResponse({ type: ListFileResponseDto })
     @ApiCookieAuth()
     async list(@GetUser() user: LoggedUserInterface, @Query() listFileRequestDto: ListFileRequestDto): Promise<ListFileResponseDto> {
-        return await this.fileService.list(user, listFileRequestDto);
+        return await this.fileService.list(user.id, listFileRequestDto);
     }
 
     @Delete("/:id")
@@ -81,7 +81,7 @@ export class FileController {
     @ApiOkResponse({ type: void 0 })
     @ApiCookieAuth()
     async deleteFile(@GetUser() user: LoggedUserInterface, @Param("id") id: number): Promise<void> {
-        return await this.fileService.deleteFile(user, id);
+        return await this.fileService.deleteFile(user.id, id);
     }
 
     @Get("/:id")
@@ -89,7 +89,7 @@ export class FileController {
     @ApiOkResponse({ type: GetFileResponseDto })
     @ApiCookieAuth()
     async get(@GetUser() user: LoggedUserInterface, @Param("id") id: number): Promise<GetFileResponseDto> {
-        return await this.fileService.get(user, id);
+        return await this.fileService.get(user.id, id);
     }
 }
 

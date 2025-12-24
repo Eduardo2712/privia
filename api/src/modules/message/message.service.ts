@@ -4,9 +4,12 @@ import { MessageRepository } from "./repositories/message.repository";
 import { MessageSourceEntity } from "./repositories/message-source.entity";
 import { MessageSourceRepository } from "./repositories/message-source.repository";
 import { SaveAiResponseRequestDto } from "./dto/save-ai-response-request.dto";
-import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 import { UnitOfWorkService } from "../../common/unity-of-work.service";
 import { MessageTypeEnum } from "./enums/message.enum";
+import { ListMessageRequestDto } from "./dto/list-message-request.dto";
+import { ListMessageResponseDto } from "./dto/list-message-response.dto";
+import { plainToInstance } from "class-transformer";
+import { MessageResponseDto } from "./dto/message-response.dto";
 
 @Injectable()
 export class MessageService {
@@ -39,12 +42,12 @@ export class MessageService {
         return obj;
     }
 
-    public async saveAiResponse(user: LoggedUserInterface, payload: SaveAiResponseRequestDto): Promise<MessageEntity> {
+    public async saveAiResponse(userId: number, payload: SaveAiResponseRequestDto): Promise<MessageEntity> {
         const { fileId, userMessageId, content, sources } = payload;
 
         const aiMessage = await this.unitOfWork.withTransaction(async () => {
             const userMessage = await this.messageRepository.findOne({
-                where: { id: userMessageId, userId: user.id, fileId, type: MessageTypeEnum.USER }
+                where: { id: userMessageId, userId, fileId, type: MessageTypeEnum.USER }
             });
 
             if (!userMessage) {
@@ -54,7 +57,7 @@ export class MessageService {
             const createdMessage = await this.messageRepository.create({
                 content,
                 fileId,
-                userId: user.id,
+                userId,
                 type: MessageTypeEnum.AI
             });
 
@@ -75,6 +78,19 @@ export class MessageService {
         });
 
         return aiMessage;
+    }
+
+    public async list(userId: number, listMessageRequestDto: ListMessageRequestDto): Promise<ListMessageResponseDto> {
+        const result = await this.messageRepository.listByUser(userId, listMessageRequestDto);
+
+        const items = plainToInstance(MessageResponseDto, result.items, { excludeExtraneousValues: true });
+
+        return {
+            items,
+            page: listMessageRequestDto.page,
+            totalItems: result.total,
+            totalPages: Math.ceil(result.total / 10)
+        };
     }
 }
 

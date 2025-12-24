@@ -52,13 +52,13 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
     async process(job: Job<ProcessFileJob>): Promise<void> {
         try {
-            const { chunks, file, user, fileEntity } = job.data;
+            const { chunks, file, userId, fileEntity } = job.data;
 
             if (!chunks?.length) {
                 return;
             }
 
-            this.socketEmitProgress(user.id, fileEntity.id, 0);
+            this.socketEmitProgress(userId, fileEntity.id, 0);
 
             const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 12);
 
@@ -80,7 +80,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                         text: chunks[index].trim(),
                         chunkIndex: index,
                         documentId: fileEntity.id,
-                        userId: user.id,
+                        userId,
                         filename: file.originalname,
                         chunkTokens: encoding.encode(chunks[index]).length
                     }
@@ -91,7 +91,7 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
             const embeddingProgress = Math.round((1 / chunks.length) * 40);
 
-            this.socketEmitProgress(user.id, fileEntity.id, embeddingProgress);
+            this.socketEmitProgress(userId, fileEntity.id, embeddingProgress);
 
             for (let i = 1; i < chunks.length; i += CONCURRENCY) {
                 const batch = chunks.slice(i, i + CONCURRENCY);
@@ -103,14 +103,14 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 const processedCount = Math.min(i + CONCURRENCY, chunks.length);
                 const progress = Math.round((processedCount / chunks.length) * 40);
 
-                this.socketEmitProgress(user.id, fileEntity.id, progress);
+                this.socketEmitProgress(userId, fileEntity.id, progress);
             }
 
-            this.socketEmitProgress(user.id, fileEntity.id, 40);
+            this.socketEmitProgress(userId, fileEntity.id, 40);
 
             await this.qdrantService.saveVectors(allPoints);
 
-            this.socketEmitProgress(user.id, fileEntity.id, 60);
+            this.socketEmitProgress(userId, fileEntity.id, 60);
 
             const response = await this.aiService.generateSummaryAndSuggestions(job.data.text);
 
@@ -120,11 +120,11 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
                 isProcessed: true
             });
 
-            this.socketEmitProgress(user.id, fileEntity.id, 100);
+            this.socketEmitProgress(userId, fileEntity.id, 100);
 
-            this.socketEmitProcessed(user.id, fileEntity.id);
+            this.socketEmitProcessed(userId, fileEntity.id);
         } catch (err) {
-            this.qdrantService.deleteByFilter(job.data.user.id, job.data.fileEntity.id);
+            this.qdrantService.deleteByFilter(job.data.userId, job.data.fileEntity.id);
 
             this.logger.error(`Erro ao processar arquivo ID ${job.data.fileEntity.id}: ${err.message}`, err.stack);
 

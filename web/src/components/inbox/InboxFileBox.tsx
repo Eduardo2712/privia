@@ -173,7 +173,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                         </div>
                                     </div>
 
-                                    {fileSelected?.isProcessed && fileSelected.messages.length === 0 && (
+                                    {fileSelected?.isProcessed && fileSelected.suggestedQuestions.length > 0 && (
                                         <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
                                     )}
                                 </>

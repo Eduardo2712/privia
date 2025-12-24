@@ -16,18 +16,12 @@ export class FileRepository extends BaseRepository<FileEntity> {
         super(defaultRepo, unitOfWork);
     }
 
-    async listFilesByUser(userId: number, listFileRequestDto: ListFileRequestDto): Promise<{ items: FileEntity[]; total: number }> {
+    async listByUser(userId: number, listFileRequestDto: ListFileRequestDto): Promise<{ items: FileEntity[]; total: number }> {
         const repository = this.getRepository();
 
         const [items, total] = await repository.findAndCount({
             where: {
                 userId: userId
-            },
-            relationLoadStrategy: "query",
-            relations: {
-                messages: {
-                    sources: true
-                }
             },
             skip: (listFileRequestDto.page - 1) * 10,
             take: 10,

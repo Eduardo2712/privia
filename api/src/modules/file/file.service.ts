@@ -3,7 +3,6 @@ import { AiService } from "../ai/ai.service";
 import { QdrantService } from "../qdrant/qdrant.service";
 import { SearchFileRequestDto } from "./dto/search-file-request.dto";
 import { ChunkerFileService } from "./chunker-file.service";
-import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 import { InjectQueue } from "@nestjs/bullmq";
 import { ProcessFileJob } from "./jobs/process-file.job";
 import { Queue } from "bullmq";
@@ -33,7 +32,7 @@ export class FileService {
         @InjectQueue("process-file") private readonly processFileQueue: Queue<ProcessFileJob>
     ) {}
 
-    public async readFile(user: LoggedUserInterface, file: Express.Multer.File): Promise<ReadFileResponseDto> {
+    public async readFile(userId: number, file: Express.Multer.File): Promise<ReadFileResponseDto> {
         if (!file?.buffer) {
             throw new Error("O buffer de arquivos enviados está vazio.");
         }
@@ -54,10 +53,10 @@ export class FileService {
             name: file.originalname,
             size: file.size,
             mimeType: file.mimetype,
-            userId: user.id
+            userId
         });
 
-        await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, user, newFile, text), {
+        await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, userId, newFile, text), {
             attempts: 1,
             backoff: { type: "exponential", delay: 5000 }
         });
@@ -74,12 +73,12 @@ export class FileService {
         return fileDto;
     }
 
-    public async searchFileStream(user: LoggedUserInterface, searchFileDto: SearchFileRequestDto): Promise<SearchFileStreamResponseInterface> {
+    public async searchFileStream(userId: number, searchFileDto: SearchFileRequestDto): Promise<SearchFileStreamResponseInterface> {
         const startTime = Date.now();
 
         const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
         const documentId = searchFileDto.documentId;
-        const searchResults = await this.qdrantService.search(user, documentId, queryEmbedding);
+        const searchResults = await this.qdrantService.search(userId, documentId, queryEmbedding);
 
         if (searchResults.length === 0) {
             const emptyIterator: AsyncIterable<string> = {
@@ -92,9 +91,9 @@ export class FileService {
                 async () =>
                     await this.messageService.createWithSources({
                         content: searchFileDto.search,
-                        userId: user.id,
                         fileId: documentId,
-                        type: MessageTypeEnum.USER
+                        type: MessageTypeEnum.USER,
+                        userId
                     })
             );
 
@@ -114,14 +113,13 @@ export class FileService {
             async () =>
                 await this.messageService.createWithSources({
                     content: searchFileDto.search,
-                    userId: user.id,
                     fileId: documentId,
-                    type: MessageTypeEnum.USER
+                    type: MessageTypeEnum.USER,
+                    userId
                 })
         );
 
-        const wrappedStream = this.createStreamWithAutoSave(stream, user, documentId, userMessage.id, references);
-
+        const wrappedStream = this.createStreamWithAutoSave(stream, userId, documentId, userMessage.id, references);
         return {
             stream: wrappedStream,
             references,
@@ -131,7 +129,7 @@ export class FileService {
 
     private async *createStreamWithAutoSave(
         sourceStream: AsyncIterable<string>,
-        user: LoggedUserInterface,
+        userId: number,
         fileId: number,
         userMessageId: number,
         references: Array<{ text: string; index: number }>
@@ -145,7 +143,7 @@ export class FileService {
         }
 
         if (accumulatedResponse.trim()) {
-            await this.messageService.saveAiResponse(user, {
+            await this.messageService.saveAiResponse(userId, {
                 fileId,
                 userMessageId,
                 content: accumulatedResponse,
@@ -154,8 +152,8 @@ export class FileService {
         }
     }
 
-    public async list(user: LoggedUserInterface, listFileRequestDto: ListFileRequestDto): Promise<ListFileResponseDto> {
-        const result = await this.fileRepository.listFilesByUser(user.id, listFileRequestDto);
+    public async list(userId: number, listFileRequestDto: ListFileRequestDto): Promise<ListFileResponseDto> {
+        const result = await this.fileRepository.listByUser(userId, listFileRequestDto);
 
         const mapped = await Promise.all(
             result.items.map(async (f) => ({
@@ -174,22 +172,22 @@ export class FileService {
         };
     }
 
-    public async deleteFile(user: LoggedUserInterface, id: number): Promise<void> {
-        const file = await this.fileRepository.findOne({ where: { id, userId: user.id } });
+    public async deleteFile(userId: number, id: number): Promise<void> {
+        const file = await this.fileRepository.findOne({ where: { id, userId } });
 
         if (!file) {
             throw new Error("Arquivo não encontrado.");
         }
 
-        await this.fileRepository.delete(id, { where: { userId: user.id } });
+        await this.fileRepository.delete(id, { where: { userId } });
 
         await this.minioFileService.delete(file.path);
 
-        await this.qdrantService.deleteByFilter(user.id, file.id);
+        await this.qdrantService.deleteByFilter(userId, file.id);
     }
 
-    public async get(user: LoggedUserInterface, id: number): Promise<GetFileResponseDto> {
-        const file = await this.fileRepository.findWithMessages(id, user.id);
+    public async get(userId: number, id: number): Promise<GetFileResponseDto> {
+        const file = await this.fileRepository.findWithMessages(id, userId);
 
         if (!file) {
             throw new Error("Arquivo não encontrado.");

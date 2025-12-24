@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { UpsertPointInterface } from "./interfaces/qdrant.interface";
-import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 
 @Injectable()
 export class QdrantService {
@@ -69,7 +68,7 @@ export class QdrantService {
     }
 
     async search(
-        user: LoggedUserInterface,
+        userId: number,
         documentId: number,
         vector: number[],
         limit = 15,
@@ -87,7 +86,7 @@ export class QdrantService {
             },
             filter: {
                 must: [
-                    { key: "userId", match: { value: user.id } },
+                    { key: "userId", match: { value: userId } },
                     { key: "documentId", match: { value: documentId } }
                 ]
             }

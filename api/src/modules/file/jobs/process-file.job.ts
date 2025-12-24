@@ -1,11 +1,10 @@
-import { LoggedUserInterface } from "../../../common/interfaces/jwt.interface";
 import { FileEntity } from "../repositories/file.entity";
 
 export class ProcessFileJob {
     constructor(
         public readonly chunks: string[],
         public readonly file: Express.Multer.File,
-        public readonly user: LoggedUserInterface,
+        public readonly userId: number,
         public readonly fileEntity: FileEntity,
         public readonly text: string
     ) {}

@@ -148,6 +148,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/message/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["MessageController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -195,50 +211,6 @@ export interface components {
             /** @example user@email.com */
             email: string;
         };
-        MessageSourceResponseDto: {
-            /** @example 1 */
-            id: number;
-            /** @example Texto do trecho utilizado */
-            text: string;
-            /** @example 1 */
-            sourceIndex: number;
-        };
-        MessageResponseDto: {
-            /** @example 42 */
-            id: number;
-            /**
-             * @example AI
-             * @enum {string}
-             */
-            type: "USER" | "AI" | "SYSTEM";
-            /** @example Resposta gerada pela IA */
-            content: string;
-            sources: components["schemas"]["MessageSourceResponseDto"][];
-            /**
-             * Format: date-time
-             * @example 2025-12-24T19:54:18.028Z
-             */
-            createdAt: string;
-        };
-        ListMessageResponseDto: {
-            /** @example 1 */
-            page: number;
-            /** @example 10 */
-            totalPages: number;
-            /** @example 100 */
-            totalItems: number;
-            /**
-             * @example [
-             *       {
-             *         "id": 1,
-             *         "type": "AI",
-             *         "content": "This is a message content",
-             *         "createdAt": "2024-01-01T12:00:00.000Z"
-             *       }
-             *     ]
-             */
-            items: components["schemas"]["MessageResponseDto"][];
-        };
         ReadFileResponseDto: {
             /** @example 1 */
             id: number;
@@ -264,30 +236,6 @@ export interface components {
              *     ]
              */
             suggestedQuestions: string[];
-            /**
-             * @example [
-             *       {
-             *         "page": 1,
-             *         "totalPages": 1,
-             *         "totalItems": 2,
-             *         "items": [
-             *           {
-             *             "id": 1,
-             *             "type": "AI",
-             *             "content": "This is a message content",
-             *             "createdAt": "2024-01-01T12:00:00.000Z"
-             *           },
-             *           {
-             *             "id": 2,
-             *             "type": "USER",
-             *             "content": "This is another message content",
-             *             "createdAt": "2024-01-01T12:05:00.000Z"
-             *           }
-             *         ]
-             *       }
-             *     ]
-             */
-            messages: components["schemas"]["ListMessageResponseDto"][];
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
@@ -348,30 +296,6 @@ export interface components {
              *     ]
              */
             suggestedQuestions: string[];
-            /**
-             * @example [
-             *       {
-             *         "page": 1,
-             *         "totalPages": 1,
-             *         "totalItems": 2,
-             *         "items": [
-             *           {
-             *             "id": 1,
-             *             "type": "AI",
-             *             "content": "This is a message content",
-             *             "createdAt": "2024-01-01T12:00:00.000Z"
-             *           },
-             *           {
-             *             "id": 2,
-             *             "type": "USER",
-             *             "content": "This is another message content",
-             *             "createdAt": "2024-01-01T12:05:00.000Z"
-             *           }
-             *         ]
-             *       }
-             *     ]
-             */
-            messages: components["schemas"]["ListMessageResponseDto"][];
             /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
@@ -439,30 +363,6 @@ export interface components {
              */
             suggestedQuestions: string[];
             /**
-             * @example [
-             *       {
-             *         "page": 1,
-             *         "totalPages": 1,
-             *         "totalItems": 2,
-             *         "items": [
-             *           {
-             *             "id": 1,
-             *             "type": "AI",
-             *             "content": "This is a message content",
-             *             "createdAt": "2024-01-01T12:00:00.000Z"
-             *           },
-             *           {
-             *             "id": 2,
-             *             "type": "USER",
-             *             "content": "This is another message content",
-             *             "createdAt": "2024-01-01T12:05:00.000Z"
-             *           }
-             *         ]
-             *       }
-             *     ]
-             */
-            messages: components["schemas"]["ListMessageResponseDto"][];
-            /**
              * Format: date-time
              * @example 2024-01-01T12:00:00Z
              */
@@ -488,6 +388,50 @@ export interface components {
             content: string;
             /** @default [] */
             sources: components["schemas"]["MessageSourceItemDto"][];
+        };
+        MessageSourceResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example Texto do trecho utilizado */
+            text: string;
+            /** @example 1 */
+            sourceIndex: number;
+        };
+        MessageResponseDto: {
+            /** @example 42 */
+            id: number;
+            /**
+             * @example AI
+             * @enum {string}
+             */
+            type: "USER" | "AI" | "SYSTEM";
+            /** @example Resposta gerada pela IA */
+            content: string;
+            sources: components["schemas"]["MessageSourceResponseDto"][];
+            /**
+             * Format: date-time
+             * @example 2025-12-24T23:08:30.228Z
+             */
+            createdAt: string;
+        };
+        ListMessageResponseDto: {
+            /** @example 1 */
+            page: number;
+            /** @example 10 */
+            totalPages: number;
+            /** @example 100 */
+            totalItems: number;
+            /**
+             * @example [
+             *       {
+             *         "id": 1,
+             *         "type": "AI",
+             *         "content": "This is a message content",
+             *         "createdAt": "2024-01-01T12:00:00.000Z"
+             *       }
+             *     ]
+             */
+            items: components["schemas"]["MessageResponseDto"][];
         };
     };
     responses: never;
@@ -749,6 +693,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MessageResponseDto"];
+                };
+            };
+        };
+    };
+    MessageController_list: {
+        parameters: {
+            query: {
+                page: number;
+                fileId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListMessageResponseDto"];
                 };
             };
         };
