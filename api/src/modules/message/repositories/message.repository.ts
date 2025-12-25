@@ -23,6 +23,9 @@ export class MessageRepository extends BaseRepository<MessageEntity> {
             where: {
                 userId: userId
             },
+            relations: {
+                sources: true
+            },
             skip: (listMessageRequestDto.page - 1) * 10,
             take: 10,
             order: { createdAt: "DESC" }

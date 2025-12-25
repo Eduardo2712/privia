@@ -1,16 +1,21 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { FileResponseDto } from "./file-response.dto";
+import { Expose } from "class-transformer";
 
 export class ListFileResponseDto {
+    @Expose()
     @ApiProperty({ example: 1, type: Number })
     page: number;
 
+    @Expose()
     @ApiProperty({ example: 10, type: Number })
     totalPages: number;
 
+    @Expose()
     @ApiProperty({ example: 100, type: Number })
     totalItems: number;
 
+    @Expose()
     @ApiProperty({
         example: <FileResponseDto[]>[
             {

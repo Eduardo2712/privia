@@ -10,11 +10,11 @@ import InboxReferences from "./InboxReferences";
 
 interface Props {
     readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
-    readonly setListFiles: React.Dispatch<React.SetStateAction<components["schemas"]["ListFileResponseDto"]["items"]>>;
+    readonly setFiles: React.Dispatch<React.SetStateAction<components["schemas"]["ListFileResponseDto"]>>;
     readonly setFileSelected: React.Dispatch<React.SetStateAction<components["schemas"]["FileResponseDto"] | null>>;
 }
 
-export default function InboxFileBox({ fileSelected, setListFiles, setFileSelected }: Props) {
+export default function InboxFileBox({ fileSelected, setFiles, setFileSelected }: Props) {
     const [streamingText, setStreamingText] = useState<string>("");
     const [references, setReferences] = useState<Array<{ text: string; index: number }>>([]);
     const [timeInMs, setTimeInMs] = useState<number>(0);
@@ -26,14 +26,14 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
     const { execute, loading } = useRequest({
         request: () => remove(fileSelected!.id),
         onSuccess: () => {
-            setListFiles((prev) => prev.filter((file) => file.id !== fileSelected!.id));
+            setFiles((prev) => ({ ...prev, items: prev.items.filter((file) => file.id !== fileSelected!.id) }));
             setStreamingText("");
             setReferences([]);
             setTimeInMs(0);
             setSearchText("");
             setFileSelected(null);
 
-            alert.success("Arquivo deletado com sucesso!");
+            alert.success("Arquivo excluído com sucesso!");
         },
         onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
@@ -138,7 +138,7 @@ export default function InboxFileBox({ fileSelected, setListFiles, setFileSelect
                                                     <h3 className="text-lg font-semibold text-white">{fileSelected.name}</h3>
                                                 </div>
 
-                                                {fileSelected?.isProcessed && (
+                                                {fileSelected.isProcessed && (
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             type="button"

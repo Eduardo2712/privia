@@ -4,25 +4,25 @@ import { MessageTypeEnum } from "../enums/message.enum";
 import { MessageSourceResponseDto } from "./message-source-response.dto";
 
 export class MessageResponseDto {
-    @ApiProperty({ example: 42 })
     @Expose()
+    @ApiProperty({ example: 42 })
     id: number;
 
-    @ApiProperty({ enum: MessageTypeEnum, example: MessageTypeEnum.AI })
     @Expose()
+    @ApiProperty({ enum: MessageTypeEnum, example: MessageTypeEnum.AI })
     type: MessageTypeEnum;
 
-    @ApiProperty({ example: "Resposta gerada pela IA" })
     @Expose()
+    @ApiProperty({ example: "Resposta gerada pela IA" })
     content: string;
 
-    @ApiProperty({ type: [MessageSourceResponseDto] })
     @Expose()
+    @ApiProperty({ type: [MessageSourceResponseDto] })
     @Type(() => MessageSourceResponseDto)
     sources?: MessageSourceResponseDto[];
 
-    @ApiProperty({ example: new Date().toISOString() })
     @Expose()
+    @ApiProperty({ example: new Date().toISOString() })
     createdAt?: Date;
 }
 

@@ -1,6 +1,6 @@
 import { FileText, Plus, Loader2 } from "lucide-react";
 import { components } from "../../types/api-types";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRequest } from "../../hooks/use-request.hook";
 import { AxiosRequestConfig } from "axios";
 import { get, readFile } from "../../requests/file.request";
@@ -9,15 +9,19 @@ import { ServerToClientEventsInterface } from "../../interfaces/socket.interface
 import Loading from "../Loading";
 import { useAlert } from "../../hooks/use-alert.hook";
 import { formatErrorMessage } from "../../utils/functions";
+import ProgressBar from "../ProgressBar";
+import { list } from "../../requests/message.request";
 
 interface Props {
-    readonly listFiles: components["schemas"]["ListFileResponseDto"]["items"];
-    readonly setListFiles: React.Dispatch<React.SetStateAction<components["schemas"]["ListFileResponseDto"]["items"]>>;
+    readonly files: components["schemas"]["ListFileResponseDto"];
+    readonly setFiles: React.Dispatch<React.SetStateAction<components["schemas"]["ListFileResponseDto"]>>;
     readonly setFileSelected: (file: components["schemas"]["FileResponseDto"]) => void;
     readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
 }
 
-export default function InboxLateralList({ listFiles, setListFiles, setFileSelected, fileSelected }: Props) {
+export default function InboxLateralList({ files, setFiles, setFileSelected, fileSelected }: Props) {
+    const [listMessages, setListMessages] = useState<Record<string, components["schemas"]["ListMessageResponseDto"]>>({});
+
     const refInputFile = useRef<HTMLInputElement>(null);
 
     const alert = useAlert();
@@ -26,14 +30,20 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
 
     const { execute, loading } = useRequest({
         request: (config?: AxiosRequestConfig) => readFile(config?.data),
-        onSuccess: (data) => setListFiles((prevFiles) => [data, ...prevFiles]),
+        onSuccess: (data) => setFiles((prev) => ({ ...prev, items: [data, ...prev.items], totalItems: prev.totalItems + 1 })),
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
+    });
+
+    const { execute: executeListMessage } = useRequest<components["schemas"]["ListMessageResponseDto"]>({
+        request: () => list({ fileId: fileSelected!.id, page: 1 }),
+        onSuccess: (data) => setListMessages((prev) => ({ ...prev, [fileSelected!.id]: data })),
         onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 
     const { execute: executeGet } = useRequest({
         request: (config?: AxiosRequestConfig) => get(config?.data),
         onSuccess: (data) => {
-            setListFiles((prevFiles) => prevFiles.map((f) => (f.id === data.id ? data : f)));
+            setFiles((prev) => ({ ...prev, items: prev.items.map((f) => (f.id === data.id ? data : f)) }));
 
             if (fileSelected?.id === data.id) {
                 setFileSelected(data);
@@ -52,7 +62,7 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
         };
 
         const handleFileProgress = (data: ServerToClientEventsInterface["file:progress"]) => {
-            setListFiles((prevFiles) => prevFiles.map((f) => (f.id === data.id ? { ...f, progress: data.progress } : f)));
+            setFiles((prev) => ({ ...prev, items: prev.items.map((f) => (f.id === data.id ? { ...f, progress: data.progress } : f)) }));
         };
 
         socket.on("file:processed", handleFileProcessed);
@@ -62,7 +72,13 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
             socket.off("file:processed", handleFileProcessed);
             socket.off("file:progress", handleFileProgress);
         };
-    }, [socket, executeGet, setListFiles]);
+    }, [socket, executeGet, setFiles]);
+
+    const handleFileSelected = async (file: components["schemas"]["FileResponseDto"]) => {
+        setFileSelected(file);
+
+        await executeListMessage();
+    };
 
     const handleUpload = async (file: File | null) => {
         if (!file) {
@@ -83,12 +99,12 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
                     <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Documentos</h2>
 
                     <p className="text-xs text-gray-500 mt-1">
-                        {listFiles.length} arquivo{listFiles.length === 1 ? "" : "s"}
+                        {files.items.length} arquivo{files.items.length === 1 ? "" : "s"}
                     </p>
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-3 py-2 custom-scrollbar">
-                    {listFiles.length === 0 && (
+                    {files.items.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
                             <FileText size={48} className="text-gray-600 mb-3" />
 
@@ -98,9 +114,9 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
                         </div>
                     )}
 
-                    {listFiles.length > 0 && (
+                    {files.items.length > 0 && (
                         <ul className="space-y-1.5">
-                            {listFiles.map((file) => (
+                            {files.items.map((file) => (
                                 <li key={file.id}>
                                     <button
                                         className={`group w-full text-left px-3 py-3 rounded-xl transition-all duration-200 flex items-start gap-3 ${
@@ -108,7 +124,7 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
                                                 ? "bg-linear-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 shadow-lg shadow-blue-500/10"
                                                 : "hover:bg-white/5 border border-transparent hover:border-white/10"
                                         }`}
-                                        onClick={() => setFileSelected(file)}
+                                        onClick={() => handleFileSelected(file)}
                                     >
                                         <div
                                             className={`mt-0.5 ${
@@ -127,14 +143,7 @@ export default function InboxLateralList({ listFiles, setListFiles, setFileSelec
                                                 {file.name}
                                             </p>
 
-                                            {file.progress < 100 && (
-                                                <div className="w-full bg-white/10 rounded-full h-2.5 mt-2">
-                                                    <div
-                                                        className="bg-blue-500 h-2.5 rounded-full transition-all duration-500"
-                                                        style={{ width: `${file.progress}%` }}
-                                                    ></div>
-                                                </div>
-                                            )}
+                                            <ProgressBar progress={file.progress} />
                                         </div>
                                     </button>
                                 </li>

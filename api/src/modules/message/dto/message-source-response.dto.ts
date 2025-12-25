@@ -2,15 +2,16 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 
 export class MessageSourceResponseDto {
-    @ApiProperty({ example: 1 })
     @Expose()
+    @ApiProperty({ example: 1 })
     id: number;
 
-    @ApiProperty({ example: "Texto do trecho utilizado" })
     @Expose()
+    @ApiProperty({ example: "Texto do trecho utilizado" })
     text: string;
 
-    @ApiProperty({ example: 1 })
     @Expose()
+    @ApiProperty({ example: 1 })
     sourceIndex: number;
 }
+

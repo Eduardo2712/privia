@@ -1,9 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Expose } from "class-transformer";
 
 class UserLoginResponseDto {
+    @Expose()
     @ApiProperty({ example: "user@email.com", type: String })
     email: string;
 
+    @Expose()
     @ApiProperty({ example: "John Doe", type: String })
     name: string;
 
@@ -18,6 +21,7 @@ class UserLoginResponseDto {
 }
 
 export class LoginResponseDto {
+    @Expose()
     @ApiProperty({ type: UserLoginResponseDto })
     user: UserLoginResponseDto;
 

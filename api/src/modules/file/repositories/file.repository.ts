@@ -25,7 +25,7 @@ export class FileRepository extends BaseRepository<FileEntity> {
             },
             skip: (listFileRequestDto.page - 1) * 10,
             take: 10,
-            order: { createdAt: "DESC" }
+            order: { lastInteractionAt: "DESC" }
         });
 
         return { items, total };

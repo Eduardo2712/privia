@@ -228,6 +228,8 @@ export interface components {
             content: string;
             /** @example true */
             isProcessed: boolean;
+            /** @example 75 */
+            progress: number | null;
             /**
              * @example [
              *       "What is the summary?",
@@ -288,6 +290,8 @@ export interface components {
             content: string;
             /** @example true */
             isProcessed: boolean;
+            /** @example 75 */
+            progress: number | null;
             /**
              * @example [
              *       "What is the summary?",
@@ -354,6 +358,8 @@ export interface components {
             content: string;
             /** @example true */
             isProcessed: boolean;
+            /** @example 75 */
+            progress: number | null;
             /**
              * @example [
              *       "What is the summary?",
@@ -410,7 +416,7 @@ export interface components {
             sources: components["schemas"]["MessageSourceResponseDto"][];
             /**
              * Format: date-time
-             * @example 2025-12-24T23:08:30.228Z
+             * @example 2025-12-25T15:05:15.027Z
              */
             createdAt: string;
         };

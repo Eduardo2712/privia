@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
-import { ListMessageResponseDto } from "../../message/dto/list-message-response.dto";
+import { Expose } from "class-transformer";
 
 export class FileResponseDto {
     @Expose()
@@ -34,6 +33,10 @@ export class FileResponseDto {
     @Expose()
     @ApiProperty({ example: true, type: Boolean })
     isProcessed: boolean;
+
+    @Expose()
+    @ApiProperty({ example: 75, type: Number, nullable: true })
+    progress?: number;
 
     @Expose()
     @ApiProperty({ example: ["What is the summary?", "What are the key points?", "How to use this document?"], type: [String] })
