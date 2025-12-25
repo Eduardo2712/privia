@@ -21,7 +21,8 @@ export class MessageRepository extends BaseRepository<MessageEntity> {
 
         const [items, total] = await repository.findAndCount({
             where: {
-                userId: userId
+                userId: userId,
+                fileId: listMessageRequestDto.fileId
             },
             relations: {
                 sources: true

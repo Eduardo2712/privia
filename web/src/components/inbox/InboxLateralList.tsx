@@ -1,6 +1,6 @@
 import { FileText, Plus, Loader2 } from "lucide-react";
 import { components } from "../../types/api-types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRequest } from "../../hooks/use-request.hook";
 import { AxiosRequestConfig } from "axios";
 import { get, readFile } from "../../requests/file.request";
@@ -10,18 +10,16 @@ import Loading from "../Loading";
 import { useAlert } from "../../hooks/use-alert.hook";
 import { formatErrorMessage } from "../../utils/functions";
 import ProgressBar from "../ProgressBar";
-import { list } from "../../requests/message.request";
 
 interface Props {
     readonly files: components["schemas"]["ListFileResponseDto"];
     readonly setFiles: React.Dispatch<React.SetStateAction<components["schemas"]["ListFileResponseDto"]>>;
     readonly setFileSelected: (file: components["schemas"]["FileResponseDto"]) => void;
     readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
+    readonly handleFileSelected: (file: components["schemas"]["FileResponseDto"]) => void;
 }
 
-export default function InboxLateralList({ files, setFiles, setFileSelected, fileSelected }: Props) {
-    const [listMessages, setListMessages] = useState<Record<string, components["schemas"]["ListMessageResponseDto"]>>({});
-
+export default function InboxLateralList({ files, setFiles, setFileSelected, fileSelected, handleFileSelected }: Props) {
     const refInputFile = useRef<HTMLInputElement>(null);
 
     const alert = useAlert();
@@ -31,12 +29,6 @@ export default function InboxLateralList({ files, setFiles, setFileSelected, fil
     const { execute, loading } = useRequest({
         request: (config?: AxiosRequestConfig) => readFile(config?.data),
         onSuccess: (data) => setFiles((prev) => ({ ...prev, items: [data, ...prev.items], totalItems: prev.totalItems + 1 })),
-        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
-    });
-
-    const { execute: executeListMessage } = useRequest<components["schemas"]["ListMessageResponseDto"]>({
-        request: () => list({ fileId: fileSelected!.id, page: 1 }),
-        onSuccess: (data) => setListMessages((prev) => ({ ...prev, [fileSelected!.id]: data })),
         onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 
@@ -73,12 +65,6 @@ export default function InboxLateralList({ files, setFiles, setFileSelected, fil
             socket.off("file:progress", handleFileProgress);
         };
     }, [socket, executeGet, setFiles]);
-
-    const handleFileSelected = async (file: components["schemas"]["FileResponseDto"]) => {
-        setFileSelected(file);
-
-        await executeListMessage();
-    };
 
     const handleUpload = async (file: File | null) => {
         if (!file) {

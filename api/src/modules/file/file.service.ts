@@ -74,10 +74,22 @@ export class FileService {
     }
 
     public async searchFileStream(userId: number, searchFileDto: SearchFileRequestDto): Promise<SearchFileStreamResponseInterface> {
+        const file = await this.fileRepository.findOne({ where: { id: searchFileDto.documentId, userId } });
+
+        if (!file) {
+            throw new Error("Arquivo não encontrado.");
+        }
+
+        await this.fileRepository.update(file.id, {
+            lastInteractionAt: new Date(),
+            suggestedQuestions: []
+        });
+
         const startTime = Date.now();
 
-        const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
         const documentId = searchFileDto.documentId;
+
+        const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
         const searchResults = await this.qdrantService.search(userId, documentId, queryEmbedding);
 
         if (searchResults.length === 0) {
@@ -120,6 +132,7 @@ export class FileService {
         );
 
         const wrappedStream = this.createStreamWithAutoSave(stream, userId, documentId, userMessage.id, references);
+
         return {
             stream: wrappedStream,
             references,

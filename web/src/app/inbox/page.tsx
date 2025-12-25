@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRequest } from "../../hooks/use-request.hook";
 import { list } from "../../requests/file.request";
+import { list as listMessages } from "../../requests/message.request";
 import InboxHeader from "../../components/inbox/InboxHeader";
 import InboxLateralList from "../../components/inbox/InboxLateralList";
 import { components } from "../../types/api-types";
@@ -10,6 +11,7 @@ import InboxFileBox from "../../components/inbox/InboxFileBox";
 import { useAlert } from "../../hooks/use-alert.hook";
 import { formatErrorMessage } from "../../utils/functions";
 import Loading from "../../components/Loading";
+import { AxiosRequestConfig } from "axios";
 
 export default function HomePage() {
     const [files, setFiles] = useState<components["schemas"]["ListFileResponseDto"]>({
@@ -18,6 +20,7 @@ export default function HomePage() {
         totalItems: 0,
         totalPages: 1,
     });
+    const [messages, setMessages] = useState<Record<string, components["schemas"]["ListMessageResponseDto"]>>({});
     const [fileSelected, setFileSelected] = useState<components["schemas"]["FileResponseDto"] | null>(null);
 
     const alert = useAlert();
@@ -28,10 +31,29 @@ export default function HomePage() {
         onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 
+    const { execute: executeListMessage, loading: loadingMessages } = useRequest<components["schemas"]["ListMessageResponseDto"]>({
+        request: (config?: AxiosRequestConfig) => listMessages({ fileId: config?.data?.fileId, page: 1 }),
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
+    });
+
     const fetchList = async (page: number) => {
         setFiles((prev) => ({ ...prev, page }));
 
         await execute();
+    };
+
+    const handleFileSelected = async (file: components["schemas"]["FileResponseDto"]) => {
+        setFileSelected(file);
+
+        if (messages[file.id]) {
+            return;
+        }
+
+        const data = await executeListMessage({ data: { fileId: file.id } });
+
+        if (data) {
+            setMessages((prev) => ({ ...prev, [file.id]: data }));
+        }
     };
 
     useEffect(() => {
@@ -44,9 +66,17 @@ export default function HomePage() {
 
             <Loading isLoading={loading && files.page === 1}>
                 <div className="flex flex-row flex-1 overflow-hidden gap-0">
-                    <InboxLateralList files={files} setFiles={setFiles} setFileSelected={setFileSelected} fileSelected={fileSelected} />
+                    <InboxLateralList
+                        files={files}
+                        setFiles={setFiles}
+                        setFileSelected={setFileSelected}
+                        fileSelected={fileSelected}
+                        handleFileSelected={handleFileSelected}
+                    />
 
-                    <InboxFileBox fileSelected={fileSelected} setFiles={setFiles} setFileSelected={setFileSelected} />
+                    <Loading isLoading={loadingMessages}>
+                        <InboxFileBox fileSelected={fileSelected} setFiles={setFiles} setFileSelected={setFileSelected} />
+                    </Loading>
                 </div>
             </Loading>
         </div>
