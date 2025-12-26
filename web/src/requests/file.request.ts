@@ -19,8 +19,6 @@ type GetFileResponse = operations["FileController_get"]["responses"]["200"]["con
 export const searchFileStream = async (
     data: SearchFileRequest,
     onChunk: (text: string) => void,
-    onReferences: (refs: Array<{ text: string; index: number }>) => void,
-    onTimeInMs: (time: number) => void,
     onDone: () => void,
     onError: (error: unknown) => void
 ): Promise<void> => {
@@ -78,10 +76,6 @@ export const searchFileStream = async (
 
                     if (obj.type === "chunk" && obj.content) {
                         onChunk(obj.content);
-                    } else if (obj.type === "references" && obj.references) {
-                        onReferences(obj.references);
-                    } else if (obj.type === "timeInMs" && obj.timeInMs) {
-                        onTimeInMs(obj.timeInMs);
                     } else if (obj.type === "done") {
                         return onDone();
                     }

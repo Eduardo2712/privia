@@ -1,16 +1,12 @@
-import { ArrowDown, ArrowUp, Clock, FileText } from "lucide-react";
-import { formatTime } from "../../utils/functions";
+import { ArrowDown, ArrowUp, FileText } from "lucide-react";
 import { useState } from "react";
+import { components } from "../../types/api-types";
 
 interface Props {
-    readonly references: Array<{
-        index: number;
-        text: string;
-    }>;
-    readonly timeInMs: number;
+    readonly references: components["schemas"]["MessageSourceResponseDto"][];
 }
 
-export default function InboxReferences({ references, timeInMs }: Props) {
+export default function InboxReferences({ references }: Props) {
     const [openReferences, setOpenReferences] = useState(false);
 
     return (
@@ -31,30 +27,22 @@ export default function InboxReferences({ references, timeInMs }: Props) {
             </button>
 
             {openReferences && (
-                <>
-                    <div className="grid gap-3">
-                        {references.map((r) => (
-                            <div
-                                key={r.index}
-                                className="bg-[#242424]/50 border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors duration-200"
-                            >
-                                <div className="flex items-start gap-3">
-                                    <span className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 text-xs font-bold">
-                                        {r.index}
-                                    </span>
+                <div className="grid gap-3">
+                    {references.map((r) => (
+                        <div
+                            key={r.sourceIndex}
+                            className="bg-[#242424]/50 border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors duration-200"
+                        >
+                            <div className="flex items-start gap-3">
+                                <span className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 text-xs font-bold">
+                                    {r.sourceIndex}
+                                </span>
 
-                                    <p className="text-sm text-gray-300 leading-relaxed">{r.text}</p>
-                                </div>
+                                <p className="text-sm text-gray-300 leading-relaxed">{r.text}</p>
                             </div>
-                        ))}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-4">
-                        <Clock size={14} />
-
-                        <span>Tempo de busca: {formatTime(timeInMs)}</span>
-                    </div>
-                </>
+                        </div>
+                    ))}
+                </div>
             )}
         </div>
     );

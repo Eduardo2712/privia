@@ -1,25 +1,27 @@
 import { useState } from "react";
 import { remove, searchFileStream } from "../../requests/file.request";
-import { Sparkles, Send, FileText, BookOpen, Trash2, Loader2, File } from "lucide-react";
+import { Send, FileText, Trash2, Loader2, File } from "lucide-react";
 import { formatErrorMessage } from "../../utils/functions";
 import { components } from "../../types/api-types";
 import { useRequest } from "../../hooks/use-request.hook";
 import InboxSuggestedQuestions from "./InboxSuggestedQuestions";
 import { useAlert } from "../../hooks/use-alert.hook";
-import InboxReferences from "./InboxReferences";
+import InboxEmpty from "./InboxEmpty";
+import InboxMessages from "./InboxMessages";
 
 interface Props {
     readonly fileSelected: components["schemas"]["FileResponseDto"] | null;
     readonly setFiles: React.Dispatch<React.SetStateAction<components["schemas"]["ListFileResponseDto"]>>;
     readonly setFileSelected: React.Dispatch<React.SetStateAction<components["schemas"]["FileResponseDto"] | null>>;
+    readonly messages: Record<string, components["schemas"]["ListMessageResponseDto"]>;
 }
 
-export default function InboxFileBox({ fileSelected, setFiles, setFileSelected }: Props) {
+export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, messages }: Props) {
     const [streamingText, setStreamingText] = useState<string>("");
-    const [references, setReferences] = useState<Array<{ text: string; index: number }>>([]);
-    const [timeInMs, setTimeInMs] = useState<number>(0);
     const [streaming, setStreaming] = useState<boolean>(false);
     const [searchText, setSearchText] = useState<string>("");
+
+    const fileMessages = fileSelected ? messages[fileSelected.id] : null;
 
     const alert = useAlert();
 
@@ -28,8 +30,6 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected }
         onSuccess: () => {
             setFiles((prev) => ({ ...prev, items: prev.items.filter((file) => file.id !== fileSelected!.id) }));
             setStreamingText("");
-            setReferences([]);
-            setTimeInMs(0);
             setSearchText("");
             setFileSelected(null);
 
@@ -37,8 +37,6 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected }
         },
         onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
-
-    const formatReferences = () => {};
 
     const handleSearch = async () => {
         if (!fileSelected) {
@@ -51,14 +49,10 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected }
 
         setStreaming(true);
         setStreamingText("");
-        setTimeInMs(0);
-        setReferences([]);
 
         await searchFileStream(
             { search: searchText, documentId: fileSelected.id },
             (chunk) => setStreamingText((prev) => prev + chunk),
-            (refs) => setReferences(refs),
-            (time) => setTimeInMs(time),
             () => setStreaming(false),
             (error) => {
                 setStreaming(false);
@@ -93,135 +87,105 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected }
         }
     };
 
+    if (!fileSelected) {
+        return <InboxEmpty />;
+    }
+
     return (
         <div className="flex flex-col w-full h-full bg-[#1a1a1a]/30">
-            {!fileSelected && !streamingText ? (
-                <div className="flex flex-col items-center justify-center h-full">
-                    <div className="bg-linear-to-br from-blue-500/20 to-purple-500/20 p-6 rounded-2xl border border-white/10 shadow-2xl">
-                        <BookOpen size={64} className="text-blue-400 mx-auto" />
-                    </div>
+            <div className="flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <FileText size={20} className="text-blue-400" />
 
-                    <h2 className="text-2xl font-bold text-white mt-6 mb-2">Olá</h2>
-
-                    <p className="text-gray-400 text-center max-w-md">
-                        Selecione um documento na barra lateral ou envie um novo documento para começar a fazer perguntas
-                    </p>
-                </div>
-            ) : (
-                <div className="flex flex-col h-full">
-                    <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
-                        {streamingText ? (
-                            <div className="max-w-7xl mx-auto space-y-6">
-                                <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10 shadow-xl">
-                                    <div className="flex items-start gap-4">
-                                        <div className="bg-linear-to-br from-blue-500 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20 shrink-0">
-                                            <Sparkles size={20} className="text-white" />
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">{streamingText}</div>
-                                        </div>
-                                    </div>
+                                    <h3 className="text-lg font-semibold text-white">{fileSelected.name}</h3>
                                 </div>
 
-                                {references.length > 0 && <InboxReferences references={references} timeInMs={timeInMs} />}
-                            </div>
-                        ) : (
-                            fileSelected && (
-                                <>
-                                    <div className="max-w-7xl mx-auto">
-                                        <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <FileText size={20} className="text-blue-400" />
-
-                                                    <h3 className="text-lg font-semibold text-white">{fileSelected.name}</h3>
-                                                </div>
-
-                                                {fileSelected.isProcessed && (
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            className="p-2 border-2 rounded-md border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
-                                                            title="Ver arquivo original"
-                                                            disabled={loading}
-                                                            onClick={() => window.open(fileSelected.url, "_blank")}
-                                                        >
-                                                            {loading ? <Loader2 size={20} className="animate-spin" /> : <File size={20} />}
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            className="p-2 border-2 rounded-md border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 transition-colors duration-200 cursor-pointer"
-                                                            onClick={handleDeleteFile}
-                                                            title="Remover arquivo"
-                                                            disabled={loading}
-                                                        >
-                                                            {loading ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {fileSelected.isProcessed && (
-                                                <>
-                                                    <p className="text-gray-500 text-xs font-semibold mt-3">Resumo</p>
-
-                                                    <p className="text-gray-400 text-sm mt-2">{fileSelected.summary}</p>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {fileSelected?.isProcessed && fileSelected.suggestedQuestions.length > 0 && (
-                                        <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
-                                    )}
-                                </>
-                            )
-                        )}
-                    </div>
-
-                    <div className="border-t border-white/5 bg-[#1a1a1a]/80 backdrop-blur-xl">
-                        <div className="max-w-7xl mx-auto px-6 py-6">
-                            <div className="relative">
-                                {fileSelected?.isProcessed ? (
-                                    <>
-                                        <textarea
-                                            className="w-full bg-[#242424] border border-white/10 rounded-2xl px-5 py-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent resize-none transition-all duration-200 min-h-14 max-h-[200px]"
-                                            placeholder="Faça uma pergunta sobre o documento..."
-                                            value={searchText}
-                                            onChange={(e) => setSearchText(e.target.value)}
-                                            onKeyDown={handleKeyDown}
-                                            rows={2}
-                                            disabled={streaming}
-                                        />
+                                {fileSelected.isProcessed && (
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            className="p-2 border-2 rounded-md border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title="Ver arquivo original"
+                                            disabled={loading}
+                                            onClick={() => window.open(fileSelected.url, "_blank")}
+                                        >
+                                            {loading ? <Loader2 size={20} className="animate-spin" /> : <File size={20} />}
+                                        </button>
 
                                         <button
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-blue-500/25 flex items-center justify-center"
-                                            onClick={handleSearch}
-                                            disabled={streaming || !searchText.trim()}
+                                            type="button"
+                                            className="p-2 border-2 rounded-md border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                            onClick={handleDeleteFile}
+                                            title="Remover arquivo"
+                                            disabled={loading}
                                         >
-                                            {streaming ? (
-                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            ) : (
-                                                <Send size={20} />
-                                            )}
+                                            {loading ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
                                         </button>
-                                    </>
-                                ) : (
-                                    <div className="p-4 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-r-lg">
-                                        <p className="text-yellow-400 text-sm m-0">
-                                            O arquivo ainda está sendo processado. Por favor, aguarde alguns instantes antes de fazer perguntas.
-                                        </p>
                                     </div>
                                 )}
                             </div>
 
-                            <p className="text-xs text-gray-500 mt-3 text-center">Pressione Enter para enviar, Shift + Enter para nova linha</p>
+                            {fileSelected.isProcessed && (
+                                <>
+                                    <p className="text-gray-500 text-xs font-semibold mt-3">Resumo</p>
+
+                                    <p className="text-gray-400 text-sm mt-2">{fileSelected.summary}</p>
+                                </>
+                            )}
                         </div>
                     </div>
+
+                    {fileSelected?.isProcessed && fileSelected.suggestedQuestions.length > 0 && (
+                        <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
+                    )}
+
+                    <InboxMessages fileMessages={fileMessages} streaming={streaming} streamingText={streamingText} />
                 </div>
-            )}
+
+                <div className="border-t border-white/5 bg-[#1a1a1a]/80 backdrop-blur-xl">
+                    <div className="max-w-7xl mx-auto px-6 py-6">
+                        <div className="relative">
+                            {fileSelected?.isProcessed ? (
+                                <>
+                                    <textarea
+                                        className="w-full bg-[#242424] border border-white/10 rounded-2xl px-5 py-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent resize-none transition-all duration-200 min-h-14 max-h-[200px]"
+                                        placeholder="Faça uma pergunta sobre o documento..."
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                        onKeyDown={handleKeyDown}
+                                        rows={2}
+                                        disabled={streaming}
+                                    />
+
+                                    <button
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-blue-500/25 flex items-center justify-center"
+                                        onClick={handleSearch}
+                                        disabled={streaming || !searchText.trim()}
+                                    >
+                                        {streaming ? (
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <Send size={20} />
+                                        )}
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="p-4 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-r-lg">
+                                    <p className="text-yellow-400 text-sm m-0">
+                                        O arquivo ainda está sendo processado. Por favor, aguarde alguns instantes antes de fazer perguntas.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <p className="text-xs text-gray-500 mt-3 text-center">Pressione Enter para enviar, Shift + Enter para nova linha</p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

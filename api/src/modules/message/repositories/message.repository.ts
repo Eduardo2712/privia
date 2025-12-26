@@ -19,18 +19,15 @@ export class MessageRepository extends BaseRepository<MessageEntity> {
     async listByUser(userId: number, listMessageRequestDto: ListMessageRequestDto): Promise<{ items: MessageEntity[]; total: number }> {
         const repository = this.getRepository();
 
-        const [items, total] = await repository.findAndCount({
-            where: {
-                userId: userId,
-                fileId: listMessageRequestDto.fileId
-            },
-            relations: {
-                sources: true
-            },
-            skip: (listMessageRequestDto.page - 1) * 10,
-            take: 10,
-            order: { createdAt: "DESC" }
-        });
+        const [items, total] = await repository
+            .createQueryBuilder("messages")
+            .where("messages.userId = :userId AND messages.fileId = :fileId", { userId, fileId: listMessageRequestDto.fileId })
+            .leftJoinAndSelect("messages.sources", "sources", "sources.messageId = messages.id")
+            .orderBy("messages.createdAt", "DESC")
+            .addOrderBy("sources.sourceIndex", "ASC")
+            .take(10)
+            .skip((listMessageRequestDto.page - 1) * 10)
+            .getManyAndCount();
 
         return { items, total };
     }
