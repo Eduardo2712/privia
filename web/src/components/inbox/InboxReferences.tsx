@@ -18,6 +18,7 @@ export default function InboxReferences({ references }: Props) {
             >
                 <div className="flex items-center gap-2 text-sm text-gray-300 font-semibold">
                     <FileText size={16} />
+
                     <span>Fontes ({references.length})</span>
                 </div>
 

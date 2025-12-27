@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { remove, searchFileStream } from "../../requests/file.request";
-import { Send, FileText, Trash2, Loader2, File } from "lucide-react";
-import { formatErrorMessage } from "../../utils/functions";
+import { Send, FileText, Trash2, Loader2, File, Sparkles, CheckCircle2, Clock } from "lucide-react";
+import { formatBytes, formatDatePtBr, formatErrorMessage } from "../../utils/functions";
 import { components } from "../../types/api-types";
 import { useRequest } from "../../hooks/use-request.hook";
 import InboxSuggestedQuestions from "./InboxSuggestedQuestions";
@@ -82,8 +82,6 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
 
         if (confirmed) {
             await execute();
-
-            alert.success("Arquivo removido com sucesso!");
         }
     };
 
@@ -91,69 +89,120 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
         return <InboxEmpty />;
     }
 
+    const metaBadges = [
+        { label: "Tipo", value: fileSelected.mimeType },
+        { label: "Tamanho", value: formatBytes(fileSelected.size) },
+        { label: "Atualizado", value: formatDatePtBr(fileSelected.updatedAt) },
+    ];
+
     return (
-        <div className="flex flex-col w-full h-full bg-[#1a1a1a]/30">
+        <div className="flex flex-col w-full h-full bg-[#0b0b0b]">
             <div className="flex flex-col h-full">
                 <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
-                    <div className="max-w-7xl mx-auto">
-                        <div className="bg-linear-to-br from-[#242424] to-[#1e1e1e] rounded-2xl p-6 border border-white/10">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <FileText size={20} className="text-blue-400" />
+                    <div className="max-w-6xl mx-auto space-y-6">
+                        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#111111]/70 backdrop-blur-xl p-6 shadow-2xl shadow-black/30">
+                            <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-white/5 via-transparent to-blue-500/5" />
 
-                                    <h3 className="text-lg font-semibold text-white">{fileSelected.name}</h3>
+                            <div className="relative flex flex-wrap items-start justify-between gap-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-blue-300 shadow-inner shadow-blue-500/10">
+                                        <FileText size={24} />
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <p className="text-[11px] uppercase tracking-[0.18em] text-white/50">Ativo</p>
+                                        <h3 className="text-xl font-semibold text-white leading-tight">{fileSelected.name}</h3>
+
+                                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                                            <span
+                                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium shadow-sm shadow-black/20 ${
+                                                    fileSelected.isProcessed
+                                                        ? "bg-emerald-500/15 text-emerald-200 border border-emerald-500/30"
+                                                        : "bg-amber-500/15 text-amber-100 border border-amber-500/30"
+                                                }`}
+                                            >
+                                                {fileSelected.isProcessed ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+                                                {fileSelected.isProcessed ? "Pronto para perguntas" : "Processando"}
+                                            </span>
+
+                                            {metaBadges.map((meta) => (
+                                                <span
+                                                    key={meta.label}
+                                                    className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/70"
+                                                >
+                                                    <span className="uppercase tracking-[0.08em] text-white/40">{meta.label}</span>
+                                                    <span className="font-medium text-white/80">{meta.value}</span>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {fileSelected.isProcessed && (
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            className="p-2 border-2 rounded-md border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="Ver arquivo original"
-                                            disabled={loading}
-                                            onClick={() => window.open(fileSelected.url, "_blank")}
-                                        >
-                                            {loading ? <Loader2 size={20} className="animate-spin" /> : <File size={20} />}
-                                        </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white transition-all duration-200 hover:-translate-y-px hover:border-blue-400 hover:bg-blue-500/10"
+                                        title="Ver arquivo original"
+                                        disabled={loading}
+                                        onClick={() => window.open(fileSelected.url, "_blank")}
+                                    >
+                                        {loading ? <Loader2 size={18} className="animate-spin" /> : <File size={18} />}
+                                        <span className="hidden sm:inline">Abrir original</span>
+                                    </button>
 
-                                        <button
-                                            type="button"
-                                            className="p-2 border-2 rounded-md border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                            onClick={handleDeleteFile}
-                                            title="Remover arquivo"
-                                            disabled={loading}
-                                        >
-                                            {loading ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
-                                        </button>
-                                    </div>
-                                )}
+                                    <button
+                                        type="button"
+                                        className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200 transition-all duration-200 hover:-translate-y-px hover:border-red-400 hover:bg-red-500/15 disabled:opacity-50"
+                                        onClick={handleDeleteFile}
+                                        title="Remover arquivo"
+                                        disabled={loading}
+                                    >
+                                        {loading ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                                        <span className="hidden sm:inline">Remover</span>
+                                    </button>
+                                </div>
                             </div>
 
-                            {fileSelected.isProcessed && (
-                                <>
-                                    <p className="text-gray-500 text-xs font-semibold mt-3">Resumo</p>
+                            {fileSelected.isProcessed ? (
+                                <div className="relative mt-5 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/10">
+                                    <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-white/60">
+                                        <Sparkles size={16} className="text-blue-300" />
+                                        <span>Resumo rápido</span>
+                                    </div>
+                                    <p className="mt-2 text-base leading-relaxed text-gray-100">
+                                        {fileSelected.summary || "Nenhum resumo disponível para este arquivo."}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="relative mt-5 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/10">
+                                    <div className="flex items-center gap-2 text-sm text-white/80">
+                                        <Loader2 size={18} className="animate-spin text-amber-300" />
+                                        <span>Preparando seu documento. Assim que finalizar, você poderá fazer perguntas.</span>
+                                    </div>
 
-                                    <p className="text-gray-400 text-sm mt-2">{fileSelected.summary}</p>
-                                </>
+                                    <p className="mt-2 text-[12px] text-white/50">Fique à vontade para explorar enquanto processamos.</p>
+                                </div>
                             )}
                         </div>
+
+                        {fileSelected?.isProcessed && fileSelected.suggestedQuestions.length > 0 && (
+                            <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
+                        )}
+
+                        <div className="pt-2">
+                            <InboxMessages fileMessages={fileMessages} streaming={streaming} streamingText={streamingText} />
+                        </div>
                     </div>
-
-                    {fileSelected?.isProcessed && fileSelected.suggestedQuestions.length > 0 && (
-                        <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
-                    )}
-
-                    <InboxMessages fileMessages={fileMessages} streaming={streaming} streamingText={streamingText} />
                 </div>
 
-                <div className="border-t border-white/5 bg-[#1a1a1a]/80 backdrop-blur-xl">
-                    <div className="max-w-7xl mx-auto px-6 py-6">
+                <div className="border-t border-white/5 bg-[#0f0f0f]/90 backdrop-blur-xl">
+                    <div className="max-w-6xl mx-auto px-6 py-5 space-y-2">
                         <div className="relative">
                             {fileSelected?.isProcessed ? (
                                 <>
                                     <textarea
-                                        className="w-full bg-[#242424] border border-white/10 rounded-2xl px-5 py-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent resize-none transition-all duration-200 min-h-14 max-h-[200px]"
-                                        placeholder="Faça uma pergunta sobre o documento..."
+                                        className="w-full rounded-2xl border border-white/10 bg-[#161616] px-5 py-4 pr-16 text-white placeholder-white/40 shadow-inner shadow-black/30 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all duration-200 min-h-16 max-h-[220px] resize-none"
+                                        placeholder="Faça uma pergunta focada, como 'quais são os insights-chave do resumo?'"
                                         value={searchText}
                                         onChange={(e) => setSearchText(e.target.value)}
                                         onKeyDown={handleKeyDown}
@@ -162,27 +211,30 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                                     />
 
                                     <button
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-blue-500/25 flex items-center justify-center"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-xl bg-linear-to-r from-blue-500 to-purple-600 p-3 text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-px hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50"
                                         onClick={handleSearch}
                                         disabled={streaming || !searchText.trim()}
                                     >
                                         {streaming ? (
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                                         ) : (
                                             <Send size={20} />
                                         )}
                                     </button>
                                 </>
                             ) : (
-                                <div className="p-4 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-r-lg">
-                                    <p className="text-yellow-400 text-sm m-0">
-                                        O arquivo ainda está sendo processado. Por favor, aguarde alguns instantes antes de fazer perguntas.
+                                <div className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-4">
+                                    <p className="m-0 text-sm text-yellow-100">
+                                        O arquivo ainda está sendo processado. Em instantes ele ficará pronto para perguntas.
                                     </p>
                                 </div>
                             )}
                         </div>
 
-                        <p className="text-xs text-gray-500 mt-3 text-center">Pressione Enter para enviar, Shift + Enter para nova linha</p>
+                        <div className="flex items-center justify-between text-[12px] text-white/50">
+                            <span>Pressione Enter para enviar · Shift + Enter para nova linha</span>
+                            <span>Melhore a resposta sendo específico.</span>
+                        </div>
                     </div>
                 </div>
             </div>

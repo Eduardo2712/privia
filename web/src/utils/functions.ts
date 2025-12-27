@@ -13,11 +13,11 @@ export const formatBRL = (value: number): string => {
 };
 
 export const formatDecimal = (value: number): string => {
-    return formatBRL(value).replace("R$", "");
+    return formatBRL(value).replaceAll("R$", "");
 };
 
 export const cleanMoney = (value: string): string => {
-    value = value.replace(/\s/g, "").replace("R$", "");
+    value = value.replaceAll(/\s/g, "").replace("R$", "");
 
     value = value.replaceAll(".", "");
     value = value.replaceAll(",", ".");
@@ -27,61 +27,61 @@ export const cleanMoney = (value: string): string => {
 
 export const formatCEP = (value: string): string => {
     value = value
-        .replace(/\D/g, "")
-        .replace(/(\d{5})(\d{1,2})/, "$1-$2")
-        .replace(/(-\d{3})\d+$/, "$1");
+        .replaceAll(/\D/g, "")
+        .replaceAll(/(\d{5})(\d{1,2})/, "$1-$2")
+        .replaceAll(/(-\d{3})\d+$/, "$1");
 
     return value;
 };
 
 export const formatCPF = (value: string): string => {
     value = value
-        .replace(/\D/g, "")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-        .replace(/(-\d{2})\d+$/, "$1");
+        .replaceAll(/\D/g, "")
+        .replaceAll(/(\d{3})(\d)/, "$1.$2")
+        .replaceAll(/(\d{3})(\d)/, "$1.$2")
+        .replaceAll(/(\d{3})(\d{1,2})/, "$1-$2")
+        .replaceAll(/(-\d{2})\d+$/, "$1");
 
     return value;
 };
 
 export const formatCNPJ = (value: string): string => {
     value = value
-        .replace(/\D/g, "")
-        .replace(/(\d{2})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1/$2")
-        .replace(/(\d{4})(\d)/, "$1-$2");
+        .replaceAll(/\D/g, "")
+        .replaceAll(/(\d{2})(\d)/, "$1.$2")
+        .replaceAll(/(\d{3})(\d)/, "$1.$2")
+        .replaceAll(/(\d{3})(\d)/, "$1/$2")
+        .replaceAll(/(\d{4})(\d)/, "$1-$2");
 
     return value;
 };
 
 export const formatMoney = (value: string): string => {
     value = value
-        .replace(/\D/g, "")
-        .replace(/(\d)(\d{2})$/, "$1,$2")
-        .replace(/(?=(\d{3})+(\D))\B/g, ".");
+        .replaceAll(/\D/g, "")
+        .replaceAll(/(\d)(\d{2})$/, "$1,$2")
+        .replaceAll(/(?=(\d{3})+(\D))\B/g, ".");
 
     return value;
 };
 
 export const formatPhone = (value: string): string => {
     value = value
-        .replace(/\D/g, "")
-        .replace(/(\d{2})(\d)/, "($1) $2")
-        .replace(/(\d{4})(\d)/, "$1-$2")
-        .replace(/(\d{4})-(\d)(\d{4})/, "$1$2-$3")
-        .replace(/(-\d{4})\d+$/, "$1");
+        .replaceAll(/\D/g, "")
+        .replaceAll(/(\d{2})(\d)/, "($1) $2")
+        .replaceAll(/(\d{4})(\d)/, "$1-$2")
+        .replaceAll(/(\d{4})-(\d)(\d{4})/, "$1$2-$3")
+        .replaceAll(/(-\d{4})\d+$/, "$1");
 
     return value;
 };
 
 export const formatDate = (value: string): string => {
     value = value
-        .replace(/\D/g, "")
-        .replace(/(\d{2})(\d)/, "$1/$2")
-        .replace(/(\d{2})(\d)/, "$1/$2")
-        .replace(/(\d{4})\d+$/, "$1");
+        .replaceAll(/\D/g, "")
+        .replaceAll(/(\d{2})(\d)/, "$1/$2")
+        .replaceAll(/(\d{2})(\d)/, "$1/$2")
+        .replaceAll(/(\d{4})\d+$/, "$1");
 
     return value;
 };
@@ -157,4 +157,24 @@ export const formatErrorMessage = (message: unknown): string => {
     }
 
     return typeof message === "string" ? message : "Ocorreu um erro inesperado.";
+};
+
+export const formatBytes = (bytes: number) => {
+    if (!bytes) {
+        return "0 B";
+    }
+
+    const sizes = ["B", "KB", "MB", "GB"] as const;
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
+    const value = bytes / 1024 ** i;
+
+    return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${sizes[i]}`;
+};
+
+export const formatDatePtBr = (value: string) => {
+    return new Date(value).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
 };
