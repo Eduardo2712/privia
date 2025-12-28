@@ -27,10 +27,6 @@ export class FileResponseDto {
     summary: string;
 
     @Expose()
-    @ApiProperty({ example: "This is the content of the file.", type: String })
-    content: string;
-
-    @Expose()
     @ApiProperty({ example: true, type: Boolean })
     isProcessed: boolean;
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { remove, searchFileStream } from "../../requests/file.request";
 import { Send, FileText, Trash2, Loader2, File, Sparkles, CheckCircle2, Clock } from "lucide-react";
 import { formatBytes, formatDatePtBr, formatErrorMessage } from "../../utils/functions";
@@ -21,9 +21,21 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
     const [streaming, setStreaming] = useState<boolean>(false);
     const [searchText, setSearchText] = useState<string>("");
 
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
     const fileMessages = fileSelected ? messages[fileSelected.id] : null;
 
     const alert = useAlert();
+
+    useEffect(() => {
+        const scrollContainer = scrollContainerRef.current;
+
+        if (scrollContainer) {
+            setTimeout(() => {
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            }, 0);
+        }
+    }, [fileMessages, fileSelected, streamingText]);
 
     const { execute, loading } = useRequest({
         request: () => remove(fileSelected!.id),
@@ -98,7 +110,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
     return (
         <div className="flex flex-col w-full h-full bg-[#0b0b0b]">
             <div className="flex flex-col h-full">
-                <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
+                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
                     <div className="max-w-6xl mx-auto space-y-6">
                         <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#111111]/70 backdrop-blur-xl p-6 shadow-2xl shadow-black/30">
                             <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-white/5 via-transparent to-blue-500/5" />
@@ -167,8 +179,10 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                                 <div className="relative mt-5 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/10">
                                     <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-white/60">
                                         <Sparkles size={16} className="text-blue-300" />
+
                                         <span>Resumo rápido</span>
                                     </div>
+
                                     <p className="mt-2 text-base leading-relaxed text-gray-100">
                                         {fileSelected.summary || "Nenhum resumo disponível para este arquivo."}
                                     </p>
@@ -177,6 +191,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                                 <div className="relative mt-5 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/10">
                                     <div className="flex items-center gap-2 text-sm text-white/80">
                                         <Loader2 size={18} className="animate-spin text-amber-300" />
+
                                         <span>Preparando seu documento. Assim que finalizar, você poderá fazer perguntas.</span>
                                     </div>
 
@@ -185,13 +200,9 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                             )}
                         </div>
 
-                        {fileSelected?.isProcessed && fileSelected.suggestedQuestions.length > 0 && (
-                            <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
-                        )}
+                        <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
 
-                        <div className="pt-2">
-                            <InboxMessages fileMessages={fileMessages} streaming={streaming} streamingText={streamingText} />
-                        </div>
+                        <InboxMessages fileMessages={fileMessages} streaming={streaming} streamingText={streamingText} />
                     </div>
                 </div>
 
@@ -211,7 +222,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                                     />
 
                                     <button
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-xl bg-linear-to-r from-blue-500 to-purple-600 p-3 text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-px hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-xl bg-linear-to-r from-blue-500 to-purple-600 p-3 text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50"
                                         onClick={handleSearch}
                                         disabled={streaming || !searchText.trim()}
                                     >
@@ -233,6 +244,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
 
                         <div className="flex items-center justify-between text-[12px] text-white/50">
                             <span>Pressione Enter para enviar · Shift + Enter para nova linha</span>
+
                             <span>Melhore a resposta sendo específico.</span>
                         </div>
                     </div>

@@ -19,10 +19,10 @@ export default function CustomTooltip({ children, content, position = "top", del
         setIsVisible(true);
     };
 
-    const handleMouseLeave = () => {
-        timeoutRef.current = setTimeout(() => {
-            setIsVisible(false);
-        }, delay);
+    const handleHideWithDelay = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+        timeoutRef.current = setTimeout(() => setIsVisible(false), delay);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -39,19 +39,24 @@ export default function CustomTooltip({ children, content, position = "top", del
     };
 
     const arrowClasses = {
-        top: "top-full left-1/2 -translate-x-1/2 border-t-gray-900",
-        bottom: "bottom-full left-1/2 -translate-x-1/2 border-b-gray-900",
-        left: "left-full top-1/2 -translate-y-1/2 border-l-gray-900",
-        right: "right-full top-1/2 -translate-y-1/2 border-r-gray-900",
+        top: "top-full left-1/2 -translate-x-1/2 border-t-[rgba(12,15,22,0.95)]",
+        bottom: "bottom-full left-1/2 -translate-x-1/2 border-b-[rgba(12,15,22,0.95)]",
+        left: "left-full top-1/2 -translate-y-1/2 border-l-[rgba(12,15,22,0.95)]",
+        right: "right-full top-1/2 -translate-y-1/2 border-r-[rgba(12,15,22,0.95)]",
     };
 
     return (
         <button
-            className="relative inline-block bg-transparent border-none cursor-pointer p-0"
+            type="button"
+            className="group relative inline-flex items-center p-0 bg-transparent border-none cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded-md"
             onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            onMouseLeave={handleHideWithDelay}
+            onFocus={handleMouseEnter}
+            onBlur={handleHideWithDelay}
             onKeyDown={handleKeyDown}
             aria-describedby={isVisible ? tooltipId : undefined}
+            aria-haspopup="true"
+            aria-expanded={isVisible}
         >
             {children}
 
@@ -59,15 +64,20 @@ export default function CustomTooltip({ children, content, position = "top", del
                 <div
                     id={tooltipId}
                     className={`
-                        absolute z-50 px-3 py-2 text-sm font-medium 
-                        text-white bg-gray-900 rounded-lg shadow-lg
-                        transition-opacity duration-200
-                        block w-max max-w-sm max-h-64 overflow-y-auto wrap-break-word
+                        absolute z-50 px-3.5 py-3 text-sm leading-relaxed font-medium
+                        text-gray-100 bg-[#0c0f16]/90 border border-white/10 rounded-xl backdrop-blur-xl
+                        shadow-[0_18px_50px_-28px_rgba(59,130,246,0.55),0_12px_36px_-30px_rgba(147,51,234,0.45)]
+                        transition-all duration-200 ease-out
+                        block w-max max-w-sm max-h-64 overflow-y-auto custom-scrollbar wrap-break-word whitespace-pre-line
                         ${positionClasses[position]}
                     `}
                     role="tooltip"
                     aria-hidden={!isVisible}
                 >
+                    <span
+                        className="absolute inset-0 -z-10 rounded-2xl bg-linear-to-br from-blue-500/15 via-purple-500/8 to-blue-500/12 blur-2xl"
+                        aria-hidden="true"
+                    />
                     {content}
                     <div
                         className={`

@@ -46,14 +46,12 @@ export class FileController {
             res.setHeader("Connection", "keep-alive");
             res.setHeader("X-Accel-Buffering", "no");
 
-            const { stream, references, timeInMs } = await this.fileService.searchFileStream(user.id, searchFileDto);
+            const { stream } = await this.fileService.searchFileStream(user.id, searchFileDto);
 
             for await (const chunk of stream) {
                 res.write(`data: ${JSON.stringify({ type: "chunk", content: chunk })}\n\n`);
             }
 
-            res.write(`data: ${JSON.stringify({ type: "references", references })}\n\n`);
-            res.write(`data: ${JSON.stringify({ type: "timeInMs", timeInMs })}\n\n`);
             res.write(`data: ${JSON.stringify({ type: "done" })}\n\n`);
 
             res.end();

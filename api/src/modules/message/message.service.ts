@@ -86,7 +86,7 @@ export class MessageService {
         const items = plainToInstance(MessageResponseDto, result.items, { excludeExtraneousValues: true });
 
         return {
-            items,
+            items: items.toReversed(),
             page: listMessageRequestDto.page,
             totalItems: result.total,
             totalPages: Math.ceil(result.total / 10)

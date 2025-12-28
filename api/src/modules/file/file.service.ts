@@ -85,8 +85,6 @@ export class FileService {
             suggestedQuestions: []
         });
 
-        const startTime = Date.now();
-
         const documentId = searchFileDto.documentId;
 
         const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
@@ -110,9 +108,7 @@ export class FileService {
             );
 
             return {
-                stream: emptyIterator,
-                references: [],
-                timeInMs: Date.now() - startTime
+                stream: emptyIterator
             };
         }
 
@@ -134,9 +130,7 @@ export class FileService {
         const wrappedStream = this.createStreamWithAutoSave(stream, userId, documentId, userMessage.id, references);
 
         return {
-            stream: wrappedStream,
-            references,
-            timeInMs: Date.now() - startTime
+            stream: wrappedStream
         };
     }
 

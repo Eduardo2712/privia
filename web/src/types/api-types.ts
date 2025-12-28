@@ -263,7 +263,7 @@ export interface components {
          * @description Type of search result
          * @enum {string}
          */
-        SearchFileChunkType: "chunk" | "reference" | "timeInMs";
+        SearchFileChunkType: "chunk";
         SearchFileReferenceDto: {
             /** @description Type of search result */
             type: components["schemas"]["SearchFileChunkType"];
@@ -416,7 +416,7 @@ export interface components {
             sources: components["schemas"]["MessageSourceResponseDto"][];
             /**
              * Format: date-time
-             * @example 2025-12-25T15:05:15.027Z
+             * @example 2025-12-27T23:28:24.387Z
              */
             createdAt: string;
         };

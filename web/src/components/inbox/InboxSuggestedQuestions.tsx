@@ -7,6 +7,10 @@ interface Props {
 }
 
 export default function InboxSuggestedQuestions({ fileSelected, setSearchText }: Props) {
+    if (!fileSelected?.isProcessed || fileSelected.suggestedQuestions.length === 0) {
+        return null;
+    }
+
     return (
         <div className="max-w-6xl mx-auto">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl">

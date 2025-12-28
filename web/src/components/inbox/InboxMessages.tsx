@@ -17,8 +17,8 @@ export default function InboxMessages({ streamingText, streaming, fileMessages }
 
         const parts = content.split(/(\[\d+\])/);
 
-        return parts.map((part, index) => {
-            const match = part.match(/\[(\d+)\]/);
+        return parts.map((part) => {
+            const match = /\[(\d+)\]/.exec(part);
 
             if (match) {
                 const sourceIndex = Number.parseInt(match[1], 10);
@@ -32,6 +32,7 @@ export default function InboxMessages({ streamingText, streaming, fileMessages }
                     );
                 }
             }
+
             return part;
         });
     };
@@ -66,9 +67,7 @@ export default function InboxMessages({ streamingText, streaming, fileMessages }
 
                                               <span className="h-1 w-1 rounded-full bg-white/30" />
 
-                                              <CustomTooltip content={new Date(message.createdAt).toLocaleString()}>
-                                                  <span className="text-white/40 uppercase">Notas vinculadas ao documento</span>
-                                              </CustomTooltip>
+                                              <span className="text-white/40 uppercase">Notas vinculadas ao documento</span>
                                           </div>
 
                                           <div className="text-gray-100 leading-relaxed whitespace-pre-wrap">{formatTooltipSource(message)}</div>

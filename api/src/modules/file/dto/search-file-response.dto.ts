@@ -2,9 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 
 enum SearchFileChunkType {
-    CHUNK = "chunk",
-    REFERENCE = "reference",
-    TIME_IN_MS = "timeInMs"
+    CHUNK = "chunk"
 }
 
 export class SearchFileReferenceDto<T> {
