@@ -14,6 +14,7 @@ import { ListFileRequestDto } from "./dto/list-file-request.dto";
 import { ListFileResponseDto } from "./dto/list-file-response.dto";
 import { GetFileResponseDto } from "./dto/get-file.response.dto";
 import { ReadFileResponseDto } from "./dto/read-file.response.dto";
+import { GetLastestMessagesResponseDto } from "./dto/get-lastest-messages-response.dto";
 
 @ApiTags("file")
 @ApiExtraModels(ReadFileResponseDto)
@@ -88,6 +89,14 @@ export class FileController {
     @ApiCookieAuth()
     async get(@GetUser() user: LoggedUserInterface, @Param("id") id: number): Promise<GetFileResponseDto> {
         return await this.fileService.get(user.id, id);
+    }
+
+    @Get("/:id/message/lastest")
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse({ type: GetLastestMessagesResponseDto, isArray: true })
+    @ApiCookieAuth()
+    async getLastestMessages(@GetUser() user: LoggedUserInterface, @Param("id") id: number): Promise<GetLastestMessagesResponseDto[]> {
+        return await this.fileService.getLastestMessages(user.id, id);
     }
 }
 

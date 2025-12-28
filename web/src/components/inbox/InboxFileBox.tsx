@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { remove, searchFileStream } from "../../requests/file.request";
+import { getLastestMessages, remove, searchFileStream } from "../../requests/file.request";
 import { Send, FileText, Trash2, Loader2, File, Sparkles, CheckCircle2, Clock } from "lucide-react";
 import { formatBytes, formatDatePtBr, formatErrorMessage } from "../../utils/functions";
 import { components } from "../../types/api-types";
@@ -51,6 +51,20 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
         onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
     });
 
+    const { execute: executeGetLastestMessages } = useRequest({
+        request: () => getLastestMessages(fileSelected!.id),
+        onSuccess: (data) => {
+            setMessages((prev) => ({
+                ...prev,
+                [fileSelected!.id]: {
+                    ...prev[fileSelected!.id],
+                    items: [...(prev[fileSelected!.id]?.items || []), ...data],
+                },
+            }));
+        },
+        onError: (err) => alert.error(formatErrorMessage(err.response?.data)),
+    });
+
     const handleSearch = async () => {
         if (!fileSelected) {
             return alert.error("Nenhum arquivo selecionado para busca.");
@@ -66,7 +80,12 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
         await searchFileStream(
             { search: searchText, documentId: fileSelected.id },
             (chunk) => setStreamingText((prev) => prev + chunk),
-            () => setStreaming(false),
+            async () => {
+                setStreaming(false);
+                setStreamingText("");
+
+                await executeGetLastestMessages();
+            },
             (error) => {
                 setStreaming(false);
                 setStreamingText("");
@@ -125,6 +144,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
 
                                     <div className="space-y-1">
                                         <p className="text-[11px] uppercase tracking-[0.18em] text-white/50">Ativo</p>
+
                                         <h3 className="text-xl font-semibold text-white leading-tight">{fileSelected.name}</h3>
 
                                         <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -136,6 +156,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                                                 }`}
                                             >
                                                 {fileSelected.isProcessed ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+
                                                 {fileSelected.isProcessed ? "Pronto para perguntas" : "Processando"}
                                             </span>
 
@@ -204,7 +225,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
 
                         <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
 
-                        <InboxMessages fileMessages={fileMessages} streaming={streaming} streamingText={streamingText} />
+                        <InboxMessages fileMessages={fileMessages} streaming={streaming} streamingText={streamingText} searchText={searchText} />
                     </div>
                 </div>
 

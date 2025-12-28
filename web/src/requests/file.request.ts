@@ -16,6 +16,9 @@ type RemoveFileResponse = operations["FileController_deleteFile"]["responses"]["
 type GetFileRequest = operations["FileController_get"]["parameters"]["path"];
 type GetFileResponse = operations["FileController_get"]["responses"]["200"]["content"]["application/json"];
 
+type GetLastestMessagesResponse = components["schemas"]["GetLastestMessagesResponseDto"][];
+type GetLastestMessagesRequest = operations["FileController_getLastestMessages"]["parameters"]["path"];
+
 const processStreamLine = (line: string, onChunk: (text: string) => void, onDone: () => void): boolean => {
     const trimmed = line.trim();
 
@@ -125,4 +128,8 @@ export const remove = async (id: RemoveFileRequest["id"]): AxiosPromise<RemoveFi
 
 export const get = async (id: GetFileRequest["id"]): AxiosPromise<GetFileResponse> => {
     return axios.get(`/file/${id}`);
+};
+
+export const getLastestMessages = async (id: GetLastestMessagesRequest["id"]): AxiosPromise<GetLastestMessagesResponse> => {
+    return axios.get(`/file/${id}/message/lastest`);
 };

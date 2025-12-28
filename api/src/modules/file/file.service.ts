@@ -18,6 +18,7 @@ import { ReadFileResponseDto } from "./dto/read-file.response.dto";
 import { MessageService } from "../message/message.service";
 import { MessageTypeEnum } from "../message/enums/message.enum";
 import { UnitOfWorkService } from "../../common/unity-of-work.service";
+import { GetLastestMessagesResponseDto } from "./dto/get-lastest-messages-response.dto";
 
 @Injectable()
 export class FileService {
@@ -209,6 +210,16 @@ export class FileService {
         );
 
         return fileDto;
+    }
+
+    public async getLastestMessages(userId: number, id: number): Promise<GetLastestMessagesResponseDto[]> {
+        const lastMessage = await this.messageService.getLastestMessagesByFileId(userId, id);
+
+        if (!lastMessage || lastMessage.length === 0) {
+            throw new Error("Nenhuma mensagem encontrada para este arquivo.");
+        }
+
+        return plainToInstance(GetLastestMessagesResponseDto, lastMessage, { excludeExtraneousValues: true });
     }
 }
 

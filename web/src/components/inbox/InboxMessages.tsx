@@ -7,9 +7,10 @@ interface Props {
     readonly streamingText: string;
     readonly streaming: boolean;
     readonly fileMessages: components["schemas"]["ListMessageResponseDto"] | null;
+    readonly searchText: string;
 }
 
-export default function InboxMessages({ streamingText, streaming, fileMessages }: Props) {
+export default function InboxMessages({ streamingText, streaming, fileMessages, searchText }: Props) {
     const hasMessages = !!fileMessages && fileMessages.items.length > 0;
 
     const formatTooltipSource = (message: components["schemas"]["MessageResponseDto"]) => {
@@ -86,6 +87,26 @@ export default function InboxMessages({ streamingText, streaming, fileMessages }
                           </div>
                       </div>
                   )}
+
+            {searchText && streaming && (
+                <div className="max-w-6xl mx-auto space-y-3">
+                    <div className="rounded-2xl border p-6 shadow-xl transition-colors duration-200 border-blue-500/30 bg-blue-500/10">
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400">
+                                <User size={20} />
+                            </div>
+
+                            <div className="flex-1 space-y-2">
+                                <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.08em] text-blue-300 font-semibold">
+                                    <span>Sua Pergunta</span>
+                                </div>
+
+                                <div className="text-blue-100 leading-relaxed whitespace-pre-wrap font-medium">{searchText}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {(streaming || streamingText) && (
                 <div className="max-w-6xl mx-auto space-y-3">

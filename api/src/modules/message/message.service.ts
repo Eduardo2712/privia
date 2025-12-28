@@ -92,5 +92,15 @@ export class MessageService {
             totalPages: Math.ceil(result.total / 10)
         };
     }
+
+    public async getLastestMessagesByFileId(userId: number, fileId: number): Promise<MessageResponseDto[] | null> {
+        const message = await this.messageRepository.getLastestMessagesByFileId(userId, fileId);
+
+        if (!message) {
+            return null;
+        }
+
+        return message.reverse();
+    }
 }
 

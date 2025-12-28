@@ -31,5 +31,33 @@ export class MessageRepository extends BaseRepository<MessageEntity> {
 
         return { items, total };
     }
+
+    async getLastestMessagesByFileId(userId: number, fileId: number): Promise<MessageEntity[] | null> {
+        const repository = this.getRepository();
+
+        const messageIds = await repository
+            .createQueryBuilder("messages")
+            .select("messages.id")
+            .where("messages.userId = :userId AND messages.fileId = :fileId", { userId, fileId })
+            .orderBy("messages.createdAt", "DESC")
+            .take(2)
+            .getMany();
+
+        if (messageIds.length === 0) {
+            return [];
+        }
+
+        const ids = messageIds.map((m) => m.id);
+
+        const message = await repository
+            .createQueryBuilder("messages")
+            .whereInIds(ids)
+            .leftJoinAndSelect("messages.sources", "sources")
+            .orderBy("messages.createdAt", "DESC")
+            .addOrderBy("sources.sourceIndex", "ASC")
+            .getMany();
+
+        return message;
+    }
 }
 

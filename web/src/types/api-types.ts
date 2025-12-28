@@ -132,6 +132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/file/{id}/message/lastest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FileController_getLastestMessages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/message/ai-response": {
         parameters: {
             query?: never;
@@ -372,6 +388,31 @@ export interface components {
              */
             updatedAt: string;
         };
+        MessageSourceResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example Texto do trecho utilizado */
+            text: string;
+            /** @example 1 */
+            sourceIndex: number;
+        };
+        GetLastestMessagesResponseDto: {
+            /** @example 42 */
+            id: number;
+            /**
+             * @example AI
+             * @enum {string}
+             */
+            type: "USER" | "AI" | "SYSTEM";
+            /** @example Resposta gerada pela IA */
+            content: string;
+            sources: components["schemas"]["MessageSourceResponseDto"][];
+            /**
+             * Format: date-time
+             * @example 2025-12-28T16:15:07.231Z
+             */
+            createdAt: string;
+        };
         MessageSourceItemDto: {
             /** @example Texto do trecho utilizado */
             text: string;
@@ -388,14 +429,6 @@ export interface components {
             /** @default [] */
             sources: components["schemas"]["MessageSourceItemDto"][];
         };
-        MessageSourceResponseDto: {
-            /** @example 1 */
-            id: number;
-            /** @example Texto do trecho utilizado */
-            text: string;
-            /** @example 1 */
-            sourceIndex: number;
-        };
         MessageResponseDto: {
             /** @example 42 */
             id: number;
@@ -409,7 +442,7 @@ export interface components {
             sources: components["schemas"]["MessageSourceResponseDto"][];
             /**
              * Format: date-time
-             * @example 2025-12-28T00:50:45.381Z
+             * @example 2025-12-28T16:15:07.231Z
              */
             createdAt: string;
         };
@@ -670,6 +703,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    FileController_getLastestMessages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetLastestMessagesResponseDto"][];
+                };
             };
         };
     };
