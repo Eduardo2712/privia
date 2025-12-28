@@ -56,10 +56,7 @@ export class FileService {
             userId
         });
 
-        await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, userId, newFile, text), {
-            attempts: 1,
-            backoff: { type: "exponential", delay: 5000 }
-        });
+        await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, userId, newFile, text));
 
         const fileDto = plainToInstance(
             ReadFileResponseDto,

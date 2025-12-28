@@ -75,7 +75,13 @@ export default function HomePage() {
                     />
 
                     <Loading isLoading={loadingMessages}>
-                        <InboxFileBox fileSelected={fileSelected} setFiles={setFiles} setFileSelected={setFileSelected} messages={messages} />
+                        <InboxFileBox
+                            fileSelected={fileSelected}
+                            setFiles={setFiles}
+                            setFileSelected={setFileSelected}
+                            messages={messages}
+                            setMessages={setMessages}
+                        />
                     </Loading>
                 </div>
             </Loading>

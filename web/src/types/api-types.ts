@@ -224,8 +224,6 @@ export interface components {
             mimeType: string;
             /** @example This is a summary of the file. */
             summary: string;
-            /** @example This is the content of the file. */
-            content: string;
             /** @example true */
             isProcessed: boolean;
             /** @example 75 */
@@ -286,8 +284,6 @@ export interface components {
             mimeType: string;
             /** @example This is a summary of the file. */
             summary: string;
-            /** @example This is the content of the file. */
-            content: string;
             /** @example true */
             isProcessed: boolean;
             /** @example 75 */
@@ -327,7 +323,6 @@ export interface components {
              *         "size": 1024,
              *         "mimeType": "application/pdf",
              *         "summary": "This is a summary of the file.",
-             *         "content": "This is the content of the file.",
              *         "suggestedQuestions": [
              *           "What is the summary?",
              *           "What are the key points?",
@@ -354,8 +349,6 @@ export interface components {
             mimeType: string;
             /** @example This is a summary of the file. */
             summary: string;
-            /** @example This is the content of the file. */
-            content: string;
             /** @example true */
             isProcessed: boolean;
             /** @example 75 */
@@ -416,7 +409,7 @@ export interface components {
             sources: components["schemas"]["MessageSourceResponseDto"][];
             /**
              * Format: date-time
-             * @example 2025-12-27T23:28:24.387Z
+             * @example 2025-12-28T00:50:45.381Z
              */
             createdAt: string;
         };

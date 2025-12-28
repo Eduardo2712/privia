@@ -14,9 +14,10 @@ interface Props {
     readonly setFiles: React.Dispatch<React.SetStateAction<components["schemas"]["ListFileResponseDto"]>>;
     readonly setFileSelected: React.Dispatch<React.SetStateAction<components["schemas"]["FileResponseDto"] | null>>;
     readonly messages: Record<string, components["schemas"]["ListMessageResponseDto"]>;
+    readonly setMessages: React.Dispatch<React.SetStateAction<Record<string, components["schemas"]["ListMessageResponseDto"]>>>;
 }
 
-export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, messages }: Props) {
+export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, messages, setMessages }: Props) {
     const [streamingText, setStreamingText] = useState<string>("");
     const [streaming, setStreaming] = useState<boolean>(false);
     const [searchText, setSearchText] = useState<string>("");
@@ -68,6 +69,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
             () => setStreaming(false),
             (error) => {
                 setStreaming(false);
+                setStreamingText("");
 
                 alert.error(`Erro ao realizar busca: ${error instanceof Error ? error.message : "Desconhecido"}`);
             }
