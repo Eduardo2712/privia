@@ -17,6 +17,10 @@ export class MessageResponseDto {
     content: string;
 
     @Expose()
+    @ApiProperty({ example: 1500, type: Number, nullable: true })
+    processingTimeMs?: number;
+
+    @Expose()
     @ApiProperty({ type: [MessageSourceResponseDto] })
     @Type(() => MessageSourceResponseDto)
     sources?: MessageSourceResponseDto[];

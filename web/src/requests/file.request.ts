@@ -76,9 +76,12 @@ export const searchFileStream = async (
     data: SearchFileRequest,
     onChunk: (text: string) => void,
     onDone: () => void,
-    onError: (error: unknown) => void
+    onError: (error: unknown) => void,
+    onStart: () => void
 ): Promise<void> => {
     try {
+        onStart();
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/file/search`, {
             method: "POST",
             headers: {

@@ -41,37 +41,55 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
 
     async process(job: Job<ProcessFileJob>): Promise<void> {
         try {
+            const startTime = Date.now();
+
             const { chunks, userId, fileEntity, text } = job.data;
             const filename = fileEntity.name;
 
-            if (!chunks?.length) return;
+            if (!chunks?.length) {
+                return;
+            }
 
-            this.socketEmit(userId, fileEntity.id, 0);
+            this.socketEmit("file:progress", userId, fileEntity.id, 10);
 
             const firstEmbedding = await this.aiService.getEmbedding(chunks[0]);
-            if (!firstEmbedding?.length) throw new Error("Embedding inválido.");
+
+            if (!firstEmbedding?.length) {
+                throw new Error("Embedding inválido.");
+            }
 
             await this.qdrantService.ensureCollection(firstEmbedding.length);
 
             const encoding = this.getEncoding();
             const points = await this.generateEmbeddings(chunks, firstEmbedding, userId, fileEntity.id, filename, encoding);
 
-            this.socketEmit(userId, fileEntity.id, 40);
+            this.socketEmit("file:progress", userId, fileEntity.id, 40);
+
             await this.qdrantService.saveVectors(points);
 
-            this.socketEmit(userId, fileEntity.id, 60);
+            this.socketEmit("file:progress", userId, fileEntity.id, 60);
+
             const { summary, questions } = await this.aiService.generateSummaryAndSuggestions(text);
+
+            const endTime = Date.now();
+            const processingTimeMs = endTime - startTime;
 
             await this.fileRepository.update(fileEntity.id, {
                 summary: summary ?? "",
                 suggestedQuestions: questions ?? [],
-                isProcessed: true
+                isProcessed: true,
+                processingTimeMs: processingTimeMs,
+                processedAt: new Date()
             });
 
-            this.socketEmit(userId, fileEntity.id, 100);
+            this.socketEmit("file:progress", userId, fileEntity.id, 100);
+
+            this.socketEmit("file:processed", userId, fileEntity.id);
         } catch (err) {
             await this.qdrantService.deleteByFilter(job.data.userId, job.data.fileEntity.id);
+
             this.logger.error(`Erro ao processar arquivo ID ${job.data.fileEntity.id}: ${err.message}`, err.stack);
+
             throw err;
         }
     }
@@ -121,8 +139,12 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
         };
     }
 
-    private socketEmit(userId: number, fileId: number, progress: number): void {
-        this.socketService.emitToUser(userId, "file:progress", { id: fileId, progress });
+    private socketEmit(type: string, userId: number, fileId: number, progress?: number): void {
+        if (type === "file:progress") {
+            this.socketService.emitToUser(userId, "file:progress", { id: fileId, progress: progress ?? 0 });
+        } else if (type === "file:processed") {
+            this.socketService.emitToUser(userId, "file:processed", { id: fileId });
+        }
     }
 }
 

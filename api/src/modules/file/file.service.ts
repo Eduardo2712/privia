@@ -17,7 +17,6 @@ import { GetFileResponseDto } from "./dto/get-file.response.dto";
 import { ReadFileResponseDto } from "./dto/read-file.response.dto";
 import { MessageService } from "../message/message.service";
 import { MessageTypeEnum } from "../message/enums/message.enum";
-import { UnitOfWorkService } from "../../common/unity-of-work.service";
 import { GetLastestMessagesResponseDto } from "./dto/get-lastest-messages-response.dto";
 
 @Injectable()
@@ -29,7 +28,6 @@ export class FileService {
         private readonly chunkerFileService: ChunkerFileService,
         private readonly fileRepository: FileRepository,
         private readonly messageService: MessageService,
-        private readonly unitOfWork: UnitOfWorkService,
         @InjectQueue("process-file") private readonly processFileQueue: Queue<ProcessFileJob>
     ) {}
 
@@ -68,6 +66,8 @@ export class FileService {
     }
 
     public async searchFileStream(userId: number, searchFileDto: SearchFileRequestDto): Promise<SearchFileStreamResponseInterface> {
+        const startTime = Date.now();
+
         const file = await this.fileRepository.findOne({ where: { id: searchFileDto.documentId, userId } });
 
         if (!file) {
@@ -89,15 +89,16 @@ export class FileService {
                 }
             };
 
-            await this.unitOfWork.withTransaction(
-                async () =>
-                    await this.messageService.createWithSources({
-                        content: searchFileDto.search,
-                        fileId: searchFileDto.documentId,
-                        type: MessageTypeEnum.USER,
-                        userId
-                    })
-            );
+            const endTime = Date.now();
+            const processingTimeMs = endTime - startTime;
+
+            await this.messageService.createWithSources({
+                content: searchFileDto.search,
+                fileId: searchFileDto.documentId,
+                type: MessageTypeEnum.USER,
+                userId,
+                processingTimeMs
+            });
 
             return { stream: emptyIterator };
         }
@@ -107,15 +108,16 @@ export class FileService {
         const stream = await this.aiService.generateResponseStream(topChunks, searchFileDto.search);
         const references = topChunks.map((r, i) => ({ text: r.text, index: i + 1 }));
 
-        const userMessage = await this.unitOfWork.withTransaction(
-            async () =>
-                await this.messageService.createWithSources({
-                    content: searchFileDto.search,
-                    fileId: searchFileDto.documentId,
-                    type: MessageTypeEnum.USER,
-                    userId
-                })
-        );
+        const endTime = Date.now();
+        const processingTimeMs = endTime - startTime;
+
+        const userMessage = await this.messageService.createWithSources({
+            content: searchFileDto.search,
+            fileId: searchFileDto.documentId,
+            type: MessageTypeEnum.USER,
+            userId,
+            processingTimeMs
+        });
 
         return {
             stream: this.createStreamWithAutoSave(stream, userId, searchFileDto.documentId, userMessage.id, references)

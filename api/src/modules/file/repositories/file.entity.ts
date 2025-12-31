@@ -50,6 +50,9 @@ export class FileEntity {
     @Column({ nullable: true, type: "timestamp", name: "last_interaction_at", default: null })
     lastInteractionAt?: Date;
 
+    @Column({ type: "bigint", name: "processing_time_ms", nullable: true })
+    processingTimeMs?: number;
+
     @CreateDateColumn({ name: "created_at" })
     createdAt?: Date;
 

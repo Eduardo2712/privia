@@ -19,6 +19,12 @@ interface Props {
     readonly handleFileSelected: (file: components["schemas"]["FileResponseDto"]) => void;
 }
 
+const updateFileProgress = (prevFiles: components["schemas"]["ListFileResponseDto"], fileId: number, progress: number) => {
+    const newItems = prevFiles.items.map((file) => (file.id === fileId ? { ...file, progress } : file));
+
+    return { ...prevFiles, items: newItems };
+};
+
 export default function InboxLateralList({ files, setFiles, setFileSelected, fileSelected, handleFileSelected }: Props) {
     const refInputFile = useRef<HTMLInputElement>(null);
 
@@ -54,7 +60,7 @@ export default function InboxLateralList({ files, setFiles, setFileSelected, fil
         };
 
         const handleFileProgress = (data: ServerToClientEventsInterface["file:progress"]) => {
-            setFiles((prev) => ({ ...prev, items: prev.items.map((f) => (f.id === data.id ? { ...f, progress: data.progress } : f)) }));
+            setFiles((prevFiles) => updateFileProgress(prevFiles, data.id, data.progress));
         };
 
         socket.on("file:processed", handleFileProcessed);
@@ -79,33 +85,33 @@ export default function InboxLateralList({ files, setFiles, setFileSelected, fil
     };
 
     return (
-        <aside className="bg-[#1a1a1a]/50 backdrop-blur-sm text-white w-full max-w-[280px] h-full flex-col flex justify-between border-r border-white/5">
-            <div className="flex flex-col h-full">
-                <div className="px-4 py-4 border-b border-white/5">
-                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Documentos</h2>
+        <aside className="bg-[#1a1a1a]/50 backdrop-blur-sm text-white w-full md:max-w-[280px] flex flex-col border-b md:border-b-0 md:border-r border-white/5 md:h-full max-h-[40vh] md:max-h-none">
+            <div className="flex flex-col h-full min-h-0">
+                <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-white/5 shrink-0">
+                    <h2 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider">Documentos</h2>
 
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">
                         {files.items.length} arquivo{files.items.length === 1 ? "" : "s"}
                     </p>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-3 py-2 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto px-2 sm:px-3 py-1 sm:py-2 custom-scrollbar min-h-0">
                     {files.items.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
-                            <FileText size={48} className="text-gray-600 mb-3" />
+                        <div className="flex flex-col items-center justify-center h-full text-center px-3 sm:px-4 py-6 sm:py-8">
+                            <FileText size={40} className="sm:w-12 sm:h-12 text-gray-600 mb-2 sm:mb-3" />
 
-                            <p className="text-sm text-gray-400">Nenhum documento ainda</p>
+                            <p className="text-xs sm:text-sm text-gray-400">Nenhum documento ainda</p>
 
-                            <p className="text-xs text-gray-600 mt-1">Envie seu primeiro arquivo</p>
+                            <p className="text-[11px] sm:text-xs text-gray-600 mt-0.5 sm:mt-1">Envie seu primeiro arquivo</p>
                         </div>
                     )}
 
                     {files.items.length > 0 && (
-                        <ul className="space-y-1.5">
+                        <ul className="space-y-1">
                             {files.items.map((file) => (
                                 <li key={file.id}>
                                     <button
-                                        className={`group w-full text-left px-3 py-3 rounded-xl transition-all duration-200 flex items-start gap-3 ${
+                                        className={`group w-full text-left px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 flex items-start gap-2 sm:gap-3 ${
                                             fileSelected?.id === file.id
                                                 ? "bg-linear-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 shadow-lg shadow-blue-500/10"
                                                 : "hover:bg-white/5 border border-transparent hover:border-white/10"
@@ -113,16 +119,16 @@ export default function InboxLateralList({ files, setFiles, setFileSelected, fil
                                         onClick={() => handleFileSelected(file)}
                                     >
                                         <div
-                                            className={`mt-0.5 ${
+                                            className={`mt-0.5 shrink-0 ${
                                                 fileSelected?.id === file.id ? "text-blue-400" : "text-gray-500 group-hover:text-gray-400"
                                             }`}
                                         >
-                                            <FileText size={18} />
+                                            <FileText size={16} className="sm:w-[18px] sm:h-[18px]" />
                                         </div>
 
                                         <div className="flex-1 min-w-0">
                                             <p
-                                                className={`text-sm font-medium truncate ${
+                                                className={`text-xs sm:text-sm font-medium truncate ${
                                                     fileSelected?.id === file.id ? "text-white" : "text-gray-300"
                                                 }`}
                                             >
@@ -140,7 +146,7 @@ export default function InboxLateralList({ files, setFiles, setFileSelected, fil
                     {loading && <Loading isLoading={loading} />}
                 </div>
 
-                <div className="px-3 py-4 border-t border-white/5">
+                <div className="px-2 sm:px-3 py-3 sm:py-4 border-t border-white/5 shrink-0">
                     <input
                         type="file"
                         hidden
@@ -152,17 +158,17 @@ export default function InboxLateralList({ files, setFiles, setFileSelected, fil
 
                     <button
                         type="button"
-                        className="group w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-semibold transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="group w-full flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xs sm:text-sm font-semibold transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                         onClick={() => refInputFile.current?.click()}
                         disabled={loading}
                     >
                         {loading ? (
-                            <Loader2 size={18} className="animate-spin" />
+                            <Loader2 size={16} className="sm:w-[18px] sm:h-[18px] animate-spin" />
                         ) : (
-                            <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+                            <Plus size={16} className="sm:w-[18px] sm:h-[18px] group-hover:rotate-90 transition-transform duration-300" />
                         )}
 
-                        {!loading && "Novo documento"}
+                        <span>{loading ? "Enviando..." : "Novo documento"}</span>
                     </button>
                 </div>
             </div>

@@ -65,7 +65,7 @@ export default function HomePage() {
             <InboxHeader />
 
             <Loading isLoading={loading && files.page === 1}>
-                <div className="flex flex-row flex-1 overflow-hidden gap-0">
+                <div className="flex flex-col md:flex-row flex-1 overflow-hidden gap-0">
                     <InboxLateralList
                         files={files}
                         setFiles={setFiles}

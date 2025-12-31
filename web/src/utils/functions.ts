@@ -178,3 +178,22 @@ export const formatDatePtBr = (value: string) => {
         year: "numeric",
     });
 };
+
+export const formatDateTime = (date: Date | string): string => {
+    return new Date(date).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    });
+};
+
+export const formatProcessingTime = (milliseconds: number): string => {
+    const minutes = Math.floor(milliseconds / 60000);
+    const seconds = Math.floor((milliseconds % 60000) / 1000);
+    const ms = milliseconds % 1000;
+
+    return `${addLeadingZero(minutes)}:${addLeadingZero(seconds)}:${String(ms).padStart(3, "0")}`;
+};

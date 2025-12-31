@@ -31,6 +31,9 @@ export class MessageEntity {
     @Column({ nullable: false, type: "text", name: "content" })
     content: string;
 
+    @Column({ nullable: true, type: "integer", name: "processing_time_ms" })
+    processingTimeMs?: number;
+
     @CreateDateColumn({ name: "created_at" })
     createdAt?: Date;
 

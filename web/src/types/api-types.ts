@@ -244,6 +244,8 @@ export interface components {
             isProcessed: boolean;
             /** @example 75 */
             progress: number | null;
+            /** @example 1500 */
+            processingTimeMs: number | null;
             /**
              * @example [
              *       "What is the summary?",
@@ -304,6 +306,8 @@ export interface components {
             isProcessed: boolean;
             /** @example 75 */
             progress: number | null;
+            /** @example 1500 */
+            processingTimeMs: number | null;
             /**
              * @example [
              *       "What is the summary?",
@@ -369,6 +373,8 @@ export interface components {
             isProcessed: boolean;
             /** @example 75 */
             progress: number | null;
+            /** @example 1500 */
+            processingTimeMs: number | null;
             /**
              * @example [
              *       "What is the summary?",
@@ -406,10 +412,12 @@ export interface components {
             type: "USER" | "AI" | "SYSTEM";
             /** @example Resposta gerada pela IA */
             content: string;
+            /** @example 1500 */
+            processingTimeMs: number | null;
             sources: components["schemas"]["MessageSourceResponseDto"][];
             /**
              * Format: date-time
-             * @example 2025-12-28T16:15:07.231Z
+             * @example 2025-12-31T16:25:40.148Z
              */
             createdAt: string;
         };
@@ -439,10 +447,12 @@ export interface components {
             type: "USER" | "AI" | "SYSTEM";
             /** @example Resposta gerada pela IA */
             content: string;
+            /** @example 1500 */
+            processingTimeMs: number | null;
             sources: components["schemas"]["MessageSourceResponseDto"][];
             /**
              * Format: date-time
-             * @example 2025-12-28T16:15:07.231Z
+             * @example 2025-12-31T16:25:40.148Z
              */
             createdAt: string;
         };
