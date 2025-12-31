@@ -4,23 +4,39 @@ import { ChunkOptionsInterface } from "./interfaces/file.interface";
 
 @Injectable()
 export class ChunkerFileService {
-    private readonly CHUNK_SIZE = 512;
-    private readonly CHUNK_OVERLAP = 64;
-    private readonly MIN_CHUNK_SIZE = 30;
-    private readonly DEDUP_PREFIX_LEN = 80;
+    private readonly CHUNK_SIZE = 800;
+    private readonly CHUNK_OVERLAP = 150;
+    private readonly MIN_CHUNK_SIZE = 50;
+    private readonly DEDUP_PREFIX_LEN = 100;
 
     public async chunkText(text: string, options: ChunkOptionsInterface = {}): Promise<string[]> {
         const cleaned = this.normalizeText(text);
         if (!cleaned?.length) return [];
 
+        const isLiterature = this.detectLiterature(cleaned);
+        const chunkSize = options.chunkSizeTokens ?? (isLiterature ? 1000 : this.CHUNK_SIZE);
+        const overlap = options.chunkOverlapTokens ?? (isLiterature ? 200 : this.CHUNK_OVERLAP);
+
+        const separators = isLiterature
+            ? ["\n\n\n", "\n\n", "\n", ". ", "! ", "? ", "; ", ", ", " "]
+            : ["\n\n", "\n", ". ", "! ", "? ", "; ", ", ", " "];
+
         const splitter = new RecursiveCharacterTextSplitter({
-            chunkSize: this.CHUNK_SIZE,
-            chunkOverlap: this.CHUNK_OVERLAP,
-            separators: ["\n\n", "\n", "。", "！", "？", "；", "，", ".", "!", "?", ";", ",", " ", ""]
+            chunkSize,
+            chunkOverlap: overlap,
+            separators
         });
 
         const chunks = await splitter.splitText(cleaned);
         return this.dedupe(chunks.map((c) => c.trim()).filter((c) => c.length >= this.MIN_CHUNK_SIZE));
+    }
+
+    private detectLiterature(text: string): boolean {
+        const dialoguePattern = /[""].*?[""]|—.*?—|\bdisse\b|\bfalou\b|\bperguntou\b/gi;
+        const paragraphBreaks = (text.match(/\n\n/g) || []).length;
+        const avgParagraphLen = text.length / Math.max(1, paragraphBreaks);
+        const dialogueMatches = (text.match(dialoguePattern) || []).length;
+        return dialogueMatches > 5 || avgParagraphLen > 400;
     }
 
     private normalizeText(text: string): string {
@@ -113,9 +129,9 @@ export class ChunkerFileService {
         return s.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     }
 
-    public topChunks(chunks: Array<{ score: number; text: string }>): Array<{ score: number; text: string }> {
+    public topChunks(chunks: Array<{ score: number; text: string }>, limit = 6): Array<{ score: number; text: string }> {
         const seen = new Set<string>();
-        const maxLen = 700;
+        const maxLen = 900;
 
         return chunks
             .map((c) => {
@@ -128,12 +144,12 @@ export class ChunkerFileService {
                 return { score: c.score, text: t };
             })
             .filter((c) => {
-                const sig = c.text.substring(0, 80).toLowerCase().replace(/\s+/g, "");
+                const sig = c.text.substring(0, 100).toLowerCase().replace(/\s+/g, "");
                 if (seen.has(sig)) return false;
                 seen.add(sig);
                 return true;
             })
-            .slice(0, 5);
+            .slice(0, limit);
     }
 }
 
