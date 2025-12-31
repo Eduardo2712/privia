@@ -4,10 +4,11 @@ import { HttpModule } from "@nestjs/axios";
 import { AiService } from "./ai.service";
 import * as http from "node:http";
 import * as https from "node:https";
+import { AiWarmupTask } from "./tasks/ai-warmup.task";
 
 @Module({
     controllers: [AiController],
-    providers: [AiService],
+    providers: [AiService, AiWarmupTask],
     exports: [AiService],
     imports: [
         HttpModule.register({

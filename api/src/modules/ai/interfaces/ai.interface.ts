@@ -18,6 +18,7 @@ export interface AIGenerateFormInterface {
     prompt: string;
     model?: string;
     stream?: boolean;
+    keep_alive?: number;
     format?: {
         type: string;
         properties: Record<string, { type: string; items?: unknown }>;

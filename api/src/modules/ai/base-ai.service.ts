@@ -11,6 +11,8 @@ export class BaseAiService {
         protected readonly configService: ConfigService
     ) {}
 
+    protected readonly fiveMinutesMs = 5 * 60 * 1000;
+
     protected getUrlBase(): string {
         return this.configService.get<string>("AI_URL") as string;
     }
@@ -23,7 +25,8 @@ export class BaseAiService {
         const payload: AIGenerateFormInterface = {
             model: embeddingModel,
             prompt: form.prompt,
-            stream: false
+            stream: false,
+            keep_alive: this.fiveMinutesMs
         };
 
         try {
@@ -74,6 +77,7 @@ export class BaseAiService {
             model,
             prompt,
             stream: true,
+            keep_alive: this.fiveMinutesMs,
             options: {
                 temperature: 0,
                 top_p: 0.9,
@@ -152,7 +156,8 @@ export class BaseAiService {
             ...props,
             model: props.model || model,
             prompt: props.prompt,
-            stream: false
+            stream: false,
+            keep_alive: this.fiveMinutesMs
         };
 
         try {
