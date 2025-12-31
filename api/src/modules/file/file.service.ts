@@ -34,20 +34,18 @@ export class FileService {
     ) {}
 
     public async readFile(userId: number, file: Express.Multer.File): Promise<ReadFileResponseDto> {
-        if (!file?.buffer) {
+        if (!file?.buffer?.length) {
             throw new Error("O buffer de arquivos enviados está vazio.");
         }
 
         const text = file.buffer.toString("utf-8");
-
         const chunks = await this.chunkerFileService.chunkText(text);
 
-        if (!chunks) {
+        if (!chunks?.length) {
             throw new Error("Falha ao dividir o arquivo em partes.");
         }
 
         const objectName = await this.minioFileService.create(file);
-
         const newFile = await this.fileRepository.create({
             path: objectName,
             content: text,
@@ -59,7 +57,7 @@ export class FileService {
 
         await this.processFileQueue.add("process-file", new ProcessFileJob(chunks, file, userId, newFile, text));
 
-        const fileDto = plainToInstance(
+        return plainToInstance(
             ReadFileResponseDto,
             {
                 ...newFile,
@@ -67,8 +65,6 @@ export class FileService {
             },
             { excludeExtraneousValues: true }
         );
-
-        return fileDto;
     }
 
     public async searchFileStream(userId: number, searchFileDto: SearchFileRequestDto): Promise<SearchFileStreamResponseInterface> {
@@ -83,12 +79,10 @@ export class FileService {
             suggestedQuestions: []
         });
 
-        const documentId = searchFileDto.documentId;
-
         const queryEmbedding = await this.aiService.getEmbedding(searchFileDto.search);
-        const searchResults = await this.qdrantService.search(userId, documentId, queryEmbedding);
+        const searchResults = await this.qdrantService.search(userId, searchFileDto.documentId, queryEmbedding);
 
-        if (searchResults.length === 0) {
+        if (!searchResults?.length) {
             const emptyIterator: AsyncIterable<string> = {
                 async *[Symbol.asyncIterator]() {
                     yield "Informação não encontrada nos trechos.";
@@ -99,15 +93,13 @@ export class FileService {
                 async () =>
                     await this.messageService.createWithSources({
                         content: searchFileDto.search,
-                        fileId: documentId,
+                        fileId: searchFileDto.documentId,
                         type: MessageTypeEnum.USER,
                         userId
                     })
             );
 
-            return {
-                stream: emptyIterator
-            };
+            return { stream: emptyIterator };
         }
 
         const rerankedChunks = this.chunkerFileService.rerankHybrid(searchResults, searchFileDto.search);
@@ -119,16 +111,14 @@ export class FileService {
             async () =>
                 await this.messageService.createWithSources({
                     content: searchFileDto.search,
-                    fileId: documentId,
+                    fileId: searchFileDto.documentId,
                     type: MessageTypeEnum.USER,
                     userId
                 })
         );
 
-        const wrappedStream = this.createStreamWithAutoSave(stream, userId, documentId, userMessage.id, references);
-
         return {
-            stream: wrappedStream
+            stream: this.createStreamWithAutoSave(stream, userId, searchFileDto.documentId, userMessage.id, references)
         };
     }
 
@@ -143,7 +133,6 @@ export class FileService {
 
         for await (const chunk of sourceStream) {
             accumulatedResponse += chunk;
-
             yield chunk;
         }
 
@@ -185,9 +174,7 @@ export class FileService {
         }
 
         await this.fileRepository.delete(id, { where: { userId } });
-
         await this.minioFileService.delete(file.path);
-
         await this.qdrantService.deleteByFilter(userId, file.id);
     }
 
@@ -200,22 +187,13 @@ export class FileService {
 
         const url = await this.minioFileService.getUrl(file.path);
 
-        const fileDto = plainToInstance(
-            GetFileResponseDto,
-            {
-                ...file,
-                url
-            },
-            { excludeExtraneousValues: true }
-        );
-
-        return fileDto;
+        return plainToInstance(GetFileResponseDto, { ...file, url }, { excludeExtraneousValues: true });
     }
 
     public async getLastestMessages(userId: number, id: number): Promise<GetLastestMessagesResponseDto[]> {
         const lastMessage = await this.messageService.getLastestMessagesByFileId(userId, id);
 
-        if (!lastMessage || lastMessage.length === 0) {
+        if (!lastMessage?.length) {
             throw new Error("Nenhuma mensagem encontrada para este arquivo.");
         }
 

@@ -15,6 +15,7 @@ import { SocketService } from "../../socket/socket.service";
 export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestroy {
     readonly logger = new Logger(ProcessFileProcessor.name);
     private encoding: Tiktoken | null = null;
+    private readonly CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 8);
 
     constructor(
         private readonly aiService: AiService,
@@ -34,102 +35,94 @@ export class ProcessFileProcessor extends BaseProcessor implements OnModuleDestr
     onModuleDestroy() {
         if (this.encoding) {
             this.encoding.free();
-
             this.encoding = null;
         }
     }
 
-    private socketEmitProgress(userId: number, fileId: number, progress: number) {
-        this.socketService.emitToUser(userId, "file:progress", {
-            id: fileId,
-            progress
-        });
-    }
-
-    private socketEmitProcessed(userId: number, fileId: number) {
-        this.socketService.emitToUser(userId, "file:processed", { id: fileId });
-    }
-
     async process(job: Job<ProcessFileJob>): Promise<void> {
         try {
-            const { chunks, file, userId, fileEntity } = job.data;
+            const { chunks, userId, fileEntity, text } = job.data;
+            const filename = fileEntity.name;
 
-            if (!chunks?.length) {
-                return;
-            }
+            if (!chunks?.length) return;
 
-            this.socketEmitProgress(userId, fileEntity.id, 0);
-
-            const CONCURRENCY = Math.max(1, Number(process.env.AI_EMBEDDING_CONCURRENCY) || 12);
+            this.socketEmit(userId, fileEntity.id, 0);
 
             const firstEmbedding = await this.aiService.getEmbedding(chunks[0]);
-
-            if (!firstEmbedding?.length) {
-                throw new Error("Embedding inválido.");
-            }
+            if (!firstEmbedding?.length) throw new Error("Embedding inválido.");
 
             await this.qdrantService.ensureCollection(firstEmbedding.length);
 
             const encoding = this.getEncoding();
+            const points = await this.generateEmbeddings(chunks, firstEmbedding, userId, fileEntity.id, filename, encoding);
 
-            const makePoint = (embedding: number[], index: number): PointInterface => {
-                return {
-                    id: randomUUID(),
-                    vector: embedding,
-                    payload: {
-                        text: chunks[index].trim(),
-                        chunkIndex: index,
-                        documentId: fileEntity.id,
-                        userId,
-                        filename: file.originalname,
-                        chunkTokens: encoding.encode(chunks[index]).length
-                    }
-                };
-            };
+            this.socketEmit(userId, fileEntity.id, 40);
+            await this.qdrantService.saveVectors(points);
 
-            const allPoints: PointInterface[] = [makePoint(firstEmbedding, 0)];
-
-            const embeddingProgress = Math.round((1 / chunks.length) * 40);
-
-            this.socketEmitProgress(userId, fileEntity.id, embeddingProgress);
-
-            for (let i = 1; i < chunks.length; i += CONCURRENCY) {
-                const batch = chunks.slice(i, i + CONCURRENCY);
-                const batchEmbeddings = await Promise.all(batch.map((chunk) => this.aiService.getEmbedding(chunk)));
-                const points = batchEmbeddings.map((embedding, offset) => makePoint(embedding, i + offset));
-
-                allPoints.push(...points);
-
-                const processedCount = Math.min(i + CONCURRENCY, chunks.length);
-                const progress = Math.round((processedCount / chunks.length) * 40);
-
-                this.socketEmitProgress(userId, fileEntity.id, progress);
-            }
-
-            this.socketEmitProgress(userId, fileEntity.id, 40);
-
-            await this.qdrantService.saveVectors(allPoints);
-
-            this.socketEmitProgress(userId, fileEntity.id, 60);
-
-            const response = await this.aiService.generateSummaryAndSuggestions(job.data.text);
+            this.socketEmit(userId, fileEntity.id, 60);
+            const { summary, questions } = await this.aiService.generateSummaryAndSuggestions(text);
 
             await this.fileRepository.update(fileEntity.id, {
-                summary: response.summary ?? "",
-                suggestedQuestions: response.questions ?? [],
+                summary: summary ?? "",
+                suggestedQuestions: questions ?? [],
                 isProcessed: true
             });
 
-            this.socketEmitProgress(userId, fileEntity.id, 100);
-
-            this.socketEmitProcessed(userId, fileEntity.id);
+            this.socketEmit(userId, fileEntity.id, 100);
         } catch (err) {
-            this.qdrantService.deleteByFilter(job.data.userId, job.data.fileEntity.id);
-
+            await this.qdrantService.deleteByFilter(job.data.userId, job.data.fileEntity.id);
             this.logger.error(`Erro ao processar arquivo ID ${job.data.fileEntity.id}: ${err.message}`, err.stack);
-
             throw err;
         }
+    }
+
+    private async generateEmbeddings(
+        chunks: string[],
+        firstEmbedding: number[],
+        userId: number,
+        fileId: number,
+        filename: string,
+        encoding: Tiktoken
+    ): Promise<PointInterface[]> {
+        const points: PointInterface[] = [this.makePoint(firstEmbedding, chunks[0], 0, userId, fileId, filename, encoding)];
+
+        for (let i = 1; i < chunks.length; i += this.CONCURRENCY) {
+            const batch = chunks.slice(i, i + this.CONCURRENCY);
+            const embeddings = await Promise.all(batch.map((c) => this.aiService.getEmbedding(c)));
+
+            embeddings.forEach((emb, idx) => {
+                points.push(this.makePoint(emb, chunks[i + idx], i + idx, userId, fileId, filename, encoding));
+            });
+        }
+
+        return points;
+    }
+
+    private makePoint(
+        embedding: number[],
+        text: string,
+        index: number,
+        userId: number,
+        fileId: number,
+        filename: string,
+        encoding: Tiktoken
+    ): PointInterface {
+        return {
+            id: randomUUID(),
+            vector: embedding,
+            payload: {
+                text: text.trim(),
+                chunkIndex: index,
+                documentId: fileId,
+                userId,
+                filename,
+                chunkTokens: encoding.encode(text).length
+            }
+        };
+    }
+
+    private socketEmit(userId: number, fileId: number, progress: number): void {
+        this.socketService.emitToUser(userId, "file:progress", { id: fileId, progress });
     }
 }
 

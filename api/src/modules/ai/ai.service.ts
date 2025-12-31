@@ -14,91 +14,79 @@ export class AiService extends BaseAiService {
     }
 
     public async getEmbedding(text: string): Promise<number[]> {
-        const embedding = await this.searchEmbedding({ prompt: text });
-
-        return embedding;
+        return this.searchEmbedding({ prompt: text });
     }
 
     public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
-        const topK = Math.min(3, chunks.length);
-        const useChunks = chunks.slice(0, topK);
-
-        const context = useChunks
+        const topK = Math.min(4, chunks.length);
+        const context = chunks
+            .slice(0, topK)
             .map((c, i) => {
-                const maxLen = 400;
-                let text = c.text.replaceAll(/\s+/g, " ").trim();
-
-                if (text.length > maxLen) {
-                    text = text.substring(0, maxLen).trim();
-
-                    const lastPeriod = text.lastIndexOf(".");
-
-                    if (lastPeriod > maxLen * 0.8) {
-                        text = text.substring(0, lastPeriod + 1);
-                    }
+                let text = c.text.replace(/\s+/g, " ").trim();
+                if (text.length > 500) {
+                    const trimmed = text.substring(0, 500);
+                    const lastPeriod = trimmed.lastIndexOf(".");
+                    text = lastPeriod > 400 ? trimmed.substring(0, lastPeriod + 1) : trimmed + "...";
                 }
                 return `[${i + 1}] ${text}`;
             })
             .join("\n\n");
 
-        const prompt = `Responda baseado nos trechos abaixo.
+        const prompt = `Responda baseado APENAS nos trechos abaixo.
 
-        REGRAS:
-        - Use SOMENTE informações dos trechos
-        - Cite [número] ao usar um trecho
-        - Se não encontrar, responda: "Informação não encontrada"
-        - Máximo 3 linhas
-        TRECHOS:
-        ${context}
+REGRAS IMPORTANTES:
+- Responda em português
+- Use SOMENTE informações dos trechos
+- CITE [número] ao usar um trecho
+- Máximo 5 linhas
+- Se não encontrar informação, responda: "Informação não encontrada nos trechos."
 
-        PERGUNTA: ${search}
+TRECHOS:
+${context}
 
-        RESPOSTA:`;
+PERGUNTA: ${search}
+
+RESPOSTA:`;
 
         return this.sendPromptStream(prompt);
     }
 
     public async generateSummaryAndSuggestions(text: string): Promise<AIGenerateSummaryAndSuggestions> {
-        const limit = 1500;
-        const clean = text.replaceAll(/\s+/g, " ").trim();
+        const limit = 2000;
+        const clean = text.replace(/\s+/g, " ").trim();
         const chunk = clean.length > limit ? clean.slice(0, limit) : clean;
 
-        const prompt = `Resuma em 2 frases e crie 3 perguntas relevantes.
+        const prompt = `Resuma em 2 frases concisas e crie 3 perguntas relevantes sobre o conteúdo.
 
-        FORMATO:
-        Resumo:
-        [2 frases]
+FORMATO EXATO:
+Resumo:
+[2 frases]
 
-        Perguntas:
-        1. [pergunta]
-        2. [pergunta]
-        3. [pergunta]
+Perguntas:
+1. [pergunta 1]
+2. [pergunta 2]
+3. [pergunta 3]
 
-        TEXTO:
-        ${chunk}`;
+TEXTO:
+${chunk}`;
 
-        const result = this.sendPrompt<AIGenerateSummaryAndSuggestions>({
+        return this.sendPrompt<AIGenerateSummaryAndSuggestions>({
             prompt,
             options: {
-                temperature: 0,
-                top_p: 0.3,
+                temperature: 0.1,
+                top_p: 0.5,
                 repeat_penalty: 1.1,
-                max_tokens: 150
+                max_tokens: 200
             },
             format: {
                 type: "object",
                 properties: {
                     summary: { type: "string" },
-                    questions: {
-                        type: "array",
-                        items: { type: "string" }
-                    }
+                    questions: { type: "array", items: { type: "string" } }
                 },
                 required: ["summary", "questions"]
             }
         });
-
-        return result;
     }
 }
 

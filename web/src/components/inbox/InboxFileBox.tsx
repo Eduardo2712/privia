@@ -36,7 +36,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                 scrollContainer.scrollTop = scrollContainer.scrollHeight;
             }, 0);
         }
-    }, [fileMessages, fileSelected, streamingText]);
+    }, [fileMessages, fileSelected, streamingText, streaming]);
 
     const { execute, loading } = useRequest({
         request: () => remove(fileSelected!.id),
@@ -131,8 +131,8 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
     return (
         <div className="flex flex-col w-full h-full bg-[#0b0b0b]">
             <div className="flex flex-col h-full">
-                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
-                    <div className="max-w-6xl mx-auto space-y-6">
+                <div className="px-6 pt-6 pb-3">
+                    <div className="max-w-6xl mx-auto">
                         <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#111111]/70 backdrop-blur-xl p-6 shadow-2xl shadow-black/30">
                             <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-white/5 via-transparent to-blue-500/5" />
 
@@ -166,6 +166,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                                                     className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/70"
                                                 >
                                                     <span className="uppercase tracking-[0.08em] text-white/40">{meta.label}</span>
+
                                                     <span className="font-medium text-white/80">{meta.value}</span>
                                                 </span>
                                             ))}
@@ -182,6 +183,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                                         onClick={() => window.open(fileSelected.url, "_blank")}
                                     >
                                         {loading ? <Loader2 size={18} className="animate-spin" /> : <File size={18} />}
+
                                         <span className="hidden sm:inline">Abrir original</span>
                                     </button>
 
@@ -193,6 +195,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                                         disabled={loading}
                                     >
                                         {loading ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+
                                         <span className="hidden sm:inline">Remover</span>
                                     </button>
                                 </div>
@@ -222,7 +225,11 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                                 </div>
                             )}
                         </div>
+                    </div>
+                </div>
 
+                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
+                    <div className="max-w-6xl mx-auto space-y-6">
                         <InboxSuggestedQuestions fileSelected={fileSelected} setSearchText={setSearchText} />
 
                         <InboxMessages fileMessages={fileMessages} streaming={streaming} streamingText={streamingText} searchText={searchText} />
@@ -265,11 +272,13 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                             )}
                         </div>
 
-                        <div className="flex items-center justify-between text-[12px] text-white/50">
-                            <span>Pressione Enter para enviar · Shift + Enter para nova linha</span>
+                        {fileSelected?.isProcessed && (
+                            <div className="flex items-center justify-between text-[12px] text-white/50">
+                                <span>Pressione Enter para enviar · Shift + Enter para nova linha</span>
 
-                            <span>Melhore a resposta sendo específico.</span>
-                        </div>
+                                <span>Melhore a resposta sendo específico.</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
