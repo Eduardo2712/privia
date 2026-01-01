@@ -25,7 +25,7 @@ export class AiService extends BaseAiService {
         const context = chunks
             .slice(0, topK)
             .map((c, i) => {
-                let text = c.text.replace(/\s+/g, " ").trim();
+                let text = c.text.replaceAll(/\s+/g, " ").trim();
                 if (text.length > 600) {
                     const trimmed = text.substring(0, 600);
                     const lastPeriod = trimmed.lastIndexOf(".");

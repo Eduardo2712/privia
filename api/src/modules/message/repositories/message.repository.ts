@@ -32,32 +32,27 @@ export class MessageRepository extends BaseRepository<MessageEntity> {
         return { items, total };
     }
 
-    async getLastestMessagesByFileId(userId: number, fileId: number): Promise<MessageEntity[] | null> {
-        const repository = this.getRepository();
+    async getLastestMessagesByFileId(userId: number, fileId: number): Promise<MessageEntity[]> {
+        const qb = this.getRepository().createQueryBuilder("messages");
 
-        const messageIds = await repository
+        const subQuery = qb
+            .subQuery()
+            .select("m.id")
+            .from(MessageEntity, "m")
+            .where("m.userId = :userId", { userId })
+            .andWhere("m.fileId = :fileId", { fileId })
+            .orderBy("m.createdAt", "DESC")
+            .limit(2)
+            .getQuery();
+
+        return this.getRepository()
             .createQueryBuilder("messages")
-            .select("messages.id")
-            .where("messages.userId = :userId AND messages.fileId = :fileId", { userId, fileId })
-            .orderBy("messages.createdAt", "DESC")
-            .take(2)
-            .getMany();
-
-        if (messageIds.length === 0) {
-            return [];
-        }
-
-        const ids = messageIds.map((m) => m.id);
-
-        const message = await repository
-            .createQueryBuilder("messages")
-            .whereInIds(ids)
             .leftJoinAndSelect("messages.sources", "sources")
+            .where(`messages.id IN ${subQuery}`)
+            .setParameters({ userId, fileId })
             .orderBy("messages.createdAt", "DESC")
             .addOrderBy("sources.sourceIndex", "ASC")
             .getMany();
-
-        return message;
     }
 }
 
