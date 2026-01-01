@@ -25,8 +25,8 @@ import { CacheModule } from "@nestjs/cache-manager";
             httpsAgent: new https.Agent({
                 keepAlive: true,
                 keepAliveMsecs: 1000,
-                maxSockets: 100,
-                maxFreeSockets: 10
+                maxFreeSockets: 10,
+                maxSockets: 100
             })
         })
     ]
