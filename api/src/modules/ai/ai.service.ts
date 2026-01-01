@@ -32,21 +32,21 @@ export class AiService extends BaseAiService {
             })
             .join("\n");
 
-        const prompt = `Responda baseado APENAS nos trechos abaixo.
+        const prompt = `Responda a pergunta usando APENAS os trechos numerados abaixo.
 
-REGRAS:
-- Responda em português de forma clara e completa
-- Use SOMENTE informações dos trechos fornecidos
-- CITE [número] quando usar informação de um trecho
-- Se for narrativa/literatura, preserve o contexto e tom
-- Se não encontrar informação relevante: "Informação não encontrada nos trechos."
+Regras:
+- Responda em português, de forma clara e objetiva
+- Cite [número] para cada informação usada
+- Use apenas informações dos trechos
+- Se nenhum trecho contiver a resposta, diga apenas: "Não encontrei essa informação no documento."
+- NÃO misture resposta com aviso de não encontrado
 
-TRECHOS:
+Trechos:
 ${context}
 
-PERGUNTA: ${search}
+Pergunta: ${search}
 
-RESPOSTA:`;
+Resposta:`;
 
         return this.sendPromptStream(prompt);
     }
