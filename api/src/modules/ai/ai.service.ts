@@ -41,9 +41,9 @@ export class AiService extends BaseAiService {
 REGRAS:
 - Responda EXCLUSIVAMENTE em português do Brasil de forma clara e completa
 - Use SOMENTE informações dos trechos fornecidos
-- Cite [número] para cada informação usada
+- Cite [número] (exemplo: [1][2]) para cada informação usada
 - Se for narrativa/literatura, preserve o contexto e tom
-- Se nenhum trecho contiver a resposta, diga apenas: "Não encontrei essa informação no documento."
+- Se nenhum trecho contiver a resposta, diga SOMENTE: "Não encontrei essa informação no documento."
 - NÃO misture resposta com aviso de não encontrado
 
 TRECHOS:

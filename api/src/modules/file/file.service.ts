@@ -83,31 +83,22 @@ export class FileService {
         const searchResults = await this.qdrantService.search(userId, searchFileDto.documentId, queryEmbedding);
 
         if (!searchResults?.length) {
+            const emptyIterator: AsyncIterable<string> = {
+                async *[Symbol.asyncIterator]() {
+                    yield "Informação não encontrada nos trechos.";
+                }
+            };
+
             const endTime = Date.now();
             const processingTimeMs = endTime - startTime;
 
-            const userMessage = await this.messageService.create({
+            await this.messageService.create({
                 content: searchFileDto.search,
                 fileId: searchFileDto.documentId,
                 type: MessageTypeEnum.USER,
                 userId,
                 processingTimeMs
             });
-
-            const emptyMessage = "Informação não encontrada nos trechos.";
-            
-            await this.messageService.saveAiResponse(userId, {
-                fileId: searchFileDto.documentId,
-                userMessageId: userMessage.id,
-                content: emptyMessage,
-                sources: []
-            });
-
-            const emptyIterator: AsyncIterable<string> = {
-                async *[Symbol.asyncIterator]() {
-                    yield emptyMessage;
-                }
-            };
 
             return { stream: emptyIterator };
         }
@@ -128,30 +119,23 @@ export class FileService {
             processingTimeMs
         });
 
-        const streamForClient = await this.processAndSaveStream(
-            stream,
-            userId,
-            searchFileDto.documentId,
-            userMessage.id,
-            references
-        );
-
-        return { stream: streamForClient };
+        return {
+            stream: this.createStreamWithAutoSave(stream, userId, searchFileDto.documentId, userMessage.id, references)
+        };
     }
 
-    private async processAndSaveStream(
+    private async *createStreamWithAutoSave(
         sourceStream: AsyncIterable<string>,
         userId: number,
         fileId: number,
         userMessageId: number,
         references: Array<{ text: string; index: number }>
-    ): Promise<AsyncIterable<string>> {
-        const chunks: string[] = [];
+    ): AsyncIterable<string> {
         let accumulatedResponse = "";
 
         for await (const chunk of sourceStream) {
-            chunks.push(chunk);
             accumulatedResponse += chunk;
+            yield chunk;
         }
 
         if (accumulatedResponse.trim()) {
@@ -162,16 +146,6 @@ export class FileService {
                 sources: references
             });
         }
-
-        const streamForClient: AsyncIterable<string> = {
-            async *[Symbol.asyncIterator]() {
-                for (const chunk of chunks) {
-                    yield chunk;
-                }
-            }
-        };
-
-        return streamForClient;
     }
 
     public async list(userId: number, listFileRequestDto: ListFileRequestDto): Promise<ListFileResponseDto> {
@@ -228,3 +202,4 @@ export class FileService {
         return plainToInstance(GetLastestMessagesResponseDto, lastMessage, { excludeExtraneousValues: true });
     }
 }
+

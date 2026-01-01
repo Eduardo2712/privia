@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { getLastestMessages, remove, searchFileStream } from "../../requests/file.request";
-import { Send, FileText, Trash2, Loader2, File, Sparkles, CheckCircle2, Clock } from "lucide-react";
+import { Send, FileText, Trash2, Loader2, File, Sparkles, CheckCircle2, Clock, ArrowUp, ArrowDown } from "lucide-react";
 import { formatBytes, formatDatePtBr, formatErrorMessage } from "../../utils/functions";
 import { components } from "../../types/api-types";
 import { useRequest } from "../../hooks/use-request.hook";
@@ -21,6 +21,7 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
     const [streamingText, setStreamingText] = useState<string>("");
     const [streaming, setStreaming] = useState<boolean>(false);
     const [searchText, setSearchText] = useState<string>("");
+    const [hiddenSummary, setHiddenSummary] = useState<boolean>(true);
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -221,16 +222,28 @@ export default function InboxFileBox({ fileSelected, setFiles, setFileSelected, 
                             </div>
 
                             {fileSelected.isProcessed ? (
-                                <div className="relative mt-3 sm:mt-4 md:mt-5 rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4 md:p-5 shadow-inner shadow-black/10">
-                                    <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] uppercase tracking-[0.12em] text-white/60">
-                                        <Sparkles size={14} className="sm:w-4 sm:h-4 text-blue-300" />
+                                <div className="relative mt-3 sm:mt-4 md:mt-5 rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4 md:p-4 shadow-inner shadow-black/10">
+                                    <button
+                                        type="button"
+                                        className="flex w-full items-center justify-between gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] uppercase tracking-[0.12em] text-white/60 cursor-pointer"
+                                        onClick={() => setHiddenSummary(!hiddenSummary)}
+                                    >
+                                        <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer">
+                                            <Sparkles size={14} className="sm:w-4 sm:h-4 text-blue-300" />
 
-                                        <span>Resumo</span>
-                                    </div>
+                                            <span>Resumo</span>
+                                        </div>
 
-                                    <p className="mt-2 text-sm sm:text-base leading-relaxed text-gray-100">
-                                        {fileSelected.summary || "Nenhum resumo disponível para este arquivo."}
-                                    </p>
+                                        <div className="text-gray-400 transition-transform duration-200">
+                                            {hiddenSummary ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+                                        </div>
+                                    </button>
+
+                                    {!hiddenSummary && (
+                                        <p className="mt-2 text-sm sm:text-base leading-relaxed text-gray-100">
+                                            {fileSelected.summary || "Nenhum resumo disponível para este arquivo."}
+                                        </p>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="relative mt-3 sm:mt-4 md:mt-5 rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4 md:p-5 shadow-inner shadow-black/10">

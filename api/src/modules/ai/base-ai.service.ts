@@ -92,10 +92,10 @@ export class BaseAiService {
             stream: true,
             keep_alive: this.fiveMinutesMs,
             options: {
-                temperature: 0,
-                top_p: 0.8,
+                temperature: 0.15,
+                top_p: 0.85,
                 top_k: 30,
-                repeat_penalty: 1.05,
+                repeat_penalty: 1.1,
                 num_predict: 256
             }
         };
