@@ -25,21 +25,8 @@ export class MessageService {
         return arraySuggestions;
     }
 
-    public async createWithSources(message: Omit<MessageEntity, "id">, sources?: Omit<MessageSourceEntity, "id">[]): Promise<MessageEntity> {
-        const obj = await this.messageRepository.create(message);
-
-        if (sources && sources.length > 0) {
-            const sourcesToCreate = sources.map((source) =>
-                Object.assign(new MessageSourceEntity({}), {
-                    ...source,
-                    messageId: obj.id
-                })
-            );
-
-            await this.messageSourceRepository.createMany(sourcesToCreate);
-        }
-
-        return obj;
+    public async create(message: Omit<MessageEntity, "id">): Promise<MessageEntity> {
+        return await this.messageRepository.create(message);
     }
 
     public async saveAiResponse(userId: number, payload: SaveAiResponseRequestDto): Promise<MessageEntity> {

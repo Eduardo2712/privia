@@ -11,15 +11,15 @@ export class ChunkerFileService {
 
     public async chunkText(text: string, options: ChunkOptionsInterface = {}): Promise<string[]> {
         const cleaned = this.normalizeText(text);
-        if (!cleaned?.length) return [];
 
-        const isLiterature = this.detectLiterature(cleaned);
-        const chunkSize = options.chunkSizeTokens ?? (isLiterature ? 1000 : this.CHUNK_SIZE);
-        const overlap = options.chunkOverlapTokens ?? (isLiterature ? 200 : this.CHUNK_OVERLAP);
+        if (!cleaned?.length) {
+            return [];
+        }
 
-        const separators = isLiterature
-            ? ["\n\n\n", "\n\n", "\n", ". ", "! ", "? ", "; ", ", ", " "]
-            : ["\n\n", "\n", ". ", "! ", "? ", "; ", ", ", " "];
+        const chunkSize = options.chunkSizeTokens ?? this.CHUNK_SIZE;
+        const overlap = options.chunkOverlapTokens ?? this.CHUNK_OVERLAP;
+
+        const separators = ["\n\n", "\n", ". ", "! ", "? ", "; ", ", ", " "];
 
         const splitter = new RecursiveCharacterTextSplitter({
             chunkSize,
@@ -28,25 +28,18 @@ export class ChunkerFileService {
         });
 
         const chunks = await splitter.splitText(cleaned);
-        return this.dedupe(chunks.map((c) => c.trim()).filter((c) => c.length >= this.MIN_CHUNK_SIZE));
-    }
 
-    private detectLiterature(text: string): boolean {
-        const dialoguePattern = /[""].*?[""]|—.*?—|\bdisse\b|\bfalou\b|\bperguntou\b/gi;
-        const paragraphBreaks = (text.match(/\n\n/g) || []).length;
-        const avgParagraphLen = text.length / Math.max(1, paragraphBreaks);
-        const dialogueMatches = (text.match(dialoguePattern) || []).length;
-        return dialogueMatches > 5 || avgParagraphLen > 400;
+        return this.dedupe(chunks.map((c) => c.trim()).filter((c) => c.length >= this.MIN_CHUNK_SIZE));
     }
 
     private normalizeText(text: string): string {
         return text
-            .replace(/\r\n/g, "\n")
-            .replace(/[\t\u00A0\u2000-\u200B\u202F\u205F\u3000\uFEFF]/g, " ")
-            .replace(/ {2,}/g, " ")
-            .replace(/\n{3,}/g, "\n\n")
-            .replace(/\n /g, "\n")
-            .replace(/ \n/g, "\n")
+            .replaceAll("\r\n", "\n")
+            .replaceAll(/[\t\u00A0\u2000-\u200B\u202F\u205F\u3000\uFEFF]/g, " ")
+            .replaceAll(/ {2,}/g, " ")
+            .replaceAll(/\n{3,}/g, "\n\n")
+            .replaceAll("\n ", "\n")
+            .replaceAll(" \n", "\n")
             .trim();
     }
 
@@ -55,12 +48,14 @@ export class ChunkerFileService {
         const result: string[] = [];
 
         for (const chunk of chunks) {
-            const sig = chunk.substring(0, this.DEDUP_PREFIX_LEN).toLowerCase().replace(/\s+/g, "");
+            const sig = chunk.substring(0, this.DEDUP_PREFIX_LEN).toLowerCase().replaceAll(/\s+/g, "");
+
             if (!seen.has(sig)) {
                 seen.add(sig);
                 result.push(chunk);
             }
         }
+
         return result;
     }
 
@@ -71,8 +66,11 @@ export class ChunkerFileService {
 
         for (const term of terms) {
             variants.add(term);
-            const clean = term.normalize("NFD").replace(/\p{Diacritic}/gu, "");
-            if (clean !== term) variants.add(clean);
+            const clean = term.normalize("NFD").replaceAll(/\p{Diacritic}/gu, "");
+
+            if (clean !== term) {
+                variants.add(clean);
+            }
         }
 
         for (let i = 0; i < terms.length - 1; i++) {
@@ -85,14 +83,17 @@ export class ChunkerFileService {
     private normalizeQuery(q: string): string {
         return q
             .toLowerCase()
-            .replace(/[^\p{L}\p{N}\s]/gu, " ")
-            .replace(/\s+/g, " ")
+            .replaceAll(/[^\p{L}\p{N}\s]/gu, " ")
+            .replaceAll(/\s+/g, " ")
             .trim();
     }
 
     public rerankHybrid(chunks: Array<{ score: number; text: string }>, query: string): Array<{ score: number; text: string }> {
         const expanded = this.expandQuery(query);
-        if (!expanded.length) return chunks;
+
+        if (!expanded.length) {
+            return chunks;
+        }
 
         const k1 = 1.2;
         const b = 0.75;
@@ -110,11 +111,17 @@ export class ChunkerFileService {
             let bm25 = 0;
 
             for (const term of expanded) {
-                if (!lower.includes(term)) continue;
+                if (!lower.includes(term)) {
+                    continue;
+                }
+
                 const regex = new RegExp(this.escapeRegex(term), "gi");
                 let tf = 0;
-                let match;
-                while ((match = regex.exec(lower)) !== null) tf++;
+
+                while (regex.exec(lower) !== null) {
+                    tf++;
+                }
+
                 const idfScore = idf.get(term) || 0;
                 bm25 += (idfScore * tf * (k1 + 1)) / (tf + k1 * (1 - b + (b * docLen) / avgLen));
             }
@@ -126,7 +133,7 @@ export class ChunkerFileService {
     }
 
     private escapeRegex(s: string): string {
-        return s.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+        return s.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     }
 
     public topChunks(chunks: Array<{ score: number; text: string }>, limit = 4): Array<{ score: number; text: string }> {
@@ -136,17 +143,24 @@ export class ChunkerFileService {
         return chunks
             .map((c) => {
                 let t = c.text.trim();
+
                 if (t.length > maxLen) {
                     const trimmed = t.substring(0, maxLen);
                     const lastPeriod = trimmed.lastIndexOf(".");
                     t = lastPeriod > maxLen * 0.7 ? trimmed.substring(0, lastPeriod + 1) : trimmed + "...";
                 }
+
                 return { score: c.score, text: t };
             })
             .filter((c) => {
-                const sig = c.text.substring(0, 100).toLowerCase().replace(/\s+/g, "");
-                if (seen.has(sig)) return false;
+                const sig = c.text.substring(0, 100).toLowerCase().replaceAll(/\s+/g, "");
+
+                if (seen.has(sig)) {
+                    return false;
+                }
+
                 seen.add(sig);
+
                 return true;
             })
             .slice(0, limit);

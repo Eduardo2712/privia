@@ -29,27 +29,29 @@ export class AiService extends BaseAiService {
                 if (text.length > 600) {
                     const trimmed = text.substring(0, 600);
                     const lastPeriod = trimmed.lastIndexOf(".");
+
                     text = lastPeriod > 400 ? trimmed.substring(0, lastPeriod + 1) : trimmed + "...";
                 }
                 return `[${i + 1}] ${text}`;
             })
             .join("\n");
 
-        const prompt = `Responda a pergunta usando APENAS os trechos numerados abaixo.
+        const prompt = `Responda baseado APENAS nos trechos abaixo.
 
-Regras:
-- Responda em português, de forma clara e objetiva
+REGRAS:
+- Responda EXCLUSIVAMENTE em português do Brasil de forma clara e completa
+- Use SOMENTE informações dos trechos fornecidos
 - Cite [número] para cada informação usada
-- Use apenas informações dos trechos
+- Se for narrativa/literatura, preserve o contexto e tom
 - Se nenhum trecho contiver a resposta, diga apenas: "Não encontrei essa informação no documento."
 - NÃO misture resposta com aviso de não encontrado
 
-Trechos:
+TRECHOS:
 ${context}
 
-Pergunta: ${search}
+PERGUNTA: ${search}
 
-Resposta:`;
+RESPOSTA:`;
 
         return this.sendPromptStream(prompt);
     }
@@ -61,6 +63,7 @@ Resposta:`;
         const prompt = `Analise o texto e forneça um resumo e perguntas relevantes.
 
 INSTRUÇÕES:
+- Responda EXCLUSIVAMENTE em português do Brasil
 - Resumo: 2-3 frases capturando a essência do conteúdo
 - Perguntas: 3 perguntas que um leitor faria sobre o texto
 - Se for literatura/narrativa, foque em personagens, enredo e temas

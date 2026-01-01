@@ -17,8 +17,6 @@ import { QdrantModule } from "./modules/qdrant/qdrant.module";
 import { SocketModule } from "./modules/socket/socket.module";
 import { MessageModule } from "./modules/message/message.module";
 import KeyvRedis from "@keyv/redis";
-import { Keyv } from "keyv";
-import { CacheableMemory } from "cacheable";
 
 @Module({
     imports: [
@@ -33,16 +31,10 @@ import { CacheableMemory } from "cacheable";
             ignoreErrors: false
         }),
         CacheModule.registerAsync({
-            useFactory: async () => {
-                return {
-                    stores: [
-                        new Keyv({
-                            store: new CacheableMemory({ ttl: 60000, lruSize: 5000 })
-                        }),
-                        new KeyvRedis("redis://localhost:6379")
-                    ]
-                };
-            }
+            useFactory: async () => ({
+                store: new KeyvRedis(`redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`),
+                ttl: 60
+            })
         }),
         BullModule.forRoot({
             connection: {

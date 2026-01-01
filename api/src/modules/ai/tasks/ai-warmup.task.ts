@@ -28,7 +28,7 @@ export class AiWarmupTask implements OnModuleInit {
 
     private async warmupModels(): Promise<void> {
         try {
-            this.logger.log("🔥 Iniciando warm-up dos modelos de IA...");
+            this.logger.log("🔥 Iniciando carregamento dos modelos de IA...");
 
             const embeddingModel = this.configService.get<string>("AI_EMBEDDING_MODEL") as string;
             const generationModel = this.configService.get<string>("AI_MODEL") as string;
@@ -38,9 +38,9 @@ export class AiWarmupTask implements OnModuleInit {
             await this.warmupGenerationModel(generationModel);
 
             this.isWarmedUp = true;
-            this.logger.log("✅ Warm-up dos modelos concluído com sucesso");
+            this.logger.log("✅ Carregamento dos modelos concluído com sucesso");
         } catch (error) {
-            this.logger.error(`❌ Erro no warm-up dos modelos: ${error.message}`);
+            this.logger.error(`❌ Erro no carregamento dos modelos: ${error.message}`);
         }
     }
 

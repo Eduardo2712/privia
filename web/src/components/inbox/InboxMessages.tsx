@@ -19,7 +19,7 @@ export default function InboxMessages({ streamingText, streaming, fileMessages, 
 
         const parts = content.split(/(\[\d+\])/);
 
-        return parts.map((part) => {
+        return parts.map((part, key) => {
             const match = /\[(\d+)\]/.exec(part);
 
             if (match) {
@@ -28,7 +28,7 @@ export default function InboxMessages({ streamingText, streaming, fileMessages, 
 
                 if (source) {
                     return (
-                        <CustomTooltip key={sourceIndex} content={source.text}>
+                        <CustomTooltip key={`${message.id}-${source.sourceIndex}-${key}`} content={source.text}>
                             [{source.sourceIndex}]
                         </CustomTooltip>
                     );
