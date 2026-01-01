@@ -5,12 +5,14 @@ import { AiService } from "./ai.service";
 import * as http from "node:http";
 import * as https from "node:https";
 import { AiWarmupTask } from "./tasks/ai-warmup.task";
+import { CacheModule } from "@nestjs/cache-manager";
 
 @Module({
     controllers: [AiController],
     providers: [AiService, AiWarmupTask],
     exports: [AiService],
     imports: [
+        CacheModule.register(),
         HttpModule.register({
             timeout: 120000,
             maxRedirects: 5,

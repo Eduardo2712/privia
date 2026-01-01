@@ -15,12 +15,14 @@ import { MinioFileService } from "./minio-file.service";
 import { ChunkerFileService } from "./chunker-file.service";
 import { SocketModule } from "../socket/socket.module";
 import { MessageModule } from "../message/message.module";
+import { CacheModule } from "@nestjs/cache-manager";
 
 @Module({
     controllers: [FileController],
     providers: [FileService, ProcessFileProcessor, FileRepository, MinioFileService, ChunkerFileService],
     exports: [FileService],
     imports: [
+        CacheModule.register(),
         AiModule,
         QdrantModule,
         SocketModule,

@@ -1,25 +1,36 @@
 import { HttpService } from "@nestjs/axios";
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AIGenerateFormInterface } from "./interfaces/ai.interface";
 import { firstValueFrom } from "rxjs";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import type { Cache } from "cache-manager";
+import { createHash } from "node:crypto";
 
 @Injectable()
 export class BaseAiService {
     constructor(
         protected readonly http: HttpService,
-        protected readonly configService: ConfigService
+        protected readonly configService: ConfigService,
+        @Inject(CACHE_MANAGER) protected readonly cacheManager: Cache
     ) {}
 
     protected readonly fiveMinutesMs = 5 * 60 * 1000;
+    protected readonly embeddingCacheTtl = 3600;
 
     protected getUrlBase(): string {
         return this.configService.get<string>("AI_URL") as string;
     }
 
     protected async searchEmbedding(form: Omit<AIGenerateFormInterface, "model">): Promise<number[]> {
-        const url = `${this.getUrlBase()}/embeddings`;
+        const cacheKey = `emb_${createHash("md5").update(form.prompt).digest("hex")}`;
+        const cached = await this.cacheManager.get<number[]>(cacheKey);
 
+        if (cached) {
+            return cached;
+        }
+
+        const url = `${this.getUrlBase()}/embeddings`;
         const embeddingModel = this.configService.get<string>("AI_EMBEDDING_MODEL") as string;
 
         const payload: AIGenerateFormInterface = {
@@ -59,6 +70,8 @@ export class BaseAiService {
             if (embedding.length === 0) {
                 throw new Error("Embedding vazio retornado pela IA. Verifique se o modelo 'bge-m3' está instalado e funcional.");
             }
+
+            await this.cacheManager.set(cacheKey, embedding, this.embeddingCacheTtl);
 
             return embedding;
         } catch (error) {

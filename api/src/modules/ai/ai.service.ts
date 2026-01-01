@@ -1,16 +1,19 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { BaseAiService } from "./base-ai.service";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { AIGenerateSummaryAndSuggestions } from "./interfaces/ai.interface";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import type { Cache } from "cache-manager";
 
 @Injectable()
 export class AiService extends BaseAiService {
     constructor(
         readonly http: HttpService,
-        readonly configService: ConfigService
+        readonly configService: ConfigService,
+        @Inject(CACHE_MANAGER) readonly cacheManager: Cache
     ) {
-        super(http, configService);
+        super(http, configService, cacheManager);
     }
 
     public async getEmbedding(text: string): Promise<number[]> {
@@ -52,7 +55,7 @@ Resposta:`;
     }
 
     public async generateSummaryAndSuggestions(text: string): Promise<AIGenerateSummaryAndSuggestions> {
-        const clean = text.replace(/\s+/g, " ").trim();
+        const clean = text.replaceAll(/\s+/g, " ").trim();
         const sample = this.extractSample(clean, 5000);
 
         const prompt = `Analise o texto e forneça um resumo e perguntas relevantes.
