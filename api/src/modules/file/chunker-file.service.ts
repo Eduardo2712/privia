@@ -129,9 +129,9 @@ export class ChunkerFileService {
         return s.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     }
 
-    public topChunks(chunks: Array<{ score: number; text: string }>, limit = 6): Array<{ score: number; text: string }> {
+    public topChunks(chunks: Array<{ score: number; text: string }>, limit = 4): Array<{ score: number; text: string }> {
         const seen = new Set<string>();
-        const maxLen = 900;
+        const maxLen = 700;
 
         return chunks
             .map((c) => {

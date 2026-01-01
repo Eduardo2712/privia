@@ -80,9 +80,10 @@ export class BaseAiService {
             keep_alive: this.fiveMinutesMs,
             options: {
                 temperature: 0,
-                top_p: 0.9,
-                top_k: 20,
-                repeat_penalty: 1.1
+                top_p: 0.8,
+                top_k: 30,
+                repeat_penalty: 1.05,
+                num_predict: 256
             }
         };
 

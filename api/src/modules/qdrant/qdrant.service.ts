@@ -7,8 +7,8 @@ export class QdrantService {
     private readonly client: QdrantClient;
     private readonly collectionName = "files";
     private readonly batchSize = 250;
-    private readonly searchLimit = 30;
-    private readonly scoreThreshold = 0.18;
+    private readonly searchLimit = 20;
+    private readonly scoreThreshold = 0.22;
 
     constructor() {
         this.client = new QdrantClient({ url: process.env.QDRANT_URL });
@@ -49,7 +49,7 @@ export class QdrantService {
             score_threshold: this.scoreThreshold,
             with_payload: true,
             with_vector: false,
-            params: { hnsw_ef: 64, exact: false },
+            params: { hnsw_ef: 32, exact: false },
             filter: {
                 must: [
                     { key: "userId", match: { value: userId } },

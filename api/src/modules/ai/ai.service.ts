@@ -18,19 +18,19 @@ export class AiService extends BaseAiService {
     }
 
     public async generateResponseStream(chunks: Array<{ score: number; text: string }>, search: string): Promise<AsyncIterable<string>> {
-        const topK = Math.min(6, chunks.length);
+        const topK = Math.min(4, chunks.length);
         const context = chunks
             .slice(0, topK)
             .map((c, i) => {
                 let text = c.text.replace(/\s+/g, " ").trim();
-                if (text.length > 800) {
-                    const trimmed = text.substring(0, 800);
+                if (text.length > 600) {
+                    const trimmed = text.substring(0, 600);
                     const lastPeriod = trimmed.lastIndexOf(".");
-                    text = lastPeriod > 600 ? trimmed.substring(0, lastPeriod + 1) : trimmed + "...";
+                    text = lastPeriod > 400 ? trimmed.substring(0, lastPeriod + 1) : trimmed + "...";
                 }
                 return `[${i + 1}] ${text}`;
             })
-            .join("\n\n");
+            .join("\n");
 
         const prompt = `Responda baseado APENAS nos trechos abaixo.
 
@@ -53,7 +53,7 @@ RESPOSTA:`;
 
     public async generateSummaryAndSuggestions(text: string): Promise<AIGenerateSummaryAndSuggestions> {
         const clean = text.replace(/\s+/g, " ").trim();
-        const sample = this.extractSample(clean, 2500);
+        const sample = this.extractSample(clean, 5000);
 
         const prompt = `Analise o texto e forneça um resumo e perguntas relevantes.
 
@@ -69,10 +69,10 @@ ${sample}`;
         return this.sendPrompt<AIGenerateSummaryAndSuggestions>({
             prompt,
             options: {
-                temperature: 0.2,
-                top_p: 0.7,
+                temperature: 0.1,
+                top_p: 0.5,
                 repeat_penalty: 1.1,
-                max_tokens: 300
+                max_tokens: 200
             },
             format: {
                 type: "object",
@@ -86,15 +86,11 @@ ${sample}`;
     }
 
     private extractSample(text: string, maxLen: number): string {
-        if (text.length <= maxLen) return text;
+        if (text.length <= maxLen) {
+            return text;
+        }
 
-        const partLen = Math.floor(maxLen / 3);
-        const start = text.slice(0, partLen);
-        const midStart = Math.floor(text.length / 2) - Math.floor(partLen / 2);
-        const middle = text.slice(midStart, midStart + partLen);
-        const end = text.slice(-partLen);
-
-        return `${start}\n[...]\n${middle}\n[...]\n${end}`;
+        return text.slice(0, maxLen);
     }
 }
 
