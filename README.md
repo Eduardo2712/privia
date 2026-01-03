@@ -80,7 +80,7 @@ npm run dev
 ## 📚 Como Usar
 
 1. **Registre-se** ou faça login na aplicação
-2. **Faça upload** de documentos (PDF, TXT, etc.)
+2. **Faça upload** de documentos TXT
 3. **Aguarde** o processamento do arquivo
 4. **Converse** com a IA sobre o conteúdo do documento
 5. **Pesquise** informações específicas nos seus documentos
