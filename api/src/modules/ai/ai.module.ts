@@ -3,7 +3,6 @@ import { HttpModule } from "@nestjs/axios";
 import { AiOllamaService } from "./ai-ollama.service";
 import * as http from "node:http";
 import * as https from "node:https";
-import { AiWarmupTask } from "./tasks/ai-warmup.task";
 import { CacheModule } from "@nestjs/cache-manager";
 import { AiGoogleService } from "./ai-google.service";
 import { AiService } from "./ai.service";
@@ -11,7 +10,7 @@ import { AiBaseService } from "./ai-base.service";
 
 @Module({
     controllers: [],
-    providers: [AiOllamaService, AiWarmupTask, AiGoogleService, AiService, AiBaseService],
+    providers: [AiOllamaService, AiGoogleService, AiService, AiBaseService],
     exports: [AiService],
     imports: [
         CacheModule.register(),
