@@ -93,12 +93,12 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull r
 
 Para reportar vulnerabilidades de segurança, entre em contato através das issues do GitHub.
 
-![Imagem](https://github.com/Eduardo2712/privia/blob/main/imagens/image_1.png)
+![Imagem](https://github.com/Eduardo2712/privia/blob/main/images/image_1.png)
 
-![Imagem](https://github.com/Eduardo2712/privia/blob/main/imagens/image_2.png)
+![Imagem](https://github.com/Eduardo2712/privia/blob/main/images/image_2.png)
 
-![Imagem](https://github.com/Eduardo2712/privia/blob/main/imagens/image_3.png)
+![Imagem](https://github.com/Eduardo2712/privia/blob/main/images/image_3.png)
 
-![Imagem](https://github.com/Eduardo2712/privia/blob/main/imagens/image_4.png)
+![Imagem](https://github.com/Eduardo2712/privia/blob/main/images/image_4.png)
 
-![Imagem](https://github.com/Eduardo2712/privia/blob/main/imagens/image_5.png)
+![Imagem](https://github.com/Eduardo2712/privia/blob/main/images/image_5.png)
