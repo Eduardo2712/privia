@@ -25,18 +25,16 @@ async function bootstrap() {
 
         const queueNames = ["process-file"];
 
-        const queues = queueNames.map(
-            (name) => {
-                console.log('aaaaa');
-                return new BullMQAdapter(
-                    new Queue(name, {
-                        connection: {
-                            host: process.env.REDIS_HOST,
-                            port: Number(process.env.REDIS_PORT)
-                        }
-                    })
-                )
-        );
+        const queues = queueNames.map((name) => {
+            return new BullMQAdapter(
+                new Queue(name, {
+                    connection: {
+                        host: process.env.REDIS_HOST,
+                        port: Number(process.env.REDIS_PORT)
+                    }
+                })
+            );
+        });
 
         createBullBoard({
             queues,
