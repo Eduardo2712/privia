@@ -197,3 +197,14 @@ export const formatProcessingTime = (milliseconds: number): string => {
 
     return `${addLeadingZero(minutes)}:${addLeadingZero(seconds)}:${String(ms).padStart(3, "0")}`;
 };
+
+export const formatDateTimeLocal = (date: Date | string): string => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = addLeadingZero(d.getMonth() + 1);
+    const day = addLeadingZero(d.getDate());
+    const hours = addLeadingZero(d.getHours());
+    const minutes = addLeadingZero(d.getMinutes());
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+};

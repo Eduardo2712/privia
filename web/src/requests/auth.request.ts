@@ -4,7 +4,6 @@ import { operations } from "../types/api-types";
 
 type LoginRequest = operations["AuthController_login"]["requestBody"]["content"]["application/json"];
 type LoginResponse = operations["AuthController_login"]["responses"]["200"];
-
 type LogoutResponse = operations["AuthController_logout"]["responses"]["200"];
 
 export const login = async (data: LoginRequest): AxiosPromise<LoginResponse> => {
