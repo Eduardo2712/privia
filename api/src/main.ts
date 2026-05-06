@@ -26,8 +26,9 @@ async function bootstrap() {
         const queueNames = ["process-file"];
 
         const queues = queueNames.map(
-            (name) =>
-                new BullMQAdapter(
+            (name) => {
+                console.log('aaaaa');
+                return new BullMQAdapter(
                     new Queue(name, {
                         connection: {
                             host: process.env.REDIS_HOST,

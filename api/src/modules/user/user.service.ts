@@ -1,7 +1,6 @@
-import { ConflictException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { UserRepository } from "./repositories/user.repository";
 import { UserEntity } from "./repositories/user.entity";
-import { LoggedUserInterface } from "../../common/interfaces/jwt.interface";
 import { compareSyncValue, hashSyncValue } from "../../common/utils/functions.util";
 import { CreateUserDto } from "./dto/create-user.dto";
 
@@ -10,6 +9,12 @@ export class UserService {
     constructor(private readonly userRepository: UserRepository) {}
 
     public async createByController(createUserDto: CreateUserDto): Promise<void> {
+        const { confirmPassword, ...createUserData } = createUserDto;
+
+        if (createUserData.password !== confirmPassword) {
+            throw new BadRequestException("Confirmação de senha inválida");
+        }
+
         const verifyEmail = await this.userRepository.findOneByEmail(createUserDto.email);
 
         if (verifyEmail) {
