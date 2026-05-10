@@ -15,31 +15,31 @@ import { MessageEntity } from "../../message/repositories/message.entity";
 @Entity("files")
 export class FileEntity {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @Column({ nullable: false, type: "integer", name: "user_id" })
-    userId: number;
+    userId!: number;
 
     @Column({ nullable: false, type: "text", name: "path" })
-    path: string;
+    path!: string;
 
     @Column({ nullable: false, type: "varchar", name: "name" })
-    name: string;
+    name!: string;
 
     @Column({ nullable: false, type: "integer", name: "size" })
-    size: number;
+    size!: number;
 
     @Column({ nullable: false, type: "varchar", name: "mime_type" })
-    mimeType: string;
+    mimeType!: string;
 
     @Column({ nullable: true, type: "text", name: "summary" })
-    summary: string;
+    summary!: string;
 
     @Column({ nullable: true, type: "text", name: "content" })
-    content: string;
+    content!: string;
 
     @Column({ nullable: false, type: "boolean", name: "is_processed", default: false })
-    isProcessed: boolean;
+    isProcessed!: boolean;
 
     @Column({ nullable: true, type: "jsonb", name: "suggested_questions" })
     suggestedQuestions?: string[];

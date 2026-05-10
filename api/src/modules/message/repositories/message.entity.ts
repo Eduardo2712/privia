@@ -17,19 +17,19 @@ import { MessageSourceEntity } from "./message-source.entity";
 @Entity("messages")
 export class MessageEntity {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @Column({ nullable: false, type: "integer", name: "file_id" })
-    fileId: number;
+    fileId!: number;
 
     @Column({ nullable: true, type: "integer", name: "user_id" })
-    userId: number;
+    userId!: number;
 
     @Column({ nullable: false, type: "enum", name: "type", enum: MessageTypeEnum })
-    type: MessageTypeEnum;
+    type!: MessageTypeEnum;
 
     @Column({ nullable: false, type: "text", name: "content" })
-    content: string;
+    content!: string;
 
     @Column({ nullable: true, type: "integer", name: "processing_time_ms" })
     processingTimeMs?: number;
