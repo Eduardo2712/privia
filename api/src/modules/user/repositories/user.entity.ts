@@ -7,20 +7,20 @@ import { MessageEntity } from "../../message/repositories/message.entity";
 @Entity("users")
 export class UserEntity {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @Column({ type: "varchar", length: 255, nullable: false, name: "name" })
-    name: string;
+    name!: string;
 
     @Column({ type: "varchar", length: 255, nullable: false, name: "email" })
-    email: string;
+    email!: string;
 
     @Column({ type: "varchar", length: 255, nullable: false, name: "phone" })
-    phone: string;
+    phone!: string;
 
     @Exclude()
     @Column({ type: "varchar", length: 255, nullable: false, name: "password" })
-    password: string;
+    password!: string;
 
     @CreateDateColumn({ name: "created_at" })
     createdAt?: Date;
